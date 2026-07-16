@@ -1,0 +1,193 @@
+{
+  "theme": {
+    "mode": "light",
+    "rationale": "Cream is specified as the primary canvas for this premium kids lifestyle brand. No dark backgrounds behind body content."
+  },
+  "typography": {
+    "instructions": "Import these via next/font/google with display: swap in the root layout.",
+    "fonts": {
+      "display": {
+        "family": "Fraunces, serif",
+        "weights": ["400", "500", "600", "700"],
+        "usage": "Headings, Hero Text, Premium Banners. Adds a warm, rounded, and friendly feel appropriate for a kids brand."
+      },
+      "body": {
+        "family": "DM Sans, sans-serif",
+        "weights": ["400", "500", "700"],
+        "usage": "Body text, UI elements, labels, buttons. Highly legible and clean."
+      }
+    },
+    "scale": {
+      "h1": "text-4xl sm:text-5xl lg:text-6xl tracking-tight leading-none",
+      "h2": "text-3xl sm:text-4xl lg:text-5xl tracking-tight leading-tight",
+      "h3": "text-2xl sm:text-3xl leading-snug",
+      "h4": "text-xl sm:text-2xl leading-snug",
+      "body": "text-base leading-relaxed",
+      "small": "text-sm leading-normal",
+      "tiny": "text-xs uppercase tracking-[0.2em] font-bold"
+    }
+  },
+  "colors": {
+    "brand_navy": {
+      "value": "#1E2A4A",
+      "usage": "Primary text, logo wordmark, headers, footer background."
+    },
+    "brand_gold": {
+      "value": "#C9992E",
+      "usage": "Accents, '&' in Jack & Jill, premium secondary CTAs, borders, dividers."
+    },
+    "brand_gradient": {
+      "start": "#E63946",
+      "mid": "#F4A63E",
+      "end": "#F7D34C",
+      "usage": "Warm gradient for banners, badges, sale tags, and primary 'Hero' CTAs. Kid-friendly warm sunset feel."
+    },
+    "backgrounds": {
+      "cream": {
+        "value": "#FFF9F2",
+        "usage": "Primary page background. No dark backgrounds behind body content."
+      },
+      "blush": {
+        "value": "#FDEEF0",
+        "usage": "Background for Girls sections."
+      },
+      "sky": {
+        "value": "#EAF4FB",
+        "usage": "Background for Boys sections."
+      }
+    },
+    "neutrals": {
+      "900": "#1A1A1A",
+      "500": "#6B7280"
+    },
+    "feedback": {
+      "success": "#2E9E5B",
+      "error": "#D64545"
+    }
+  },
+  "spacing": {
+    "scale": {
+      "section_y": "py-16 md:py-24",
+      "container_px": "px-4 sm:px-6 lg:px-8",
+      "element_gap": "gap-4 md:gap-6",
+      "section_gap": "gap-12 md:gap-20"
+    },
+    "philosophy": "Generous whitespace. Single-brand curated feel, avoiding dense marketplace looks."
+  },
+  "radii": {
+    "default": "rounded-[16px]",
+    "small": "rounded-[12px]",
+    "large": "rounded-[20px]",
+    "full": "rounded-full"
+  },
+  "components": {
+    "buttons": {
+      "primary": "bg-[#1E2A4A] text-white hover:bg-[#1E2A4A]/90 transition-transform active:scale-95 rounded-[16px] px-6 py-3 font-medium",
+      "secondary_gold": "bg-transparent border-2 border-[#C9992E] text-[#C9992E] hover:bg-[#C9992E] hover:text-white transition-all rounded-[16px] px-6 py-3 font-medium",
+      "hero_cta": "bg-gradient-to-r from-[#E63946] via-[#F4A63E] to-[#F7D34C] text-white hover:opacity-90 transition-transform hover:-translate-y-1 rounded-[16px] px-8 py-4 font-bold shadow-lg"
+    },
+    "cards": {
+      "product": "bg-white rounded-[16px] p-4 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-2 group cursor-pointer",
+      "category": "bg-white rounded-[20px] p-6 text-center shadow-sm hover:shadow-md transition-all",
+      "testimonial": "bg-[#FFF9F2] border border-[#C9992E]/20 rounded-[16px] p-6 shadow-sm"
+    },
+    "badges": {
+      "sale": "bg-gradient-to-r from-[#E63946] to-[#F4A63E] text-white text-xs font-bold px-3 py-1 rounded-full",
+      "new": "bg-[#2E9E5B] text-white text-xs font-bold px-3 py-1 rounded-full",
+      "oos": "bg-[#6B7280] text-white text-xs font-bold px-3 py-1 rounded-full"
+    },
+    "navigation": {
+      "header": "sticky top-0 z-50 bg-[#1E2A4A] text-white py-4 transition-all",
+      "hamburger_panel": "fixed inset-0 z-50 bg-[#FFF9F2] text-[#1E2A4A] transform transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]",
+      "cart_drawer": "fixed inset-y-0 right-0 z-50 w-full md:w-96 bg-[#FFF9F2] shadow-2xl transform transition-transform duration-500",
+      "mobile_filters": "fixed inset-x-0 bottom-0 z-50 rounded-t-[20px] bg-white shadow-[0_-4px_20px_rgba(0,0,0,0.1)] p-6 transform transition-transform"
+    },
+    "stepper": {
+      "timeline": "flex items-center justify-between relative",
+      "point_active": "w-4 h-4 rounded-full bg-[#2E9E5B] z-10",
+      "point_inactive": "w-4 h-4 rounded-full bg-[#6B7280]/30 z-10",
+      "line": "absolute top-1/2 left-0 right-0 h-0.5 bg-[#6B7280]/30 -z-0",
+      "line_progress": "absolute top-1/2 left-0 h-0.5 bg-[#2E9E5B] -z-0 transition-all duration-500"
+    }
+  },
+  "layouts": {
+    "homepage": {
+      "hero": "Full width Carousel (images/videos) overlayed with gradient CTA and Fraunces typography. Content centered or left-aligned depending on image composition.",
+      "categories": "Horizontally scrollable or grid of rounded avatars/cards representing age-groups and types.",
+      "most_loved": "Product shelf (carousel or grid). Generous gaps.",
+      "instagram_reels": "Carousel of vertical video placeholders.",
+      "parents_reviews": "Vimeo placeholders in testimonial cards.",
+      "trust_badges": "Strip of icons (Free Shipping, Instant Replacement, 22 Years Trust) across the layout."
+    },
+    "plp": {
+      "container": "Grid layout. Left sidebar for filters on desktop (w-64), product grid on right (grid-cols-2 md:grid-cols-3 lg:grid-cols-4). Mobile relies on a bottom-sheet drawer for filters."
+    },
+    "pdp": {
+      "container": "Two-column grid on desktop (images on left, details on right). Sticky product details on scroll. Single column on mobile."
+    }
+  },
+  "motion": {
+    "duration": {
+      "fast": "150ms",
+      "normal": "300ms",
+      "slow": "500ms"
+    },
+    "easing": {
+      "premium": "cubic-bezier(0.22, 1, 0.36, 1)",
+      "default": "ease-out"
+    },
+    "interactions": {
+      "hover_lift": "hover:-translate-y-1 lg:hover:-translate-y-2 transition-transform duration-300",
+      "fade_slide_up": "opacity-0 translate-y-4 animate-fade-in-up",
+      "focus_ring": "focus:outline-none focus:ring-2 focus:ring-[#C9992E] focus:ring-offset-2"
+    }
+  },
+  "accessibility": {
+    "contrast": "Ensure white text over brand-navy and brand-gradient meets APCA guidelines. Ensure gold accents are accessible against cream background.",
+    "tap_targets": "Minimum 44x44px for all mobile interactive elements.",
+    "testing": "All interactive and key informational elements MUST include a `data-testid` attribute. E.g., `data-testid=\"add-to-cart-button\"`."
+  },
+  "media": {
+    "image_urls": {
+      "hero": [
+        {"url": "https://images.unsplash.com/photo-1502086223501-7ea6ecd79368?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NTYxOTF8MHwxfHNlYXJjaHwxfHxoYXBweSUyMGtpZHMlMjBydW5uaW5nJTIwcGxheWluZ3xlbnwwfHx8fDE3ODQyMzY5NTB8MA&ixlib=rb-4.1.0&q=85", "description": "Happy kids playing, ideal for hero background."}
+      ],
+      "categories": [
+        {"url": "https://images.unsplash.com/photo-1768693602418-260d828b878d?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjY2NzV8MHwxfHNlYXJjaHwzfHxiYWJ5JTIwZXNzZW50aWFscyUyMGNsb3RoZXN8ZW58MHx8fHwxNzg0MjM2OTUwfDA&ixlib=rb-4.1.0&q=85", "description": "Baby essentials basket for category card"},
+        {"url": "https://images.unsplash.com/photo-1559454403-b8fb88521f11?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1ODh8MHwxfHNlYXJjaHwyfHxiYWJ5JTIwdG95c3xlbnwwfHx8fDE3ODQyMzY5NTB8MA&ixlib=rb-4.1.0&q=85", "description": "Toys category"},
+        {"url": "https://images.unsplash.com/photo-1560769629-975ec94e6a86?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA4Mzl8MHwxfHNlYXJjaHwxfHxraWRzJTIwc2hvZXN8ZW58MHx8fHwxNzg0MjM2OTQ5fDA&ixlib=rb-4.1.0&q=85", "description": "Kids footwear category"}
+      ],
+      "products": [
+        {"url": "https://images.unsplash.com/photo-1529776292731-c2246c65df5a?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1NTJ8MHwxfHNlYXJjaHwzfHxraWRzJTIwZmFzaGlvbiUyMHN0eWxlfGVufDB8fHx8MTc4NDIzNjk1MHww&ixlib=rb-4.1.0&q=85", "description": "Kids fashion product style 1"},
+        {"url": "https://images.unsplash.com/photo-1758782213532-bbb5fd89885e?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1NTJ8MHwxfHNlYXJjaHwyfHxraWRzJTIwZmFzaGlvbiUyMHN0eWxlfGVufDB8fHx8MTc4NDIzNjk1MHww&ixlib=rb-4.1.0&q=85", "description": "Kids fashion product style 2"}
+      ],
+      "testimonials": [
+        {"url": "https://images.unsplash.com/photo-1715433493252-0bc747ea78be?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NTYxOTB8MHwxfHNlYXJjaHwzfHxpbmRpYW4lMjBwYXJlbnRzJTIwd2l0aCUyMGJhYnl8ZW58MHx8fHwxNzg0MjM2OTUwfDA&ixlib=rb-4.1.0&q=85", "description": "Parents with baby"},
+        {"url": "https://images.unsplash.com/photo-1715433493371-fa3fb6ce50b7?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NTYxOTB8MHwxfHNlYXJjaHwyfHxpbmRpYW4lMjBwYXJlbnRzJTIwd2l0aCUyMGJhYnl8ZW58MHx8fHwxNzg0MjM2OTUwfDA&ixlib=rb-4.1.0&q=85", "description": "Parents with baby 2"}
+      ]
+    }
+  },
+  "instructions_to_main_agent": [
+    "Strictly adhere to the brand color tokens. Do not introduce purple, violet, or generic AI gradients.",
+    "Use 'Fraunces' for display/headings and 'DM Sans' for body text. Do not use generic fonts like Inter, Roboto, or Space Grotesk.",
+    "Ensure all interactive components use the specified border-radii (12-20px) to maintain a soft, playful, yet premium aesthetic.",
+    "Leverage the cream background (--bg-cream: #FFF9F2) as the primary canvas for all pages.",
+    "Do not use dense, generic marketplace layouts. Keep it curated, breathable, and boutique-style.",
+    "Use Framer Motion for scroll-triggered fade+slide reveals and smooth page transitions (GPU-accelerated).",
+    "Cart must be implemented as a slide-in drawer on the right side.",
+    "Mobile filters must be a bottom-sheet drawer.",
+    "Hamburger menu must include a horizontally scrollable rounded-avatar carousel for categories.",
+    "All JS/React components should use `.js` or `.jsx` extensions as specified.",
+    "Implement the animated order tracking stepper in the UI."
+  ],
+  "UNIVERSAL GUIDELINES FOR MAIN AGENT": [
+    "Do not create generic centered layouts or simplistic gradients.",
+    "Create depth through layered design elements with z-index hierarchy, but avoid dark backgrounds behind text content in this specific app.",
+    "Never apply universal transitions (e.g., `transition: all`). Target specific properties to prevent transform bugs.",
+    "Do not center align the app container in global CSS.",
+    "Avoid using emoji characters (🤖, etc.) for icons. Use lucide-react or phosphor-icons.",
+    "Every interaction needs micro-animations (hover states, focus rings, etc.).",
+    "Use 2-3x more spacing than typical defaults.",
+    "Use `sonner` for toasts."
+  ]
+}
