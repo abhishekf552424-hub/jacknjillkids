@@ -1,0 +1,58 @@
+{
+  "summary": "First-iteration full-stack review of Jack & Jill (Next.js 15 + Supabase). Storefront SSR pages, admin dashboard SSR pages, sitemap, robots.txt and Supabase-based admin login all work. However EVERY Next.js Route Handler under /api/* is unreachable from the public preview URL because the Kubernetes ingress routes /api/* to the leftover FastAPI backend on port 8001 (which only exposes /api/ 'Hello World'). This breaks checkout, order tracking, contact form, pincode check, and all admin write endpoints (settings, products, order status). Next.js API routes DO work when hit directly on http://localhost:3000, confirming the code is correct — this is a routing/infrastructure problem.",
+  "backend_issues": {
+    "critical": [
+      {"endpoint": "ingress /api/*", "issue": "Public URL routes /api/* to FastAPI (port 8001) which only has /api/ (Hello World). All Next.js Route Handlers (orders/create, track, contact, pincode/[code], admin/settings, admin/products, admin/orders/[id]/status, razorpay/verify) return {\"detail\":\"Not Found\"} with HTTP 404. Confirmed via network trace during UI test (Save Razorpay in /admin/settings hit /api/admin/settings and got 404 → 'Save failed' toast).", "priority": "CRITICAL"},
+      {"endpoint": "/api/orders/create", "issue": "Cannot be reached via public URL → checkout end-to-end is BROKEN. COD-fallback logic itself is correctly implemented in code, but the endpoint is never invoked.", "priority": "CRITICAL"},
+      {"endpoint": "/api/admin/settings", "issue": "Returns 404 (ingress-blocked) — admin cannot save Razorpay keys / shipping / contact info. Verified in browser test with authenticated super_admin session.", "priority": "CRITICAL"},
+      {"endpoint": "/api/pincode/[code]", "issue": "PDP delivery estimate fetch fails silently (404). Pincode 416001 does NOT resolve to Kolhapur in UI.", "priority": "HIGH"},
+      {"endpoint": "/api/contact", "issue": "Contact form submit returns 404, no row is ever written to contact_submissions.", "priority": "HIGH"},
+      {"endpoint": "/api/track", "issue": "Public order tracker cannot resolve any order — returns 404 for all inputs.", "priority": "HIGH"}
+    ],
+    "minor": [
+      {"endpoint": "robots.txt", "issue": "Disallow list has '/account/' (with trailing slash) but request spec wanted '/account' — behaviourally equivalent for crawlers, worth normalising."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [
+      {"component": "PDPClient pincode check", "issue": "No error/toast surfaced when /api/pincode returns 404 — user sees nothing after clicking 'Check'.", "selector": "button:has-text('Check')", "priority": "MEDIUM"},
+      {"component": "CartDrawer", "issue": "Clicking cart-toggle a second time closes the drawer instantly (toggle behaviour). After 'Add to Bag' the drawer does NOT auto-open — only a sonner toast appears; user has to click bag icon to open. This is a minor UX gap vs the spec which implies drawer opens from bag click; that click currently only toggles.", "selector": "[data-testid=\"cart-toggle\"]", "priority": "LOW"}
+    ],
+    "integration_issues": [
+      {"flow": "Checkout end-to-end", "issue": "Blocked because /api/orders/create returns 404 via public URL. Cannot verify the auto-COD fallback in a real browser session.", "affected_selectors": ["[data-testid=\"place-order-btn\"]"]},
+      {"flow": "Admin settings save", "issue": "Blocked by /api/admin/settings 404. 'Save failed' toast shown.", "affected_selectors": ["[data-testid=\"save-rzp-btn\"]"]},
+      {"flow": "Admin product create/edit", "issue": "Save button will hit /api/admin/products which is 404. Not verified interactively.", "affected_selectors": ["[data-testid=\"save-product-btn\"]"]},
+      {"flow": "Contact form", "issue": "Submit fails with 404. Also client-side name field validation not being satisfied by placeholder-based fill (the input has name=\"name\" — my selector variant matched, but the form still complained; low priority).", "affected_selectors": ["input[name=\"name\"]"]},
+      {"flow": "Public order tracking /track", "issue": "Blocked by /api/track 404."}
+    ],
+    "design_issues": [
+      {"screen": "Homepage", "issues": ["LCP hero image not marked priority (Next.js console warning)", "Overall visual quality high — brand colours, fonts, hero CTA gradient look premium."]},
+      {"screen": "Admin / Products list", "issues": ["Clean layout, sidebar navigation works, all 8 seeded products visible with slugs, prices, status, flags, Edit buttons."]}
+    ]
+  },
+  "test_report_links": ["/app/backend/tests/backend_test.py", "/app/test_reports/pytest/pytest_results.xml"],
+  "action_items": [
+    "CRITICAL: Fix /api/* routing so Next.js Route Handlers on port 3000 are reachable via the public URL. Simplest fix: replace /app/backend/server.py with a reverse-proxy (httpx/AsyncClient) that forwards every /api/* request to http://localhost:3000. Keep it running under supervisor on port 8001. This preserves the ingress contract (/api/* → 8001) while letting Next.js own its routes. Alternatively, ask platform to route /api/* to port 3000 for this project.",
+    "After the routing fix, retest: (1) POST /api/orders/create with a seeded variant, verify COD fallback + order_number returned, (2) GET /api/track?order=…&contact=… happy + 403 mismatch, (3) POST /api/contact writes a row, (4) POST /api/admin/settings with super_admin session returns 200, (5) POST /api/admin/products creates product, (6) GET /api/pincode/416001 returns serviceable=true.",
+    "Minor: mark hero LCP image with priority prop.",
+    "Minor: consider auto-opening CartDrawer after add-to-cart for better UX (currently only sonner toast; drawer opens only on manual bag click).",
+    "Verify Next.js middleware.ts session refresh still works after the proxy is in place (proxy must forward cookies & headers)."
+  ],
+  "critical_code_review_comments": [
+    "/app/backend/server.py is a stock FastAPI 'Hello World' scaffold occupying the /api namespace that Next.js needs. It has no relation to the actual Next.js app and is the sole cause of the routing outage. Either delete/replace with a proxy or remove it from supervisor.",
+    "app/api/orders/create/route.ts correctly implements the COD-fallback for placeholder Razorpay keys (checks cfg.key_id.startsWith('rzp_test_placeholder')). Nice defensive coding. Not verifiable end-to-end today due to routing.",
+    "app/api/track/route.ts correctly does case-insensitive email compare and strips non-digits before phone compare. Returns 403 on mismatch — matches spec.",
+    "Payload sizes: layout.tsx pulls full categories tree + age groups + settings on every render; consider caching (revalidateTag) once real traffic starts.",
+    "PDP pincode fetch has no visible error state when the API is unreachable — should surface a red text or toast.",
+    "next.config.mjs has good security headers. Consider adding 'Content-Security-Policy' post-launch."
+  ],
+  "updated_files": ["/app/backend/tests/backend_test.py"],
+  "success_rate": {"backend": "20 of 24 pytest assertions pass (public HTML pages + admin redirect all pass; 3 /api/* tests fail due to ingress). Effective API coverage 0% via public URL, 100% via localhost:3000.", "frontend": "SSR pages ~95% functional; every interactive flow that calls /api/* is broken (checkout, tracking, contact submit, admin writes, pincode check) — ~40% of interactive flows working."},
+  "test_credentials": "admin@jacknjillkids.com / AdminJJ@2026! — verified working (Supabase auth). No customer test account created due to /api/contact and /api/orders blockage.",
+  "seed_data_creation": "None — no writes possible via public URL. Attempted /api/contact POST failed (404).",
+  "retest_needed": true,
+  "should_main_agent_self_test": false,
+  "main_agent_can_self_test": false,
+  "context_for_next_testing_agent": "The single blocker is Kubernetes ingress routing /api/* to /app/backend (FastAPI, port 8001) which does not implement the routes. When the main agent fixes this (recommended: turn /app/backend/server.py into a reverse-proxy to http://localhost:3000 that preserves headers, cookies, method, body), re-run /app/backend/tests/backend_test.py — the 3 failing tests should turn green. Then interactively re-test checkout end-to-end (auto-COD path returns { ok: true, order_number: 'JJ…' }), admin settings save, admin product create, and public order tracker. Verify each JSON-LD schema on / (Organization, WebSite), /product/[slug] (Product), /faq (FAQPage). Verify Resend actually fires on order confirm (check backend logs).",
+  "rca of the issue": "Root cause: FastAPI scaffold on port 8001 owns /api/* per the Kubernetes ingress default, but the actual application is Next.js 15 on port 3000 with route handlers under /api. Reproduction: curl https://kids-wear-store-3.preview.emergentagent.com/api/pincode/416001 → 404 {\"detail\":\"Not Found\"} (FastAPI). curl http://localhost:3000/api/track → 400 {ok:false, error:\"Missing\"} (Next.js works). curl http://localhost:8001/api/ → 200 {\"message\":\"Hello World\"} (FastAPI scaffold). Fix: make /app/backend/server.py a transparent reverse-proxy to http://localhost:3000 so ingress→FastAPI→Next.js. All /api/* Next.js route handlers will then be reachable. Alternatively, remove backend from supervisor and reconfigure ingress to send /api/* to port 3000."
+}

@@ -101,3 +101,189 @@
 #====================================================================================================
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
+
+## Iteration 1 — Testing agent (2026-01-16)
+
+user_problem_statement: |
+  Full-stack test of Jack & Jill Next.js 15 storefront + Supabase backend.
+  All P0 flows expected to work in placeholder-Razorpay/COD-fallback mode.
+
+backend:
+  - task: "Kubernetes ingress /api/* routing to Next.js"
+    implemented: false
+    working: false
+    file: "/app/backend/server.py (blocker) + supervisor + ingress"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - agent: "testing"
+        working: false
+        comment: |
+          CRITICAL: Kubernetes ingress routes /api/* to /app/backend (FastAPI, port 8001).
+          FastAPI only exposes /api/ (Hello World) and /api/status. Every other
+          /api/* path (orders/create, track, pincode/[code], contact, admin/settings,
+          admin/products, admin/orders/[number]/status, razorpay/verify) returns
+          FastAPI 404 {"detail":"Not Found"} via the public URL. Next.js on port 3000
+          serves these correctly when hit directly (verified with curl localhost:3000).
+          Recommended fix: make /app/backend/server.py a reverse-proxy to
+          http://localhost:3000 preserving method/headers/cookies/body, so
+          ingress → FastAPI → Next.js. All Next.js API routes will then be reachable.
+
+  - task: "/api/orders/create COD fallback"
+    implemented: true
+    working: "NA"
+    file: "app/api/orders/create/route.ts"
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - agent: "testing"
+        working: "NA"
+        comment: "Cannot verify — blocked by ingress. Code review shows correct logic (auto-COD when Razorpay key starts with rzp_test_placeholder)."
+
+  - task: "/api/admin/settings save"
+    implemented: true
+    working: false
+    file: "app/api/admin/settings/route.ts"
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - agent: "testing"
+        working: false
+        comment: "Verified via UI: signed in as admin@jacknjillkids.com, went to /admin/settings, clicked Save Razorpay settings — network shows POST /api/admin/settings → 404 → 'Save failed' toast."
+
+  - task: "/api/track"
+    implemented: true
+    working: false
+    file: "app/api/track/route.ts"
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - agent: "testing"
+        working: false
+        comment: "All requests return FastAPI 404 via public URL."
+
+  - task: "/api/contact"
+    implemented: true
+    working: false
+    file: "app/api/contact/route.ts"
+    priority: "medium"
+    needs_retesting: true
+    status_history:
+      - agent: "testing"
+        working: false
+        comment: "POST returns 404 from public URL. Form UI works, submit fails."
+
+  - task: "/api/pincode/[code]"
+    implemented: true
+    working: false
+    file: "app/api/pincode/[code]/route.ts (or similar)"
+    priority: "medium"
+    needs_retesting: true
+    status_history:
+      - agent: "testing"
+        working: false
+        comment: "PDP Check button hits /api/pincode?code=416001 → 404. No user feedback surfaced."
+
+frontend:
+  - task: "Homepage full section stack"
+    implemented: true
+    working: true
+    file: "app/page.tsx, components/Header.tsx"
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - agent: "testing"
+        working: true
+        comment: "Hero CTA, sticky header w/ logo/cart/wishlist/search/account, categories, product shelves, Instagram tiles, footer all render. data-testid=hero-cta present."
+
+  - task: "PLP /shop with filters and deep-link"
+    implemented: true
+    working: true
+    file: "app/shop/page.tsx, components/plp/PLPFilters.tsx"
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - agent: "testing"
+        working: true
+        comment: "8 seeded products render. /shop?category=footwear returns 1 product (Little Explorer Sneakers). Filter data-testids present."
+
+  - task: "PDP add-to-cart"
+    implemented: true
+    working: true
+    file: "app/product/[slug]/page.tsx, components/pdp/PDPClient.tsx"
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - agent: "testing"
+        working: true
+        comment: "Variant size buttons, add-to-cart-btn work. Cart counter updates. Sonner toast shown. (Pincode check UI works but backend call 404.)"
+
+  - task: "Cart drawer"
+    implemented: true
+    working: true
+    file: "components/CartDrawer.tsx"
+    priority: "medium"
+    needs_retesting: false
+    status_history:
+      - agent: "testing"
+        working: true
+        comment: "Drawer opens from bag icon (single click toggles). Contains lines, checkout-cta present when open. Minor: drawer does not auto-open on add-to-cart."
+
+  - task: "Admin auth + dashboard"
+    implemented: true
+    working: true
+    file: "app/admin/layout.tsx, app/admin/page.tsx"
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - agent: "testing"
+        working: true
+        comment: "admin@jacknjillkids.com / AdminJJ@2026! signs in via Supabase. /admin renders full dashboard with sidebar (Dashboard/Orders/Products/Categories/Customers/Coupons/Homepage/CMS/Settings), SUPER ADMIN badge, stat cards."
+
+  - task: "Admin Products list"
+    implemented: true
+    working: true
+    file: "app/admin/products/page.tsx"
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - agent: "testing"
+        working: true
+        comment: "All 8 seeded products rendered with prices, status, flags, Edit action."
+
+  - task: "SEO — sitemap/robots/JSON-LD"
+    implemented: true
+    working: true
+    file: "app/sitemap.ts, app/robots.ts, app/layout.tsx"
+    priority: "medium"
+    needs_retesting: false
+    status_history:
+      - agent: "testing"
+        working: true
+        comment: "sitemap.xml 200, robots.txt 200 with disallow /admin/ /api/ /account/ /checkout, Organization + WebSite JSON-LD present on all pages, page titles/descriptions set."
+
+metadata:
+  created_by: "testing_agent"
+  version: "1.0"
+  test_sequence: 1
+  run_ui: true
+
+test_plan:
+  current_focus:
+    - "Kubernetes ingress /api/* routing to Next.js"
+  stuck_tasks:
+    - "Kubernetes ingress /api/* routing to Next.js"
+  test_all: false
+  test_priority: "stuck_first"
+
+agent_communication:
+  - agent: "testing"
+    message: |
+      Single blocking issue found: FastAPI scaffold at /app/backend/server.py owns /api/* per the
+      cluster's default ingress rule, but the app is Next.js 15 with route handlers under /api.
+      This makes checkout, tracking, contact, pincode-check, admin-settings-save, admin-products-CRUD,
+      and admin order-status-update all fail with 404 from the public URL. Storefront browsing,
+      SSR admin pages, admin login (Supabase client-side), sitemap, robots and all JSON-LD DO work.
+      Recommended fix: replace /app/backend/server.py with a reverse proxy to http://localhost:3000
+      forwarding method/headers/cookies/body verbatim. See /app/test_reports/iteration_1.json for full details.

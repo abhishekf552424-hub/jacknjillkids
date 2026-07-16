@@ -166,7 +166,7 @@ begin
   insert into public.product_age_groups values (p_id, age_1_2),(p_id, age_2_4),(p_id, age_4_6);
 
   -- Product 2
-  insert into public.products (name, slug, description, short_description, category_id, gender, base_price, mrp, is_featured, alt_text)
+  insert into public.products (name, slug, description, short_description, category_id, gender, base_price, mrp, is_featured, is_new_arrival, alt_text)
   values ('Little Explorer Sneakers', 'little-explorer-sneakers',
     'Lightweight anti-slip sneakers with cushioned insole and easy velcro closure. Perfect for playground adventures.',
     'Anti-slip • Velcro closure • Cushioned',
@@ -183,7 +183,7 @@ begin
   insert into public.product_age_groups values (p_id, age_2_4),(p_id, age_4_6),(p_id, age_6_8);
 
   -- Product 3
-  insert into public.products (name, slug, description, short_description, category_id, gender, base_price, mrp, is_new_arrival, alt_text)
+  insert into public.products (name, slug, description, short_description, category_id, gender, base_price, mrp, is_featured, is_new_arrival, alt_text)
   values ('Cuddle Muslin Swaddle Set', 'cuddle-muslin-swaddle-set',
     'Set of 3 breathable muslin swaddles in soothing pastels. Perfect for sleep, feed and play. Softens with every wash.',
     'Pack of 3 • 100% muslin • Breathable',
@@ -195,7 +195,7 @@ begin
     (p_id, 'One Size', 'Pastel Mix', 'CMS-OS-PM', 40);
 
   -- Product 4
-  insert into public.products (name, slug, description, short_description, category_id, gender, base_price, mrp, is_featured, alt_text)
+  insert into public.products (name, slug, description, short_description, category_id, gender, base_price, mrp, is_featured, is_new_arrival, alt_text)
   values ('Rainbow Learning Blocks', 'rainbow-learning-blocks',
     '60-piece BPA-free wooden block set to build motor skills, colours and creativity. Non-toxic paints, smooth rounded edges.',
     '60 pieces • Non-toxic • Wooden',
@@ -208,7 +208,7 @@ begin
   insert into public.product_age_groups values (p_id, age_1_2),(p_id, age_2_4);
 
   -- Product 5
-  insert into public.products (name, slug, description, short_description, category_id, gender, base_price, mrp, is_new_arrival, alt_text)
+  insert into public.products (name, slug, description, short_description, category_id, gender, base_price, mrp, is_featured, is_new_arrival, alt_text)
   values ('Adventure School Backpack', 'adventure-school-backpack',
     'Ergonomic school backpack with padded straps, water-resistant fabric and dedicated laptop sleeve. Reflective strips for safety.',
     'Ergonomic • Water-resistant • Reflective',
@@ -222,7 +222,7 @@ begin
   insert into public.product_age_groups values (p_id, age_4_6),(p_id, age_6_8);
 
   -- Product 6
-  insert into public.products (name, slug, description, short_description, category_id, gender, base_price, mrp, is_featured, alt_text)
+  insert into public.products (name, slug, description, short_description, category_id, gender, base_price, mrp, is_featured, is_new_arrival, alt_text)
   values ('Classic Denim Dungaree', 'classic-denim-dungaree',
     'Timeless denim dungaree with adjustable straps and front pocket. Pairs with any tee for effortless play-day style.',
     'Adjustable straps • Soft denim',
@@ -237,7 +237,7 @@ begin
   insert into public.product_age_groups values (p_id, age_2_4),(p_id, age_4_6),(p_id, age_6_8);
 
   -- Product 7
-  insert into public.products (name, slug, description, short_description, category_id, gender, base_price, mrp, is_new_arrival, alt_text)
+  insert into public.products (name, slug, description, short_description, category_id, gender, base_price, mrp, is_featured, is_new_arrival, alt_text)
   values ('Soft Teddy Companion', 'soft-teddy-companion',
     'Hypoallergenic plush teddy in butter-soft velour. Machine-washable, ultra-cuddly, becomes your child''s best friend.',
     'Hypoallergenic • Machine washable',
@@ -249,7 +249,7 @@ begin
     (p_id, 'Beige', 'STC-BEIGE', 25);
 
   -- Product 8
-  insert into public.products (name, slug, description, short_description, category_id, gender, base_price, mrp, is_featured, alt_text)
+  insert into public.products (name, slug, description, short_description, category_id, gender, base_price, mrp, is_featured, is_new_arrival, alt_text)
   values ('Party Twirl Princess Gown', 'party-twirl-princess-gown',
     'Tulle-layered gown with sequin bodice, made for parties and photo moments. Comfortable inner lining, easy zip back.',
     'Tulle layers • Sequin bodice',
