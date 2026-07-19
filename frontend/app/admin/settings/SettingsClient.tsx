@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { toast } from "sonner";
-import { CreditCard, Truck, Info, Save } from "lucide-react";
+import { CreditCard, Truck, Info, Save, Users, ArrowRight } from "lucide-react";
 
 export default function SettingsClient({ initial }: { initial: Record<string, any> }) {
   const [rzp, setRzp] = useState({
@@ -39,7 +40,18 @@ export default function SettingsClient({ initial }: { initial: Record<string, an
       <p className="text-xs uppercase tracking-widest text-gold font-bold">Configuration</p>
       <h1 className="font-display text-3xl text-navy tracking-tight">Settings</h1>
 
-      <div className="mt-8 grid gap-6">
+      <Link href="/admin/settings/users" className="mt-6 mb-2 flex items-center justify-between bg-white rounded-lg p-4 shadow-soft border-l-4 border-gold hover:shadow-md transition-shadow">
+        <div className="flex items-center gap-3">
+          <Users className="w-5 h-5 text-gold" />
+          <div>
+            <div className="font-medium text-navy">Admin users</div>
+            <div className="text-xs text-neutral-500">Invite, roles, deactivate, reset password</div>
+          </div>
+        </div>
+        <ArrowRight className="w-4 h-4 text-neutral-400" />
+      </Link>
+
+      <div className="mt-4 grid gap-6">
         <div className="bg-white rounded-lg p-6 shadow-soft">
           <div className="flex items-center gap-2 mb-4">
             <CreditCard className="w-4 h-4 text-gold" />
