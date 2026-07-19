@@ -4,6 +4,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { Plus, Trash2, Save } from "lucide-react";
 import { slugify } from "@/lib/utils";
+import ImageUploader from "@/components/admin/ImageUploader";
 
 type C = {
   id?: string;
@@ -86,7 +87,7 @@ export default function CategoriesClient({ initial }: { initial: C[] }) {
                     {parents.filter((p) => p.id !== c.id).map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
                   </select>
                 </td>
-                <td className="px-3 py-2"><input value={c.image_url ?? ""} onChange={(e) => update(i, { image_url: e.target.value })} placeholder="https://..." className="w-48 bg-cream rounded px-2 py-1 border border-navy/10 outline-none focus:border-gold text-xs" /></td>
+                <td className="px-3 py-2"><div className="w-48"><ImageUploader value={c.image_url ?? ""} onChange={(url) => update(i, { image_url: url })} folder="categories" label="Category image" showUrlField /></div></td>
                 <td className="px-3 py-2">
                   <select value={c.display_shape} onChange={(e) => update(i, { display_shape: e.target.value as any })} className="bg-cream rounded px-2 py-1 border border-navy/10 text-xs">
                     <option value="circle">Circle</option>

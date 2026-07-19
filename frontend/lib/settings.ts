@@ -40,3 +40,49 @@ export async function getShippingSettings() {
 export function clearRazorpayCache() {
   cache = { cfg: null, at: 0 };
 }
+
+export type BrandSettings = {
+  logo_url: string;
+  store_name: string;
+  gstin: string;
+  billing_address: string;
+  billing_state: string;
+};
+
+let brandCache: { v: BrandSettings | null; at: number } = { v: null, at: 0 };
+export async function getBrandSettings(): Promise<BrandSettings> {
+  if (brandCache.v && Date.now() - brandCache.at < 60_000) return brandCache.v;
+  const admin = createAdminClient();
+  const { data } = await admin.from("settings").select("value").eq("key", "brand").maybeSingle();
+  const v = (data?.value ?? {}) as Partial<BrandSettings>;
+  const brand: BrandSettings = {
+    logo_url: v.logo_url || "",
+    store_name: v.store_name || "Jack & Jill",
+    gstin: v.gstin || "",
+    billing_address: v.billing_address || "",
+    billing_state: v.billing_state || "Maharashtra",
+  };
+  brandCache = { v: brand, at: Date.now() };
+  return brand;
+}
+
+export async function getTrackingSettings() {
+  const admin = createAdminClient();
+  const { data } = await admin.from("settings").select("value").eq("key", "tracking").maybeSingle();
+  return (data?.value ?? { meta_pixel_id: "", ga4_id: "" }) as { meta_pixel_id: string; ga4_id: string };
+}
+
+export async function getReturnsSettings() {
+  const admin = createAdminClient();
+  const { data } = await admin.from("settings").select("value").eq("key", "returns").maybeSingle();
+  return (data?.value ?? { exchange_window_days: 7 }) as { exchange_window_days: number };
+}
+
+export async function getPromoPopup() {
+  const admin = createAdminClient();
+  const { data } = await admin.from("settings").select("value").eq("key", "promo_popup").maybeSingle();
+  return (data?.value ?? null) as null | {
+    enabled: boolean; image_url: string; link: string; headline: string; subtext: string;
+    frequency: "session" | "always"; delay_seconds: number; start_date?: string; end_date?: string;
+  };
+}

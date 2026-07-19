@@ -3,7 +3,8 @@
 import { useState } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
-import { CreditCard, Truck, Info, Save, Users, ArrowRight } from "lucide-react";
+import { CreditCard, Truck, Info, Save, Users, ArrowRight, Palette, Percent, RotateCcw } from "lucide-react";
+import ImageUploader from "@/components/admin/ImageUploader";
 
 export default function SettingsClient({ initial }: { initial: Record<string, any> }) {
   const [rzp, setRzp] = useState({
@@ -12,17 +13,30 @@ export default function SettingsClient({ initial }: { initial: Record<string, an
     webhook_secret: initial.razorpay?.webhook_secret ?? "",
     enabled: initial.razorpay?.enabled ?? false,
   });
+  const [brand, setBrand] = useState({
+    logo_url: initial.brand?.logo_url ?? "",
+    store_name: initial.brand?.store_name ?? "Jack & Jill",
+    gstin: initial.brand?.gstin ?? "",
+    billing_address: initial.brand?.billing_address ?? "",
+    billing_state: initial.brand?.billing_state ?? "Maharashtra",
+  });
   const [shipping, setShipping] = useState({
     free_above: initial.shipping?.free_above ?? 999,
     flat_fee: initial.shipping?.flat_fee ?? 79,
     gst_percent: initial.shipping?.gst_percent ?? 5,
+    gift_wrap_fee: initial.shipping?.gift_wrap_fee ?? 0,
   });
   const [cod, setCod] = useState({ enabled: initial.cod?.enabled ?? true });
+  const [returns, setReturns] = useState({ exchange_window_days: initial.returns?.exchange_window_days ?? 7 });
   const [contact, setContact] = useState({
     phone: initial.contact_info?.phone ?? "",
     email: initial.contact_info?.email ?? "",
     address: initial.contact_info?.address ?? "",
     hours: initial.contact_info?.hours ?? "",
+  });
+  const [tracking, setTracking] = useState({
+    meta_pixel_id: initial.tracking?.meta_pixel_id ?? "",
+    ga4_id: initial.tracking?.ga4_id ?? "",
   });
 
   const save = async (key: string, value: any) => {
@@ -54,6 +68,24 @@ export default function SettingsClient({ initial }: { initial: Record<string, an
       <div className="mt-4 grid gap-6">
         <div className="bg-white rounded-lg p-6 shadow-soft">
           <div className="flex items-center gap-2 mb-4">
+            <Palette className="w-4 h-4 text-gold" />
+            <h2 className="font-display text-xl text-navy">Branding &amp; store info</h2>
+          </div>
+          <div className="grid sm:grid-cols-2 gap-4">
+            <div className="sm:col-span-2">
+              <span className="text-xs uppercase tracking-widest text-navy font-bold block mb-1">Site logo</span>
+              <ImageUploader value={brand.logo_url} onChange={(url) => setBrand({ ...brand, logo_url: url })} folder="branding" label="Upload logo (PNG/SVG)" accept="image/png,image/jpeg,image/webp,image/svg+xml" maxSizeMB={2} showUrlField />
+            </div>
+            <F label="Store name" value={brand.store_name} onChange={(v) => setBrand({ ...brand, store_name: v })} />
+            <F label="GSTIN" value={brand.gstin} onChange={(v) => setBrand({ ...brand, gstin: v })} placeholder="27ABCDE1234F1Z5" />
+            <div className="sm:col-span-2"><F label="Billing / registered address (for invoices)" value={brand.billing_address} onChange={(v) => setBrand({ ...brand, billing_address: v })} /></div>
+            <F label="Billing state (for GST intra/inter)" value={brand.billing_state} onChange={(v) => setBrand({ ...brand, billing_state: v })} />
+          </div>
+          <button onClick={() => save("brand", brand)} className="mt-4 bg-navy text-white rounded px-4 py-2 text-sm flex items-center gap-2"><Save className="w-4 h-4" /> Save branding</button>
+        </div>
+
+        <div className="bg-white rounded-lg p-6 shadow-soft">
+          <div className="flex items-center gap-2 mb-4">
             <CreditCard className="w-4 h-4 text-gold" />
             <h2 className="font-display text-xl text-navy">Razorpay</h2>
           </div>
@@ -77,12 +109,28 @@ export default function SettingsClient({ initial }: { initial: Record<string, an
             <F label="Free shipping above (₹)" value={String(shipping.free_above)} onChange={(v) => setShipping({ ...shipping, free_above: Number(v) })} type="number" />
             <F label="Flat shipping fee (₹)" value={String(shipping.flat_fee)} onChange={(v) => setShipping({ ...shipping, flat_fee: Number(v) })} type="number" />
             <F label="GST %" value={String(shipping.gst_percent)} onChange={(v) => setShipping({ ...shipping, gst_percent: Number(v) })} type="number" />
+            <F label="Gift wrap fee (₹)" value={String(shipping.gift_wrap_fee)} onChange={(v) => setShipping({ ...shipping, gift_wrap_fee: Number(v) })} type="number" />
+            <F label="Size-exchange window (days)" value={String(returns.exchange_window_days)} onChange={(v) => setReturns({ exchange_window_days: Number(v) })} type="number" />
           </div>
           <label className="mt-3 flex items-center gap-2 text-sm text-navy"><input type="checkbox" checked={cod.enabled} onChange={(e) => setCod({ enabled: e.target.checked })} /> Enable Cash on Delivery</label>
-          <div className="mt-4 flex gap-2">
+          <div className="mt-4 flex flex-wrap gap-2">
             <button onClick={() => save("shipping", shipping)} className="bg-navy text-white rounded px-4 py-2 text-sm">Save shipping</button>
             <button onClick={() => save("cod", cod)} className="border border-navy/10 text-navy rounded px-4 py-2 text-sm">Save COD</button>
+            <button onClick={() => save("returns", returns)} className="border border-navy/10 text-navy rounded px-4 py-2 text-sm">Save returns policy</button>
           </div>
+        </div>
+
+        <div className="bg-white rounded-lg p-6 shadow-soft">
+          <div className="flex items-center gap-2 mb-4">
+            <Percent className="w-4 h-4 text-gold" />
+            <h2 className="font-display text-xl text-navy">Marketing &amp; analytics</h2>
+          </div>
+          <div className="grid sm:grid-cols-2 gap-4">
+            <F label="Meta (Facebook) Pixel ID" value={tracking.meta_pixel_id} onChange={(v) => setTracking({ ...tracking, meta_pixel_id: v })} placeholder="1234567890" />
+            <F label="Google Analytics 4 ID" value={tracking.ga4_id} onChange={(v) => setTracking({ ...tracking, ga4_id: v })} placeholder="G-XXXXXXX" />
+          </div>
+          <p className="text-xs text-neutral-400 mt-2">Google Shopping feed: <code>{process.env.NEXT_PUBLIC_SITE_URL || ""}/api/feed/google-shopping.xml</code></p>
+          <button onClick={() => save("tracking", tracking)} className="mt-4 bg-navy text-white rounded px-4 py-2 text-sm">Save marketing</button>
         </div>
 
         <div className="bg-white rounded-lg p-6 shadow-soft">

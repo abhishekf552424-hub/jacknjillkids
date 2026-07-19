@@ -13,9 +13,13 @@ import { cart } from "@/lib/cart";
 export default function Header({
   categoriesTree,
   ageGroups,
+  logoUrl,
+  storeName = "Jack & Jill",
 }: {
   categoriesTree: Category[];
   ageGroups: AgeGroup[];
+  logoUrl?: string;
+  storeName?: string;
 }) {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -68,10 +72,17 @@ export default function Header({
             <Menu className="w-6 h-6 text-navy" />
           </button>
 
-          <Link href="/" data-testid="logo-link" className="flex items-baseline gap-1 mr-4">
-            <span className="font-display text-2xl md:text-3xl font-bold text-navy">Jack</span>
-            <span className="font-display text-2xl md:text-3xl font-bold" style={{ background: "linear-gradient(135deg,#E63946,#F4A63E,#F7D34C)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>&amp;</span>
-            <span className="font-display text-2xl md:text-3xl font-bold text-navy">Jill</span>
+          <Link href="/" data-testid="logo-link" className="flex items-center gap-1 mr-4">
+            {logoUrl ? (
+              /* eslint-disable-next-line @next/next/no-img-element */
+              <img src={logoUrl} alt={storeName} className="h-8 md:h-10 w-auto object-contain" />
+            ) : (
+              <span className="flex items-baseline gap-1">
+                <span className="font-display text-2xl md:text-3xl font-bold text-navy">Jack</span>
+                <span className="font-display text-2xl md:text-3xl font-bold" style={{ background: "linear-gradient(135deg,#E63946,#F4A63E,#F7D34C)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>&amp;</span>
+                <span className="font-display text-2xl md:text-3xl font-bold text-navy">Jill</span>
+              </span>
+            )}
           </Link>
 
           {/* Desktop nav */}

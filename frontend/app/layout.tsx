@@ -4,6 +4,7 @@ import { Toaster } from "sonner";
 import "./globals.css";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import SiteChrome from "@/components/SiteChrome";
 import { createClient } from "@/lib/supabase/server";
 import type { Category, AgeGroup, TrustBadge } from "@/lib/types";
 
@@ -122,9 +123,12 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   return (
     <html lang="en-IN" className={`${display.variable} ${body.variable}`}>
       <body>
-        <Header categoriesTree={globals.categoriesTree} ageGroups={globals.ageGroups} />
-        <main className="min-h-[70vh]">{children}</main>
-        <Footer contact={globals.contact} brand={globals.brand} />
+        <SiteChrome
+          header={<Header categoriesTree={globals.categoriesTree} ageGroups={globals.ageGroups} logoUrl={globals.brand?.logo_url} storeName={globals.brand?.store_name} />}
+          footer={<Footer contact={globals.contact} brand={globals.brand} />}
+        >
+          {children}
+        </SiteChrome>
         <Toaster position="top-right" richColors closeButton />
         <script
           type="application/ld+json"
