@@ -2,6 +2,7 @@
 const nextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
+  allowedDevOrigins: ["children-store-dev.preview.emergentagent.com", "children-store-dev.cluster-5.preview.emergentcf.cloud", "*.emergentagent.com", "*.emergentcf.cloud"],
   images: {
     remotePatterns: [
       { protocol: "https", hostname: "images.unsplash.com" },
