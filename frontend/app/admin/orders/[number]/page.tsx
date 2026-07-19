@@ -1,6 +1,7 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import { notFound } from "next/navigation";
 import OrderStatusForm from "./OrderStatusForm";
+import OrderActions from "./OrderActions";
 import { formatINR, ORDER_STAGES } from "@/lib/utils";
 import Image from "next/image";
 import Link from "next/link";
@@ -22,6 +23,8 @@ export default async function AdminOrderDetail({ params }: { params: Promise<{ n
       <Link href="/admin/orders" className="text-xs text-gold underline">← All orders</Link>
       <h1 className="font-display text-3xl text-navy mt-1">{order.order_number}</h1>
       <p className="text-xs text-muted mt-1">Placed on {new Date(order.created_at).toLocaleString("en-IN")}</p>
+
+      <div className="mt-4"><OrderActions orderNumber={order.order_number} phone={order.shipping_address?.phone} status={order.status} /></div>
 
       <div className="mt-8 grid lg:grid-cols-[1fr_320px] gap-6">
         <div className="space-y-6">
