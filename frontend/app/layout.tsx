@@ -5,7 +5,10 @@ import "./globals.css";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import SiteChrome from "@/components/SiteChrome";
+import PromoPopup from "@/components/PromoPopup";
+import AnalyticsPixels from "@/components/AnalyticsPixels";
 import { createClient } from "@/lib/supabase/server";
+import { getTrackingSettings, getPromoPopup } from "@/lib/settings";
 import type { Category, AgeGroup, TrustBadge } from "@/lib/types";
 
 const display = Fraunces({
@@ -83,6 +86,8 @@ async function fetchGlobals() {
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const globals = await fetchGlobals();
+  const tracking = await getTrackingSettings();
+  const promo = await getPromoPopup();
 
   const orgLd = {
     "@context": "https://schema.org",
@@ -129,6 +134,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         >
           {children}
         </SiteChrome>
+        <PromoPopup popup={promo} />
+        <AnalyticsPixels gaId={tracking.ga4_id} pixelId={tracking.meta_pixel_id} />
         <Toaster position="top-right" richColors closeButton />
         <script
           type="application/ld+json"

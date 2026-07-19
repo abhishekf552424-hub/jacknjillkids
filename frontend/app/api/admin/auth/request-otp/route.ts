@@ -36,8 +36,6 @@ export async function POST(req: Request) {
       .eq("user_id", userId)
       .eq("purpose", "admin_login")
       .gte("created_at", new Date(Date.now() - 10 * 60_000).toISOString());
-    // supabase-js exposes count on the response object
-    // @ts-expect-error — count is present at runtime
     const recentCount = recent?.length ?? 0;
     if (recentCount >= 3) return NextResponse.json({ error: "Too many OTP requests. Try again in 10 minutes." }, { status: 429 });
 
