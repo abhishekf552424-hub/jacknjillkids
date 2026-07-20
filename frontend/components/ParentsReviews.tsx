@@ -2,6 +2,7 @@
 
 import { Play } from "lucide-react";
 import { motion } from "framer-motion";
+import { normalizeEmbedUrl } from "@/lib/embeds";
 
 type Video = { url: string; name?: string; caption?: string; autoplay?: boolean };
 
@@ -43,7 +44,7 @@ export default function ParentsReviews({
               <div className="relative aspect-video bg-navy flex items-center justify-center">
                 {v.url ? (
                   <iframe
-                    src={v.url}
+                    src={normalizeEmbedUrl(v.url)}
                     className="absolute inset-0 w-full h-full"
                     frameBorder={0}
                     allow="autoplay; fullscreen; picture-in-picture"

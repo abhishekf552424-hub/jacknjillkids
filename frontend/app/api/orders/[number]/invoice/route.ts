@@ -54,7 +54,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ number:
   draw(brand.store_name || "Jack & Jill", 40, 800, { size: 20, font: bold });
   draw("Tax Invoice", width - 130, 800, { size: 16, font: bold, color: rgb(0.79, 0.6, 0.18) });
   draw(brand.billing_address || "Kolhapur, Maharashtra, India", 40, 780, { size: 9, color: rgb(0.4, 0.4, 0.4) });
-  draw(`GSTIN: ${brand.gstin || "—"}`, 40, 766, { size: 9, color: rgb(0.4, 0.4, 0.4) });
+  draw(`GSTIN: ${brand.gstin || "-"}`, 40, 766, { size: 9, color: rgb(0.4, 0.4, 0.4) });
 
   // Order + customer
   draw(`Invoice #: ${order.order_number}`, 40, 730, { size: 10, font: bold });
@@ -88,7 +88,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ number:
     itemsTax += tax;
     const name = String(it.product_name || "").slice(0, 40);
     draw(name, 46, y, { size: 9 });
-    draw(String(hsnById.get(it.product_id) || "—"), 300, y, { size: 9 });
+    draw(String(hsnById.get(it.product_id) || "-"), 300, y, { size: 9 });
     draw(String(it.quantity), 350, y, { size: 9 });
     draw(fmt(taxable / Number(it.quantity)), 400, y, { size: 9 });
     draw(fmt(tax), 460, y, { size: 9 });
@@ -114,7 +114,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ number:
   draw("Grand Total", 380, y - 10, { size: 12, font: bold });
   draw(fmt(Number(order.total)), 510, y - 10, { size: 12, font: bold });
 
-  draw("Thank you for shopping with us. ❤", 40, 60, { size: 10, color: rgb(0.5, 0.5, 0.5) });
+  draw("Thank you for shopping with us.", 40, 60, { size: 10, color: rgb(0.5, 0.5, 0.5) });
   draw("This is a computer-generated invoice.", 40, 46, { size: 8, color: rgb(0.6, 0.6, 0.6) });
 
   const bytes = await pdf.save();

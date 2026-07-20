@@ -1,17 +1,15 @@
 "use client";
 
-import { useRef } from "react";
-import { motion } from "framer-motion";
-import { Instagram, Heart } from "lucide-react";
+import { useEffect, useRef } from "react";
+import Script from "next/script";
+import { Instagram } from "lucide-react";
+import { isInstagramPermalink } from "@/lib/embeds";
 
-const DEFAULTS = [
-  "https://images.unsplash.com/photo-1503944583220-79d8926ad5e2?w=600",
-  "https://images.unsplash.com/photo-1519689680058-324335c77eba?w=600",
-  "https://images.unsplash.com/photo-1584727638096-042c45049ebe?w=600",
-  "https://images.unsplash.com/photo-1622290291468-a28f7a7dc6a8?w=600",
-  "https://images.unsplash.com/photo-1522771930-78848d9293e8?w=600",
-  "https://images.unsplash.com/photo-1524183551017-8ca23bb63e8f?w=600",
-];
+declare global {
+  interface Window {
+    instgrm?: { Embeds: { process: () => void } };
+  }
+}
 
 export default function InstagramReels({
   title,
@@ -23,7 +21,15 @@ export default function InstagramReels({
   urls?: string[];
 }) {
   const scroll = useRef<HTMLDivElement>(null);
-  const items = urls?.length ? urls : DEFAULTS;
+  const items = (urls ?? []).filter((u) => isInstagramPermalink(u));
+
+  // Re-process embeds whenever URLs change or the script has already loaded.
+  useEffect(() => {
+    if (typeof window !== "undefined" && window.instgrm?.Embeds) {
+      window.instgrm.Embeds.process();
+    }
+  }, [urls]);
+
   return (
     <section className="container py-16 md:py-20" data-testid="instagram-reels">
       <div className="flex items-end justify-between mb-6 gap-4">
@@ -37,29 +43,58 @@ export default function InstagramReels({
           target="_blank"
           rel="noreferrer"
           className="hidden sm:inline-flex items-center gap-2 text-sm font-medium text-navy hover:text-gold transition-colors"
+          data-testid="instagram-profile-link"
         >
           <Instagram className="w-4 h-4" /> @jacknjill_kolhapur
         </a>
       </div>
-      <div ref={scroll} className="flex gap-3 md:gap-4 overflow-x-auto no-scrollbar snap-x snap-mandatory">
-        {items.map((u, i) => (
-          <motion.a
-            key={i}
-            href="https://instagram.com/jacknjill_kolhapur"
-            target="_blank"
-            rel="noreferrer"
-            whileHover={{ y: -4 }}
-            className="relative min-w-[70%] sm:min-w-[280px] aspect-[9/16] rounded-lg overflow-hidden snap-start shadow-soft group"
-          >
-            <img src={u} alt={`Reel ${i + 1}`} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
-            <div className="absolute inset-0 bg-gradient-to-t from-navy/70 via-transparent to-transparent" />
-            <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between text-white text-xs">
-              <span className="flex items-center gap-1"><Heart className="w-3.5 h-3.5" /> Watch</span>
-              <Instagram className="w-4 h-4" />
+
+      {items.length === 0 ? (
+        <div className="rounded-lg border border-dashed border-gold/40 bg-cream/40 p-10 text-center text-sm text-muted">
+          No Instagram reels added yet.
+        </div>
+      ) : (
+        <div
+          ref={scroll}
+          className="flex gap-4 md:gap-5 overflow-x-auto no-scrollbar snap-x snap-mandatory pb-2"
+          data-testid="instagram-reels-scroll"
+        >
+          {items.map((u, i) => (
+            <div
+              key={`${u}-${i}`}
+              className="min-w-[85%] sm:min-w-[360px] max-w-[420px] snap-start"
+              data-testid={`instagram-reel-${i}`}
+            >
+              <blockquote
+                className="instagram-media"
+                data-instgrm-permalink={u}
+                data-instgrm-version="14"
+                style={{
+                  background: "#FFF",
+                  border: 0,
+                  borderRadius: 8,
+                  boxShadow: "0 0 1px 0 rgba(0,0,0,0.5), 0 1px 10px 0 rgba(0,0,0,0.15)",
+                  margin: 0,
+                  padding: 0,
+                  width: "100%",
+                }}
+              >
+                <a href={u} target="_blank" rel="noreferrer">View on Instagram</a>
+              </blockquote>
             </div>
-          </motion.a>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
+
+      <Script
+        src="https://www.instagram.com/embed.js"
+        strategy="afterInteractive"
+        onLoad={() => {
+          if (typeof window !== "undefined" && window.instgrm?.Embeds) {
+            window.instgrm.Embeds.process();
+          }
+        }}
+      />
     </section>
   );
 }
