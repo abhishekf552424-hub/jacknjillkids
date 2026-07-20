@@ -17,16 +17,28 @@ export async function sendEmail(opts: {
     return { ok: false, id: null };
   }
   try {
-    const from = process.env.MAIL_FROM || "onboarding@resend.dev";
+    const rawFrom = (process.env.MAIL_FROM || "onboarding@resend.dev").trim();
+    // If MAIL_FROM already includes an email inside angle brackets (e.g. `Jack & Jill <foo@bar>`),
+    // use it as-is. Otherwise treat it as a bare address and prepend the brand name.
+    const from = /<[^>]+@[^>]+>/.test(rawFrom) ? rawFrom : `Jack & Jill <${rawFrom}>`;
     const res = await r.emails.send({
-      from: `Jack & Jill <${from}>`,
+      from,
       to: Array.isArray(opts.to) ? opts.to : [opts.to],
       subject: opts.subject,
       html: opts.html,
     });
+    if ((res as any).error) {
+      console.error("[resend] send failed:", (res as any).error);
+      // Fallback: if any OTP/verification email in the body, log it so testing can continue
+      const m = opts.html.match(/>(\d{6})</);
+      if (m) console.warn(`[DEV OTP FALLBACK] ${Array.isArray(opts.to) ? opts.to.join(",") : opts.to}: ${m[1]}`);
+      return { ok: false, id: null };
+    }
     return { ok: true, id: res.data?.id ?? null };
   } catch (e: any) {
     console.error("[resend] send failed:", e?.message ?? e);
+    const m = opts.html.match(/>(\d{6})</);
+    if (m) console.warn(`[DEV OTP FALLBACK] ${Array.isArray(opts.to) ? opts.to.join(",") : opts.to}: ${m[1]}`);
     return { ok: false, id: null };
   }
 }
