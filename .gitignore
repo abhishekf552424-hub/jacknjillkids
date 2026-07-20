@@ -94,3 +94,8 @@ frontend/.env.local
 !frontend/.env.example
 !backend/.env.example
 frontend/.next/cache/webpack/server-production/0.pack
+.env.*
+*.env
+credentials.json
+*.key
+.credentials

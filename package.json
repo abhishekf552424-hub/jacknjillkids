@@ -2,9 +2,9 @@
   "name": "jacknjillkids-workspace",
   "private": true,
   "scripts": {
-    "dev": "cd frontend && yarn dev",
-    "build": "cd frontend && yarn build",
-    "start": "cd frontend && yarn start",
-    "install-all": "cd frontend && yarn install"
+    "dev": "cd frontend && npm run dev",
+    "build": "cd frontend && npm install && npm run build",
+    "start": "cd frontend && npm run start",
+    "install-all": "cd frontend && npm install"
   }
 }
