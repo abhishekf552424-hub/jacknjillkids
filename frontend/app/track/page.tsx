@@ -28,27 +28,27 @@ export default function TrackPage() {
       <h1 className="font-display text-3xl md:text-4xl text-navy tracking-tight">Where's my order?</h1>
       <p className="mt-2 text-muted">Enter your order number and the email or phone used at checkout.</p>
 
-      <form onSubmit={submit} className="mt-8 bg-white rounded-lg p-6 shadow-soft space-y-4" data-testid="track-form">
+      <form onSubmit={submit} className="mt-8 bg-white rounded-lg p-6 shadow-soft space-y-4 border border-navy/5" data-testid="track-form">
         <div>
-          <label className="text-xs uppercase tracking-widest font-bold text-navy">Order number</label>
+          <label className="text-[11px] uppercase tracking-widest font-bold text-navy">Order number</label>
           <input
             data-testid="track-order"
             value={orderNumber}
             onChange={(e) => setOrderNumber(e.target.value.trim().toUpperCase())}
             placeholder="e.g. JJ100001"
-            className="mt-1 w-full bg-cream border border-navy/10 rounded px-3 py-2.5 text-sm outline-none focus:border-gold"
+            className="mt-1 w-full bg-cream border border-navy/10 rounded-md px-3 py-2.5 text-sm outline-none focus:border-gold focus:ring-2 focus:ring-gold/20 focus:bg-white transition-all"
           />
         </div>
         <div>
-          <label className="text-xs uppercase tracking-widest font-bold text-navy">Email or phone</label>
+          <label className="text-[11px] uppercase tracking-widest font-bold text-navy">Email or phone</label>
           <input
             data-testid="track-contact"
             value={contact}
             onChange={(e) => setContact(e.target.value)}
-            className="mt-1 w-full bg-cream border border-navy/10 rounded px-3 py-2.5 text-sm outline-none focus:border-gold"
+            className="mt-1 w-full bg-cream border border-navy/10 rounded-md px-3 py-2.5 text-sm outline-none focus:border-gold focus:ring-2 focus:ring-gold/20 focus:bg-white transition-all"
           />
         </div>
-        <button disabled={busy} data-testid="track-submit" className="w-full bg-navy text-white rounded py-3 font-medium disabled:opacity-60 flex items-center justify-center gap-2">
+        <button disabled={busy} data-testid="track-submit" className="w-full bg-navy text-white rounded-md py-3 font-bold disabled:opacity-60 hover:opacity-90 transition-opacity flex items-center justify-center gap-2">
           <Search className="w-4 h-4" /> {busy ? "Searching..." : "Track order"}
         </button>
       </form>

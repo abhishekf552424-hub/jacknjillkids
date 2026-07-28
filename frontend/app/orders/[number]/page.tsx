@@ -51,16 +51,16 @@ export default async function OrderPage({
       <div className="mt-8 bg-white rounded-lg p-6 shadow-soft" data-testid="order-tracker">
         <div className="relative">
           <div className="absolute top-3 left-0 right-0 h-0.5 bg-navy/10 rounded-full" />
-          <div className="absolute top-3 left-0 h-0.5 bg-success rounded-full transition-all duration-700" style={{ width: `${progress}%` }} />
+          <div className="absolute top-3 left-0 h-0.5 bg-brand-gradient rounded-full transition-all duration-700" style={{ width: `${progress}%` }} />
           <div className="relative flex justify-between">
             {ORDER_STAGES.map((s, i) => {
               const done = i <= activeIdx && order.status !== "cancelled";
               return (
                 <div key={s.key} className="flex flex-col items-center gap-2 min-w-0" style={{ flex: 1 }}>
-                  <div className={`w-6 h-6 rounded-full flex items-center justify-center ${done ? "bg-success text-white" : "bg-navy/10 text-navy/40"}`}>
+                  <div className={`w-6 h-6 rounded-full flex items-center justify-center ${done ? "bg-brand-gradient text-white shadow-soft" : "bg-navy/10 text-navy/40"}`}>
                     {done ? <CheckCircle2 className="w-3.5 h-3.5" /> : <Circle className="w-3 h-3" />}
                   </div>
-                  <span className={`text-[10px] md:text-xs text-center leading-tight ${done ? "text-navy font-medium" : "text-muted"}`}>{s.label}</span>
+                  <span className={`text-[10px] md:text-xs text-center leading-tight ${done ? "text-navy font-bold" : "text-muted"}`}>{s.label}</span>
                 </div>
               );
             })}

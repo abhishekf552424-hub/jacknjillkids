@@ -54,7 +54,7 @@ export default function AuthPage() {
 
   return (
     <div className="container py-16 min-h-[70vh] flex items-center justify-center">
-      <div className="w-full max-w-md bg-white rounded-lg shadow-soft p-8">
+      <div className="w-full max-w-md bg-white rounded-lg shadow-premium p-8 border border-navy/5">
         <p className="text-xs uppercase tracking-widest text-gold font-bold text-center">Welcome</p>
         <h1 className="mt-2 font-display text-3xl text-navy text-center tracking-tight">
           {mode === "login" ? "Sign in to Jack & Jill" : "Create your account"}
@@ -63,19 +63,19 @@ export default function AuthPage() {
         <form onSubmit={submit} className="mt-8 space-y-4" data-testid="auth-form">
           {mode === "register" && (
             <div className="relative">
-              <UserIcon className="w-4 h-4 text-muted absolute left-3 top-1/2 -translate-y-1/2" />
+              <UserIcon className="w-4 h-4 text-muted absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
               <input
                 data-testid="auth-name"
                 required
                 placeholder="Full name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full pl-10 pr-3 py-3 bg-cream rounded border border-navy/10 focus:border-gold outline-none text-sm"
+                className="w-full pl-10 pr-3 py-3 bg-cream rounded-md border border-navy/10 focus:border-gold focus:ring-2 focus:ring-gold/20 focus:bg-white outline-none text-sm transition-all"
               />
             </div>
           )}
           <div className="relative">
-            <Mail className="w-4 h-4 text-muted absolute left-3 top-1/2 -translate-y-1/2" />
+            <Mail className="w-4 h-4 text-muted absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
             <input
               data-testid="auth-email"
               required
@@ -83,11 +83,11 @@ export default function AuthPage() {
               placeholder="Email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full pl-10 pr-3 py-3 bg-cream rounded border border-navy/10 focus:border-gold outline-none text-sm"
+              className="w-full pl-10 pr-3 py-3 bg-cream rounded-md border border-navy/10 focus:border-gold focus:ring-2 focus:ring-gold/20 focus:bg-white outline-none text-sm transition-all"
             />
           </div>
           <div className="relative">
-            <Lock className="w-4 h-4 text-muted absolute left-3 top-1/2 -translate-y-1/2" />
+            <Lock className="w-4 h-4 text-muted absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
             <input
               data-testid="auth-password"
               required
@@ -96,13 +96,13 @@ export default function AuthPage() {
               placeholder="Password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full pl-10 pr-3 py-3 bg-cream rounded border border-navy/10 focus:border-gold outline-none text-sm"
+              className="w-full pl-10 pr-3 py-3 bg-cream rounded-md border border-navy/10 focus:border-gold focus:ring-2 focus:ring-gold/20 focus:bg-white outline-none text-sm transition-all"
             />
           </div>
           <button
             data-testid="auth-submit"
             disabled={loading}
-            className="w-full bg-navy text-white rounded py-3 font-medium disabled:opacity-60"
+            className="w-full bg-navy text-white rounded-md py-3 font-bold disabled:opacity-60 hover:opacity-90 transition-opacity"
           >
             {loading ? "Please wait..." : mode === "login" ? "Sign in" : "Create account"}
           </button>
@@ -113,7 +113,7 @@ export default function AuthPage() {
           <span className="relative bg-white px-3 text-xs text-muted uppercase tracking-widest">or</span>
         </div>
 
-        <button onClick={otpSend} disabled={loading} className="w-full border-2 border-gold text-gold rounded py-3 font-medium hover:bg-gold hover:text-white transition-all">
+        <button onClick={otpSend} disabled={loading} className="w-full border-2 border-gold text-gold rounded-md py-3 font-bold hover:bg-gold hover:text-white transition-all">
           Email me a magic link
         </button>
 
@@ -122,7 +122,7 @@ export default function AuthPage() {
           <button
             data-testid="auth-toggle"
             onClick={() => setMode(mode === "login" ? "register" : "login")}
-            className="text-gold underline"
+            className="text-gold underline font-bold"
           >
             {mode === "login" ? "Create account" : "Sign in"}
           </button>
