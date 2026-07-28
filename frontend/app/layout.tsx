@@ -126,6 +126,34 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       "query-input": "required name=query",
     },
   };
+  const localBusinessLd = {
+    "@context": "https://schema.org",
+    "@type": "ClothingStore",
+    "@id": `${SITE_URL}/#store`,
+    name: "Jack & Jill",
+    image: `${SITE_URL}/logo.svg`,
+    url: SITE_URL,
+    telephone: "+91-83299-84160",
+    priceRange: "₹₹",
+    address: {
+      "@type": "PostalAddress",
+      streetAddress: "Opp. Shahji Law College, E Ward, Shahupuri",
+      addressLocality: "Kolhapur",
+      addressRegion: "Maharashtra",
+      postalCode: "416001",
+      addressCountry: "IN",
+    },
+    geo: { "@type": "GeoCoordinates", latitude: 16.7050, longitude: 74.2433 },
+    openingHoursSpecification: [
+      {
+        "@type": "OpeningHoursSpecification",
+        dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
+        opens: "10:00",
+        closes: "21:00",
+      },
+    ],
+    sameAs: [globals.brand?.instagram, globals.brand?.facebook].filter(Boolean),
+  };
 
   return (
     <html lang="en-IN" className={`${display.variable} ${body.variable}`}>
@@ -146,6 +174,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteLd) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(localBusinessLd) }}
         />
       </body>
     </html>

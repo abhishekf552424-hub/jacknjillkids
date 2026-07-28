@@ -25,9 +25,14 @@ export async function generateMetadata({ searchParams }: { searchParams: Promise
   if (sp.category) bits.push(sp.category.replace(/-/g, " "));
   if (sp.age) bits.push(`(${sp.age.replace(/-/g, " ")})`);
   const t = bits.length ? `Shop ${bits.join(" ")} — Jack & Jill` : "Shop All — Jack & Jill";
+  const site = process.env.NEXT_PUBLIC_SITE_URL || "";
+  // Canonical: strip filter/sort/page params to avoid duplicate-content variants.
+  const canonical = sp.category ? `${site}/shop?category=${sp.category}` : `${site}/shop`;
   return {
     title: t,
     description: "Premium kids fashion, footwear, baby essentials, toys and gift hampers. Free shipping above ₹999.",
+    alternates: { canonical },
+    openGraph: { title: t, url: canonical, type: "website" },
   };
 }
 
@@ -46,10 +51,10 @@ export default async function ShopPage({ searchParams }: { searchParams: Promise
   const catBySlug = new Map(categories.map((c) => [c.slug, c]));
   const selectedCat = sp.category ? catBySlug.get(sp.category) : undefined;
 
-  // Build query
+  // Build query — only columns needed by ProductCard.
   let query = supabase
     .from("products")
-    .select("*, images:product_images(url,alt_text,sort_order)", { count: "exact" })
+    .select("id, slug, name, brand, base_price, mrp, status, is_featured, is_new_arrival, alt_text, gender, images:product_images(url,alt_text,sort_order)", { count: "exact" })
     .eq("status", "active");
 
   if (selectedCat) {
@@ -106,8 +111,22 @@ export default async function ShopPage({ searchParams }: { searchParams: Promise
 
   const total = count ?? products.length;
 
+  const site = process.env.NEXT_PUBLIC_SITE_URL || "";
+  const breadcrumbLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Home", item: `${site}/` },
+      { "@type": "ListItem", position: 2, name: "Shop", item: `${site}/shop` },
+      ...(selectedCat
+        ? [{ "@type": "ListItem", position: 3, name: selectedCat.name, item: `${site}/shop?category=${selectedCat.slug}` }]
+        : []),
+    ],
+  };
+
   return (
     <div className="container py-8 md:py-12">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }} />
       {/* Breadcrumb */}
       <nav aria-label="Breadcrumb" className="text-xs text-muted mb-4 flex items-center gap-1.5">
         <Link href="/" className="hover:text-navy">Home</Link>
