@@ -132,6 +132,8 @@ export type HomepageSection = {
 export type TrustBadge = {
   id: string;
   icon: string | null;
+  icon_type?: string | null;
+  icon_url?: string | null;
   label: string;
   subtext: string | null;
   sort_order: number;

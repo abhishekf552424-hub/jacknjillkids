@@ -1,15 +1,15 @@
 import type { MetadataRoute } from "next";
-import { createAdminClient } from "@/lib/supabase/admin";
+import { createClient } from "@/lib/supabase/server";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://alankarfashions.com";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const admin = createAdminClient();
+  const supabase = await createClient();
 
   const [{ data: products }, { data: cats }, { data: pages }] = await Promise.all([
-    admin.from("products").select("slug, updated_at").eq("status", "active"),
-    admin.from("categories").select("slug").eq("is_active", true),
-    admin.from("cms_pages").select("slug, updated_at"),
+    supabase.from("products").select("slug, updated_at").eq("status", "active"),
+    supabase.from("categories").select("slug").eq("is_active", true),
+    supabase.from("cms_pages").select("slug, updated_at"),
   ]);
 
   const now = new Date();

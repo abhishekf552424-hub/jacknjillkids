@@ -11,12 +11,13 @@ async function requireAdmin() {
   return { user };
 }
 
-export async function DELETE(_req: Request, { params }: { params: { pincode: string } }) {
+export async function DELETE(_req: Request, { params }: { params: Promise<{ pincode: string }> }) {
   const g = await requireAdmin();
   if ("error" in g) return NextResponse.json({ ok: false, error: g.error }, { status: g.status });
   
+  const { pincode } = await params;
   const admin = createAdminClient();
-  const { error } = await admin.from("pincodes").delete().eq("pincode", params.pincode);
+  const { error } = await admin.from("pincodes").delete().eq("pincode", pincode);
   
   if (error) return NextResponse.json({ ok: false, error: error.message }, { status: 400 });
   return NextResponse.json({ ok: true });
