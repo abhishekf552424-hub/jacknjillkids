@@ -54,8 +54,21 @@ export const metadata: Metadata = {
     locale: "en_IN",
     siteName: "Jack & Jill",
     url: SITE_URL,
+    images: [
+      {
+        url: `${SITE_URL}/og-default.png`,
+        width: 1200,
+        height: 630,
+        alt: "Jack & Jill — Premium Kids Fashion & Baby Essentials",
+      },
+    ],
   },
-  twitter: { card: "summary_large_image" },
+  twitter: {
+    card: "summary_large_image",
+    title: "Jack & Jill — Premium Kids Fashion & Baby Essentials",
+    description: "22 years of making parenting simpler. Style • Comfort • Care.",
+    images: [`${SITE_URL}/og-default.png`],
+  },
   robots: { index: true, follow: true },
   alternates: { canonical: SITE_URL },
 };
@@ -157,6 +170,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
   return (
     <html lang="en-IN" className={`${display.variable} ${body.variable}`}>
+      <head>
+        {/* Dynamic favicon + apple-touch-icon from admin-uploaded brand logo (falls back to /favicon.ico if not set) */}
+        <link rel="icon" href={globals.brand?.logo_url || "/favicon.ico"} />
+        <link rel="apple-touch-icon" href={globals.brand?.logo_url || "/favicon.ico"} />
+      </head>
       <body>
         <SiteChrome
           header={<Header categoriesTree={globals.categoriesTree} ageGroups={globals.ageGroups} logoUrl={globals.brand?.logo_url} storeName={globals.brand?.store_name} />}
