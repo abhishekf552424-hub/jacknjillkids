@@ -210,7 +210,16 @@ export default function Header({
               data-testid="hamburger-panel"
             >
               <div className="flex items-center justify-between p-4 border-b border-navy/10">
-                <span className="font-display text-2xl font-bold text-navy">Jack &amp; Jill</span>
+                {logoUrl ? (
+                  /* eslint-disable-next-line @next/next/no-img-element */
+                  <img src={logoUrl} alt={storeName} className="h-9 w-auto object-contain" />
+                ) : (
+                  <span className="flex items-baseline gap-1">
+                    <span className="font-display text-2xl font-bold text-navy">Jack</span>
+                    <span className="font-display text-2xl font-bold" style={{ background: "linear-gradient(135deg,#E63946,#F4A63E,#F7D34C)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>&amp;</span>
+                    <span className="font-display text-2xl font-bold text-navy">Jill</span>
+                  </span>
+                )}
                 <button data-testid="menu-close" aria-label="Close" onClick={() => setMenuOpen(false)} className="p-2 rounded-full hover:bg-navy/5">
                   <X className="w-6 h-6 text-navy" />
                 </button>

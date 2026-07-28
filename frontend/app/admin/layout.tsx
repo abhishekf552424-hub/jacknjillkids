@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import AdminShell from "./AdminShell";
+import { getBrandSettings } from "@/lib/settings";
 
 export const dynamic = "force-dynamic";
 
@@ -29,8 +30,11 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     redirect("/admin/login");
   }
 
+  // Same brand settings used by the public Header — single source of truth.
+  const brand = await getBrandSettings();
+
   return (
-    <AdminShell role={profile.role} name={profile.full_name || user.email || ""}>
+    <AdminShell role={profile.role} name={profile.full_name || user.email || ""} logoUrl={brand.logo_url}>
       {children}
     </AdminShell>
   );

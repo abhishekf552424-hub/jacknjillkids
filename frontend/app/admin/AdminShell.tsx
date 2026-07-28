@@ -22,7 +22,7 @@ const NAV = [
   { href: "/admin/settings",     label: "Settings",   icon: Settings,        roles: ["super_admin"] },
 ];
 
-export default function AdminShell({ role, name, children }: { role: string; name: string; children: React.ReactNode }) {
+export default function AdminShell({ role, name, logoUrl, children }: { role: string; name: string; logoUrl?: string; children: React.ReactNode }) {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
   const items = NAV.filter((n) => n.roles.includes(role));
@@ -36,6 +36,18 @@ export default function AdminShell({ role, name, children }: { role: string; nam
     router.refresh();
   };
 
+  const Logo = () =>
+    logoUrl ? (
+      /* eslint-disable-next-line @next/next/no-img-element */
+      <img src={logoUrl} alt="Jack & Jill" className="h-9 w-auto object-contain bg-white rounded-md p-1" />
+    ) : (
+      <span className="flex items-baseline gap-1">
+        <span className="font-display text-2xl font-bold text-white">Jack</span>
+        <span className="font-display text-2xl font-bold text-gold">&amp;</span>
+        <span className="font-display text-2xl font-bold text-white">Jill</span>
+      </span>
+    );
+
   return (
     <div data-admin className="min-h-screen bg-neutral-50 flex">
       {/* Sidebar (desktop) + Drawer (mobile) */}
@@ -43,10 +55,8 @@ export default function AdminShell({ role, name, children }: { role: string; nam
         className={`fixed md:sticky top-0 left-0 z-40 h-screen w-[260px] bg-navy text-white py-6 px-3 flex flex-col transform transition-transform duration-200 ${open ? "translate-x-0" : "-translate-x-full md:translate-x-0"}`}
       >
         <div className="px-2 flex items-center justify-between mb-6">
-          <Link href="/admin" className="flex items-baseline gap-1" onClick={() => setOpen(false)}>
-            <span className="font-display text-2xl font-bold text-white">Jack</span>
-            <span className="font-display text-2xl font-bold text-gold">&amp;</span>
-            <span className="font-display text-2xl font-bold text-white">Jill</span>
+          <Link href="/admin" className="flex items-center gap-2" onClick={() => setOpen(false)} data-testid="admin-logo">
+            <Logo />
           </Link>
           <button onClick={() => setOpen(false)} className="md:hidden text-white/70 p-1" aria-label="Close menu"><X className="w-5 h-5" /></button>
         </div>

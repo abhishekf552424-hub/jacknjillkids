@@ -6,11 +6,16 @@ export default function Footer({ contact, brand }: { contact: any; brand: any })
     <footer className="bg-navy text-white/90 mt-24" data-testid="site-footer">
       <div className="container py-16 grid grid-cols-2 md:grid-cols-5 gap-10">
         <div className="col-span-2 md:col-span-2">
-          <div className="flex items-baseline gap-1 mb-3">
-            <span className="font-display text-3xl font-bold text-white">Jack</span>
-            <span className="font-display text-3xl font-bold text-gold">&amp;</span>
-            <span className="font-display text-3xl font-bold text-white">Jill</span>
-          </div>
+          {brand?.logo_url ? (
+            /* eslint-disable-next-line @next/next/no-img-element */
+            <img src={brand.logo_url} alt={brand?.name || "Jack & Jill"} className="h-11 w-auto object-contain bg-white rounded-md p-1 mb-3" />
+          ) : (
+            <div className="flex items-baseline gap-1 mb-3">
+              <span className="font-display text-3xl font-bold text-white">Jack</span>
+              <span className="font-display text-3xl font-bold text-gold">&amp;</span>
+              <span className="font-display text-3xl font-bold text-white">Jill</span>
+            </div>
+          )}
           <p className="text-sm opacity-70 mb-4 max-w-sm leading-relaxed">Kolhapur&apos;s trusted kids brand since 2003. Style, comfort and care for newborn to teens.</p>
           <div className="flex gap-3">
             {brand?.instagram && (
