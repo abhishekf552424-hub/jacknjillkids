@@ -72,6 +72,8 @@ export default function HomepageClient({ initial, products, promo }: { initial: 
             {r.section_type === "brand_story" && <BrandStoryEditor config={r.config} onChange={(c) => update(r.id, { config: c })} />}
             {r.section_type === "parents_reviews" && <ParentsReviewsEditor config={r.config} onChange={(c) => update(r.id, { config: c })} />}
             {r.section_type === "trust_badges" && <p className="text-xs text-neutral-400">Trust badges are managed under <a className="underline" href="/admin/cms">CMS &rarr; Trust badges</a>.</p>}
+            {r.section_type === "marquee" && <MarqueeEditor config={r.config} onChange={(c) => update(r.id, { config: c })} />}
+            {r.section_type === "promo_strip" && <PromoStripEditor config={r.config} onChange={(c) => update(r.id, { config: c })} />}
           </div>
         ))}
       </div>
@@ -243,3 +245,57 @@ function ParentsReviewsEditor({ config, onChange }: { config: any; onChange: (c:
     </div>
   );
 }
+
+function MarqueeEditor({ config, onChange }: { config: any; onChange: (c: any) => void }) {
+  const items: string[] = (config?.items || []) as string[];
+  const set = (arr: string[]) => onChange({ ...(config || {}), items: arr });
+  return (
+    <div className="space-y-2">
+      <p className="text-[11px] text-neutral-500">Short rotating brand messages — kept crisp (e.g. Free Shipping ₹999+ • Easy 7-Day Returns).</p>
+      {items.map((v, i) => (
+        <div key={i} className="grid grid-cols-[1fr_auto_auto_auto] gap-2 items-center">
+          <input value={v} onChange={(e) => set(items.map((x, j) => j === i ? e.target.value : x))} placeholder="Message" className="border rounded px-2 py-1.5 text-sm" />
+          <button onClick={() => { if (i > 0) { const a = [...items];[a[i], a[i-1]] = [a[i-1], a[i]]; set(a); } }} className="p-1.5 hover:bg-neutral-100 rounded"><ArrowUp className="w-3.5 h-3.5" /></button>
+          <button onClick={() => { if (i < items.length - 1) { const a = [...items];[a[i], a[i+1]] = [a[i+1], a[i]]; set(a); } }} className="p-1.5 hover:bg-neutral-100 rounded"><ArrowDown className="w-3.5 h-3.5" /></button>
+          <button onClick={() => set(items.filter((_, j) => j !== i))} className="p-1.5 text-error"><Trash2 className="w-3.5 h-3.5" /></button>
+        </div>
+      ))}
+      <div className="flex items-center gap-3 flex-wrap">
+        <button onClick={() => set([...items, ""])} className="text-sm text-gold flex items-center gap-1"><Plus className="w-4 h-4" /> Add message</button>
+        <label className="text-xs text-neutral-500 flex items-center gap-2">Speed (sec)
+          <input type="number" min={15} max={120} value={config?.speed_sec || 30} onChange={(e) => onChange({ ...(config || {}), speed_sec: Number(e.target.value) })} className="w-20 border rounded px-2 py-1 text-xs" />
+        </label>
+      </div>
+    </div>
+  );
+}
+
+function PromoStripEditor({ config, onChange }: { config: any; onChange: (c: any) => void }) {
+  const cards: any[] = (config?.cards || []) as any[];
+  const set = (arr: any[]) => onChange({ ...(config || {}), cards: arr });
+  const patch = (i: number, p: any) => set(cards.map((x, j) => j === i ? { ...x, ...p } : x));
+  return (
+    <div className="space-y-3">
+      <p className="text-[11px] text-neutral-500">3 clickable image-backed cards. Stacks on mobile, side-by-side on desktop.</p>
+      {cards.map((c, i) => (
+        <div key={i} className="border border-neutral-200 rounded-lg p-3 grid md:grid-cols-[200px_1fr_auto] gap-3 items-start">
+          <ImageUploader value={c.image || ""} folder="promo-strip" onChange={(url) => patch(i, { image: url })} showUrlField />
+          <div className="grid gap-2">
+            <input value={c.headline || ""} onChange={(e) => patch(i, { headline: e.target.value })} placeholder="Headline" className="border rounded px-2 py-1.5 text-sm" />
+            <input value={c.subtext || ""} onChange={(e) => patch(i, { subtext: e.target.value })} placeholder="Small subtext (optional)" className="border rounded px-2 py-1.5 text-sm" />
+            <input value={c.link || ""} onChange={(e) => patch(i, { link: e.target.value })} placeholder="Link (e.g. /shop)" className="border rounded px-2 py-1.5 text-xs" />
+          </div>
+          <div className="flex flex-col gap-1">
+            <button onClick={() => { if (i > 0) { const a = [...cards];[a[i], a[i-1]] = [a[i-1], a[i]]; set(a); } }} className="p-1.5 hover:bg-neutral-100 rounded"><ArrowUp className="w-3.5 h-3.5" /></button>
+            <button onClick={() => { if (i < cards.length - 1) { const a = [...cards];[a[i], a[i+1]] = [a[i+1], a[i]]; set(a); } }} className="p-1.5 hover:bg-neutral-100 rounded"><ArrowDown className="w-3.5 h-3.5" /></button>
+            <button onClick={() => set(cards.filter((_, j) => j !== i))} className="p-1.5 text-error"><Trash2 className="w-3.5 h-3.5" /></button>
+          </div>
+        </div>
+      ))}
+      {cards.length < 3 && (
+        <button onClick={() => set([...cards, { image: "", headline: "", subtext: "", link: "" }])} className="text-sm text-gold flex items-center gap-1"><Plus className="w-4 h-4" /> Add card</button>
+      )}
+    </div>
+  );
+}
+

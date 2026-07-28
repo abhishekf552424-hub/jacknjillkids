@@ -6,6 +6,8 @@ import BrandStory from "@/components/BrandStory";
 import InstagramReels from "@/components/InstagramReels";
 import ParentsReviews from "@/components/ParentsReviews";
 import TrustStrip from "@/components/TrustStrip";
+import MarqueeStrip from "@/components/MarqueeStrip";
+import PromoStrip from "@/components/PromoStrip";
 import type { HomepageSection, Product, Category, TrustBadge } from "@/lib/types";
 
 export const revalidate = 60;
@@ -73,6 +75,10 @@ export default async function HomePage() {
         return <ParentsReviews key={s.id} title={s.title} subtitle={s.subtitle} videos={s.config?.videos ?? []} />;
       case "trust_badges":
         return <TrustStrip key={s.id} badges={trust} />;
+      case "marquee":
+        return <MarqueeStrip key={s.id} title={s.title} items={s.config?.items ?? []} speedSec={s.config?.speed_sec} />;
+      case "promo_strip":
+        return <PromoStrip key={s.id} title={s.title} subtitle={s.subtitle} cards={s.config?.cards ?? []} />;
       default:
         return null;
     }
