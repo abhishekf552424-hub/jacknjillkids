@@ -66,7 +66,7 @@ export default function InstagramReels({
           {items.map((v, i) => (
             <div
               key={`${v.url}-${i}`}
-              className="min-w-[85%] sm:min-w-[360px] max-w-[420px] snap-start"
+              className="w-[220px] md:w-[260px] snap-start flex-shrink-0"
               data-testid={`instagram-reel-${i}`}
             >
               <div className="relative aspect-[9/16] rounded-lg overflow-hidden bg-navy shadow-soft">
