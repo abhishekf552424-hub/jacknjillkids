@@ -32,6 +32,13 @@ body {
 
 .font-display { font-family: var(--font-display), system-ui, sans-serif; font-weight: 600; letter-spacing: -0.01em; }
 
+/* Admin panel: keep Nunito only — no Fredoka bleed into the admin UI. */
+[data-admin] .font-display,
+[data-admin] .font-display * {
+  font-family: var(--font-body), system-ui, sans-serif !important;
+  letter-spacing: -0.005em;
+}
+
 /* Scroll-reveal helpers — ONE consistent motion (fade + translateY, ~400ms) */
 .reveal { opacity: 0; transform: translateY(14px); transition: opacity 400ms cubic-bezier(0.22,1,0.36,1), transform 400ms cubic-bezier(0.22,1,0.36,1); }
 .reveal.in { opacity: 1; transform: translateY(0); }

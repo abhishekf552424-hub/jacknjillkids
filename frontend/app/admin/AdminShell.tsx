@@ -37,7 +37,7 @@ export default function AdminShell({ role, name, children }: { role: string; nam
   };
 
   return (
-    <div className="min-h-screen bg-neutral-50 flex">
+    <div data-admin className="min-h-screen bg-neutral-50 flex">
       {/* Sidebar (desktop) + Drawer (mobile) */}
       <aside
         className={`fixed md:sticky top-0 left-0 z-40 h-screen w-[260px] bg-navy text-white py-6 px-3 flex flex-col transform transition-transform duration-200 ${open ? "translate-x-0" : "-translate-x-full md:translate-x-0"}`}
