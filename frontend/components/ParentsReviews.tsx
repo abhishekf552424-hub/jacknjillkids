@@ -39,9 +39,9 @@ export default function ParentsReviews({
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.1, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-              className="bg-white rounded-lg shadow-soft border border-gold/20 overflow-hidden"
+              className="bg-white rounded-lg shadow-soft border border-navy/5 overflow-hidden hover:shadow-premium hover:-translate-y-1 transition-all duration-300"
             >
-              <div className="relative aspect-video bg-navy flex items-center justify-center">
+              <div className="relative aspect-video bg-navy flex items-center justify-center overflow-hidden">
                 {v.url ? (
                   <iframe
                     src={normalizeEmbedUrl(v.url)}
@@ -61,8 +61,8 @@ export default function ParentsReviews({
                 )}
               </div>
               <div className="p-5">
-                <p className="text-navy font-medium">{v.name}</p>
-                {v.caption && <p className="text-sm text-muted mt-1">"{v.caption}"</p>}
+                <p className="text-navy font-bold">{v.name}</p>
+                {v.caption && <p className="text-sm text-muted mt-1 leading-relaxed">&ldquo;{v.caption}&rdquo;</p>}
               </div>
             </motion.div>
           ))}

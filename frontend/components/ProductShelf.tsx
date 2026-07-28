@@ -32,7 +32,15 @@ export default function ProductShelf({
             </Link>
           )}
         </div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+        {/* Mobile: horizontal scroll row. Desktop: grid. */}
+        <div className="md:hidden -mx-4 px-4 flex gap-4 overflow-x-auto no-scrollbar snap-x snap-mandatory pb-2">
+          {products.slice(0, 8).map((p) => (
+            <div key={p.id} className="min-w-[65%] xs:min-w-[55%] snap-start">
+              <ProductCard product={p} />
+            </div>
+          ))}
+        </div>
+        <div className="hidden md:grid grid-cols-3 lg:grid-cols-4 gap-6">
           {products.slice(0, 8).map((p) => (
             <ProductCard key={p.id} product={p} />
           ))}

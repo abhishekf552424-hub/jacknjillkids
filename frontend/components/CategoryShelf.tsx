@@ -33,18 +33,19 @@ export default function CategoryShelf({
             <div
               className={`relative w-28 h-28 md:w-40 md:h-40 overflow-hidden bg-white shadow-soft transition-all group-hover:shadow-premium group-hover:-translate-y-1 ${
                 shape === "square" ? "rounded-lg" : "rounded-full"
-              }`}
+              } p-[3px] bg-brand-gradient`}
             >
-              {c.image_url && (
-                <Image
-                  src={c.image_url}
-                  alt={c.name}
-                  fill
-                  sizes="(min-width:768px) 160px, 112px"
-                  className="object-cover transition-transform duration-500 group-hover:scale-105"
-                />
-              )}
-              <div className="absolute inset-0 ring-1 ring-inset ring-navy/5" />
+              <div className={`relative w-full h-full overflow-hidden bg-white ${shape === "square" ? "rounded-md" : "rounded-full"}`}>
+                {c.image_url && (
+                  <Image
+                    src={c.image_url}
+                    alt={c.name}
+                    fill
+                    sizes="(min-width:768px) 160px, 112px"
+                    className="object-cover transition-transform duration-500 group-hover:scale-105"
+                  />
+                )}
+              </div>
             </div>
             <span className="text-sm font-medium text-navy text-center">{c.name}</span>
           </Link>
