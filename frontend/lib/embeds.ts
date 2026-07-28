@@ -41,3 +41,23 @@ export function normalizeEmbedUrl(url: string): string {
 export function isInstagramPermalink(url: string): boolean {
   return /instagram\.com\/(reel|p|tv)\//i.test(url || "");
 }
+
+// Vimeo background player: chromeless, autoplay, loop, muted (for hero backgrounds).
+export function getVimeoBackgroundUrl(url: string): string | null {
+  if (!url) return null;
+  const m = url.match(/vimeo\.com\/(?:video\/)?(\d+)(?:\/([\w-]+))?/i)
+    || url.match(/player\.vimeo\.com\/video\/(\d+)(?:\?h=([\w-]+))?/i);
+  if (!m) return null;
+  const id = m[1];
+  const hash = m[2];
+  const params = new URLSearchParams({
+    background: "1",
+    autoplay: "1",
+    loop: "1",
+    muted: "1",
+    autopause: "0",
+    playsinline: "1",
+  });
+  if (hash) params.set("h", hash);
+  return `https://player.vimeo.com/video/${id}?${params.toString()}`;
+}

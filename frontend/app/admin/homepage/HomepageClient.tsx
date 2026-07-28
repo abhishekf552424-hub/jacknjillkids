@@ -113,31 +113,46 @@ export default function HomepageClient({ initial, products, promo }: { initial: 
 function HeroEditor({ config, onChange }: { config: any; onChange: (c: any) => void }) {
   const slides = (config?.slides || []) as any[];
   const setSlides = (s: any[]) => onChange({ ...(config || {}), slides: s });
+  const patch = (i: number, p: any) => setSlides(slides.map((x, j) => j === i ? { ...x, ...p } : x));
   return (
     <div className="space-y-3">
-      {slides.map((sl, i) => (
-        <div key={i} className="border border-neutral-200 rounded-lg p-3 grid md:grid-cols-[220px_1fr_auto] gap-3 items-start">
-          <ImageUploader value={sl.image || sl.video || ""} folder="hero" accept="image/*,video/*" maxSizeMB={20} onChange={(url) => setSlides(slides.map((x, j) => j === i ? { ...x, image: /\.(mp4|webm|mov)$/i.test(url) ? "" : url, video: /\.(mp4|webm|mov)$/i.test(url) ? url : "" } : x))} showUrlField />
-          <div className="grid grid-cols-1 gap-2">
-            <input value={sl.heading || ""} onChange={(e) => setSlides(slides.map((x, j) => j === i ? { ...x, heading: e.target.value } : x))} placeholder="Heading" className="border rounded px-2 py-1.5 text-sm" />
-            <input value={sl.subheading || ""} onChange={(e) => setSlides(slides.map((x, j) => j === i ? { ...x, subheading: e.target.value } : x))} placeholder="Subheading" className="border rounded px-2 py-1.5 text-sm" />
-            <div className="grid grid-cols-2 gap-2">
-              <input value={sl.cta_text || ""} onChange={(e) => setSlides(slides.map((x, j) => j === i ? { ...x, cta_text: e.target.value } : x))} placeholder="Button text" className="border rounded px-2 py-1.5 text-xs" />
-              <input value={sl.cta_link || ""} onChange={(e) => setSlides(slides.map((x, j) => j === i ? { ...x, cta_link: e.target.value } : x))} placeholder="/shop" className="border rounded px-2 py-1.5 text-xs" />
+      {slides.map((sl, i) => {
+        const mode: "image" | "video" = sl.video_url ? "video" : "image";
+        return (
+          <div key={i} className="border border-neutral-200 rounded-lg p-3 grid md:grid-cols-[220px_1fr_auto] gap-3 items-start">
+            <div className="space-y-2">
+              <div className="inline-flex rounded-md overflow-hidden border border-neutral-200 text-[10px]" data-testid={`hero-slide-mode-${i}`}>
+                <button type="button" onClick={() => patch(i, { video_url: "" })} className={`px-2 py-1 ${mode === "image" ? "bg-navy text-white" : "bg-white text-navy"}`}>Image</button>
+                <button type="button" onClick={() => patch(i, { image: "", video: "" })} className={`px-2 py-1 ${mode === "video" ? "bg-navy text-white" : "bg-white text-navy"}`}>Video</button>
+              </div>
+              {mode === "image" ? (
+                <ImageUploader value={sl.image || sl.video || ""} folder="hero" accept="image/*,video/*" maxSizeMB={20} onChange={(url) => patch(i, /\.(mp4|webm|mov)$/i.test(url) ? { image: "", video: url, video_url: "" } : { image: url, video: "", video_url: "" })} showUrlField />
+              ) : (
+                <input value={sl.video_url || ""} onChange={(e) => patch(i, { video_url: e.target.value })} placeholder="https://vimeo.com/123456789" className="w-full border rounded px-2 py-1.5 text-xs" />
+              )}
             </div>
-            <div className="grid grid-cols-2 gap-2">
-              <input type="date" value={sl.start_date || ""} onChange={(e) => setSlides(slides.map((x, j) => j === i ? { ...x, start_date: e.target.value } : x))} className="border rounded px-2 py-1.5 text-xs" placeholder="Show from" />
-              <input type="date" value={sl.end_date || ""} onChange={(e) => setSlides(slides.map((x, j) => j === i ? { ...x, end_date: e.target.value } : x))} className="border rounded px-2 py-1.5 text-xs" placeholder="Show until" />
+            <div className="grid grid-cols-1 gap-2">
+              <input value={sl.heading || ""} onChange={(e) => patch(i, { heading: e.target.value })} placeholder="Heading" className="border rounded px-2 py-1.5 text-sm" />
+              <input value={sl.subheading || ""} onChange={(e) => patch(i, { subheading: e.target.value })} placeholder="Subheading" className="border rounded px-2 py-1.5 text-sm" />
+              <div className="grid grid-cols-2 gap-2">
+                <input value={sl.cta_text || ""} onChange={(e) => patch(i, { cta_text: e.target.value })} placeholder="Button text (optional)" className="border rounded px-2 py-1.5 text-xs" />
+                <input value={sl.cta_link || ""} onChange={(e) => patch(i, { cta_link: e.target.value })} placeholder="Button link (optional)" className="border rounded px-2 py-1.5 text-xs" />
+              </div>
+              <p className="text-[10px] text-neutral-400">Button only shows when both text AND link are set.</p>
+              <div className="grid grid-cols-2 gap-2">
+                <input type="date" value={sl.start_date || ""} onChange={(e) => patch(i, { start_date: e.target.value })} className="border rounded px-2 py-1.5 text-xs" placeholder="Show from" />
+                <input type="date" value={sl.end_date || ""} onChange={(e) => patch(i, { end_date: e.target.value })} className="border rounded px-2 py-1.5 text-xs" placeholder="Show until" />
+              </div>
+            </div>
+            <div className="flex flex-col gap-1">
+              <button onClick={() => { if (i > 0) { const a = [...slides];[a[i], a[i - 1]] = [a[i - 1], a[i]]; setSlides(a); } }} className="p-1.5 hover:bg-neutral-100 rounded"><ArrowUp className="w-3.5 h-3.5" /></button>
+              <button onClick={() => { if (i < slides.length - 1) { const a = [...slides];[a[i], a[i + 1]] = [a[i + 1], a[i]]; setSlides(a); } }} className="p-1.5 hover:bg-neutral-100 rounded"><ArrowDown className="w-3.5 h-3.5" /></button>
+              <button onClick={() => setSlides(slides.filter((_, j) => j !== i))} className="p-1.5 text-error hover:bg-red-50 rounded"><Trash2 className="w-3.5 h-3.5" /></button>
             </div>
           </div>
-          <div className="flex flex-col gap-1">
-            <button onClick={() => { if (i > 0) { const a = [...slides];[a[i], a[i - 1]] = [a[i - 1], a[i]]; setSlides(a); } }} className="p-1.5 hover:bg-neutral-100 rounded"><ArrowUp className="w-3.5 h-3.5" /></button>
-            <button onClick={() => { if (i < slides.length - 1) { const a = [...slides];[a[i], a[i + 1]] = [a[i + 1], a[i]]; setSlides(a); } }} className="p-1.5 hover:bg-neutral-100 rounded"><ArrowDown className="w-3.5 h-3.5" /></button>
-            <button onClick={() => setSlides(slides.filter((_, j) => j !== i))} className="p-1.5 text-error hover:bg-red-50 rounded"><Trash2 className="w-3.5 h-3.5" /></button>
-          </div>
-        </div>
-      ))}
-      <button onClick={() => setSlides([...slides, { image: "", heading: "", subheading: "", cta_text: "Shop now", cta_link: "/shop" }])} className="text-sm text-gold flex items-center gap-1"><Plus className="w-4 h-4" /> Add slide</button>
+        );
+      })}
+      <button onClick={() => setSlides([...slides, { image: "", video_url: "", heading: "", subheading: "", cta_text: "", cta_link: "" }])} className="text-sm text-gold flex items-center gap-1"><Plus className="w-4 h-4" /> Add slide</button>
     </div>
   );
 }
