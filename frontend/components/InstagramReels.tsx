@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import Script from "next/script";
 import { Instagram } from "lucide-react";
 import { isInstagramPermalink } from "@/lib/embeds";
@@ -21,17 +21,37 @@ export default function InstagramReels({
   urls?: string[];
 }) {
   const scroll = useRef<HTMLDivElement>(null);
+  const sectionRef = useRef<HTMLElement>(null);
+  const [loadScript, setLoadScript] = useState(false);
   const items = (urls ?? []).filter((u) => isInstagramPermalink(u));
+
+  // Only load the Instagram embed script once this section scrolls into view.
+  useEffect(() => {
+    if (!sectionRef.current || items.length === 0) return;
+    const io = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((e) => {
+          if (e.isIntersecting) {
+            setLoadScript(true);
+            io.disconnect();
+          }
+        });
+      },
+      { rootMargin: "200px" },
+    );
+    io.observe(sectionRef.current);
+    return () => io.disconnect();
+  }, [items.length]);
 
   // Re-process embeds whenever URLs change or the script has already loaded.
   useEffect(() => {
-    if (typeof window !== "undefined" && window.instgrm?.Embeds) {
+    if (loadScript && typeof window !== "undefined" && window.instgrm?.Embeds) {
       window.instgrm.Embeds.process();
     }
-  }, [urls]);
+  }, [urls, loadScript]);
 
   return (
-    <section className="container py-16 md:py-20" data-testid="instagram-reels">
+    <section ref={sectionRef} className="container py-16 md:py-20" data-testid="instagram-reels">
       <div className="flex items-end justify-between mb-6 gap-4">
         <div>
           <p className="text-xs uppercase tracking-[0.3em] text-gold font-bold mb-2">Instagram</p>
@@ -86,15 +106,17 @@ export default function InstagramReels({
         </div>
       )}
 
-      <Script
-        src="https://www.instagram.com/embed.js"
-        strategy="afterInteractive"
-        onLoad={() => {
-          if (typeof window !== "undefined" && window.instgrm?.Embeds) {
-            window.instgrm.Embeds.process();
-          }
-        }}
-      />
+      {loadScript && (
+        <Script
+          src="https://www.instagram.com/embed.js"
+          strategy="lazyOnload"
+          onLoad={() => {
+            if (typeof window !== "undefined" && window.instgrm?.Embeds) {
+              window.instgrm.Embeds.process();
+            }
+          }}
+        />
+      )}
     </section>
   );
 }

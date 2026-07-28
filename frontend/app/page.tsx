@@ -12,9 +12,10 @@ export const revalidate = 60;
 
 async function loadProducts(filter: string, limit = 8): Promise<Product[]> {
   const supabase = await createClient();
+  // Select only columns needed by ProductCard (avoid select('*') for perf).
   let q = supabase
     .from("products")
-    .select("*, images:product_images(url,alt_text,sort_order)")
+    .select("id, slug, name, brand, base_price, mrp, status, is_featured, is_new_arrival, alt_text, images:product_images(url,alt_text,sort_order)")
     .eq("status", "active")
     .limit(limit);
   if (filter === "featured") q = q.eq("is_featured", true);
