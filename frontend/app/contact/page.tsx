@@ -39,26 +39,26 @@ export default function ContactPage() {
       <p className="mt-3 text-muted">Questions, feedback, gifting requests — reach out. We reply within a day.</p>
 
       <div className="mt-12 grid md:grid-cols-2 gap-10">
-        <form onSubmit={submit} className="bg-white rounded-lg p-6 shadow-soft space-y-4" data-testid="contact-form">
+        <form onSubmit={submit} className="bg-white rounded-lg p-6 shadow-soft border border-navy/5 space-y-4" data-testid="contact-form">
           <div>
-            <label className="text-xs uppercase tracking-widest font-bold text-navy">Name</label>
-            <input value={name} onChange={(e) => setName(e.target.value)} className="mt-1 w-full bg-cream rounded px-3 py-2.5 border border-navy/10 focus:border-gold outline-none text-sm" data-testid="contact-name" />
+            <label className="text-[11px] uppercase tracking-widest font-bold text-navy">Name</label>
+            <input value={name} onChange={(e) => setName(e.target.value)} className="mt-1 w-full bg-cream rounded-md px-3 py-2.5 border border-navy/10 focus:border-gold focus:ring-2 focus:ring-gold/20 focus:bg-white outline-none text-sm transition-all" data-testid="contact-name" />
           </div>
           <div className="grid sm:grid-cols-2 gap-4">
             <div>
-              <label className="text-xs uppercase tracking-widest font-bold text-navy">Email</label>
-              <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="mt-1 w-full bg-cream rounded px-3 py-2.5 border border-navy/10 focus:border-gold outline-none text-sm" data-testid="contact-email" />
+              <label className="text-[11px] uppercase tracking-widest font-bold text-navy">Email</label>
+              <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="mt-1 w-full bg-cream rounded-md px-3 py-2.5 border border-navy/10 focus:border-gold focus:ring-2 focus:ring-gold/20 focus:bg-white outline-none text-sm transition-all" data-testid="contact-email" />
             </div>
             <div>
-              <label className="text-xs uppercase tracking-widest font-bold text-navy">Phone (optional)</label>
-              <input value={phone} onChange={(e) => setPhone(e.target.value)} className="mt-1 w-full bg-cream rounded px-3 py-2.5 border border-navy/10 focus:border-gold outline-none text-sm" data-testid="contact-phone" />
+              <label className="text-[11px] uppercase tracking-widest font-bold text-navy">Phone (optional)</label>
+              <input value={phone} onChange={(e) => setPhone(e.target.value)} className="mt-1 w-full bg-cream rounded-md px-3 py-2.5 border border-navy/10 focus:border-gold focus:ring-2 focus:ring-gold/20 focus:bg-white outline-none text-sm transition-all" data-testid="contact-phone" />
             </div>
           </div>
           <div>
-            <label className="text-xs uppercase tracking-widest font-bold text-navy">Message</label>
-            <textarea rows={5} value={message} onChange={(e) => setMessage(e.target.value)} className="mt-1 w-full bg-cream rounded px-3 py-2.5 border border-navy/10 focus:border-gold outline-none text-sm" data-testid="contact-message" />
+            <label className="text-[11px] uppercase tracking-widest font-bold text-navy">Message</label>
+            <textarea rows={5} value={message} onChange={(e) => setMessage(e.target.value)} className="mt-1 w-full bg-cream rounded-md px-3 py-2.5 border border-navy/10 focus:border-gold focus:ring-2 focus:ring-gold/20 focus:bg-white outline-none text-sm transition-all resize-y" data-testid="contact-message" />
           </div>
-          <button disabled={sending} className="w-full bg-navy text-white rounded py-3 font-medium disabled:opacity-60 flex items-center justify-center gap-2" data-testid="contact-submit">
+          <button disabled={sending} className="w-full bg-navy text-white rounded-md py-3 font-bold disabled:opacity-60 hover:opacity-90 transition-opacity flex items-center justify-center gap-2" data-testid="contact-submit">
             <Send className="w-4 h-4" /> {sending ? "Sending..." : "Send message"}
           </button>
         </form>
