@@ -68,7 +68,7 @@ export default async function HomePage() {
         );
       }
       case "brand_story":
-        return <BrandStory key={s.id} title={s.title} subtitle={s.subtitle} image={s.config?.image} />;
+        return <BrandStory key={s.id} title={s.title} subtitle={s.subtitle} image={s.config?.image} video={s.config?.video} embed_url={s.config?.embed_url} />;
       case "instagram_reels":
         return <InstagramReels key={s.id} title={s.title} subtitle={s.subtitle} videos={s.config?.videos ?? []} />;
       case "parents_reviews":

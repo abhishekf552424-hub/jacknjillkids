@@ -1,20 +1,45 @@
 import Image from "next/image";
 import Link from "next/link";
+import { normalizeEmbedUrl } from "@/lib/embeds";
 
 export default function BrandStory({
   title,
   subtitle,
   image,
+  video,
+  embed_url,
 }: {
   title?: string | null;
   subtitle?: string | null;
   image?: string;
+  video?: string;
+  embed_url?: string;
 }) {
+  // Priority: embed_url > video > image
+  const mediaType = embed_url ? "embed" : video ? "video" : "image";
+
   return (
     <section className="container py-16 md:py-24" data-testid="brand-story">
       <div className="grid md:grid-cols-2 gap-10 md:gap-16 items-center">
         <div className="relative aspect-[5/4] rounded-lg overflow-hidden bg-blush">
-          {image && (
+          {mediaType === "embed" && embed_url && (
+            <iframe
+              src={normalizeEmbedUrl(embed_url)}
+              className="absolute inset-0 w-full h-full"
+              frameBorder={0}
+              allow="autoplay; fullscreen; picture-in-picture"
+              title="Brand story video"
+            />
+          )}
+          {mediaType === "video" && video && (
+            <video
+              src={video}
+              className="absolute inset-0 w-full h-full object-cover"
+              controls
+              playsInline
+            />
+          )}
+          {mediaType === "image" && image && (
             <Image
               src={image}
               alt="Jack & Jill store in Kolhapur"
