@@ -70,7 +70,7 @@ export default async function HomePage() {
       case "brand_story":
         return <BrandStory key={s.id} title={s.title} subtitle={s.subtitle} image={s.config?.image} />;
       case "instagram_reels":
-        return <InstagramReels key={s.id} title={s.title} subtitle={s.subtitle} urls={s.config?.urls ?? []} />;
+        return <InstagramReels key={s.id} title={s.title} subtitle={s.subtitle} videos={s.config?.videos ?? []} />;
       case "parents_reviews":
         return <ParentsReviews key={s.id} title={s.title} subtitle={s.subtitle} videos={s.config?.videos ?? []} />;
       case "trust_badges":

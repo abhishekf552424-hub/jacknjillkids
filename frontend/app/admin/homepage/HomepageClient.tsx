@@ -160,19 +160,27 @@ function HeroEditor({ config, onChange }: { config: any; onChange: (c: any) => v
 }
 
 function InstagramEditor({ config, onChange }: { config: any; onChange: (c: any) => void }) {
-  const urls = (config?.urls || []) as string[];
-  const setUrls = (u: string[]) => onChange({ ...(config || {}), urls: u });
+  const videos = (config?.videos || []) as any[];
+  const setVideos = (v: any[]) => onChange({ ...(config || {}), videos: v });
+  const patch = (i: number, p: any) => setVideos(videos.map((x, j) => j === i ? { ...x, ...p } : x));
   return (
     <div className="space-y-2">
-      {urls.map((u, i) => (
-        <div key={i} className="flex items-center gap-2">
-          <input value={u} onChange={(e) => setUrls(urls.map((x, j) => j === i ? e.target.value : x))} placeholder="https://www.instagram.com/reel/..." className="flex-1 border rounded px-3 py-2 text-sm" />
-          <button onClick={() => { if (i > 0) { const a = [...urls];[a[i], a[i - 1]] = [a[i - 1], a[i]]; setUrls(a); } }} className="p-1.5 hover:bg-neutral-100 rounded"><ArrowUp className="w-3.5 h-3.5" /></button>
-          <button onClick={() => { if (i < urls.length - 1) { const a = [...urls];[a[i], a[i + 1]] = [a[i + 1], a[i]]; setUrls(a); } }} className="p-1.5 hover:bg-neutral-100 rounded"><ArrowDown className="w-3.5 h-3.5" /></button>
-          <button onClick={() => setUrls(urls.filter((_, j) => j !== i))} className="p-1.5 text-error hover:bg-red-50 rounded"><Trash2 className="w-3.5 h-3.5" /></button>
+      <p className="text-[11px] text-neutral-500">Vimeo video URLs — rendered chromeless with autoplay.</p>
+      {videos.map((v, i) => (
+        <div key={i} className="border rounded-lg p-3 grid md:grid-cols-[1fr_120px_auto] gap-2 items-center">
+          <input value={v.url || ""} onChange={(e) => patch(i, { url: e.target.value })} placeholder="https://vimeo.com/..." className="border rounded px-2 py-1.5 text-sm" />
+          <label className="text-[10px] flex items-center gap-1">
+            <input type="checkbox" checked={v.autoplay_muted !== false} onChange={(e) => patch(i, { autoplay_muted: e.target.checked })} />
+            Autoplay muted
+          </label>
+          <div className="flex gap-1">
+            <button onClick={() => { if (i > 0) { const a = [...videos];[a[i], a[i - 1]] = [a[i - 1], a[i]]; setVideos(a); } }} className="p-1.5 hover:bg-neutral-100 rounded"><ArrowUp className="w-3.5 h-3.5" /></button>
+            <button onClick={() => { if (i < videos.length - 1) { const a = [...videos];[a[i], a[i + 1]] = [a[i + 1], a[i]]; setVideos(a); } }} className="p-1.5 hover:bg-neutral-100 rounded"><ArrowDown className="w-3.5 h-3.5" /></button>
+            <button onClick={() => setVideos(videos.filter((_, j) => j !== i))} className="p-1.5 text-error hover:bg-red-50 rounded"><Trash2 className="w-3.5 h-3.5" /></button>
+          </div>
         </div>
       ))}
-      <button onClick={() => setUrls([...urls, ""])} className="text-sm text-gold flex items-center gap-1"><Plus className="w-4 h-4" /> Add reel</button>
+      <button onClick={() => setVideos([...videos, { url: "", autoplay_muted: true }])} className="text-sm text-gold flex items-center gap-1"><Plus className="w-4 h-4" /> Add video</button>
     </div>
   );
 }

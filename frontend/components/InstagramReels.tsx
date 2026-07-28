@@ -1,60 +1,44 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import Script from "next/script";
+import { useRef } from "react";
 import { Instagram } from "lucide-react";
-import { isInstagramPermalink } from "@/lib/embeds";
+import { normalizeEmbedUrl } from "@/lib/embeds";
 
-declare global {
-  interface Window {
-    instgrm?: { Embeds: { process: () => void } };
-  }
-}
+type Video = { url: string; autoplay_muted?: boolean };
 
 export default function InstagramReels({
   title,
   subtitle,
-  urls,
+  videos,
 }: {
   title?: string | null;
   subtitle?: string | null;
-  urls?: string[];
+  videos?: Video[];
 }) {
   const scroll = useRef<HTMLDivElement>(null);
-  const sectionRef = useRef<HTMLElement>(null);
-  const [loadScript, setLoadScript] = useState(false);
-  const items = (urls ?? []).filter((u) => isInstagramPermalink(u));
+  const items: Video[] = (videos ?? []).filter((v) => v.url);
 
-  // Only load the Instagram embed script once this section scrolls into view.
-  useEffect(() => {
-    if (!sectionRef.current || items.length === 0) return;
-    const io = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((e) => {
-          if (e.isIntersecting) {
-            setLoadScript(true);
-            io.disconnect();
-          }
-        });
-      },
-      { rootMargin: "200px" },
-    );
-    io.observe(sectionRef.current);
-    return () => io.disconnect();
-  }, [items.length]);
-
-  // Re-process embeds whenever URLs change or the script has already loaded.
-  useEffect(() => {
-    if (loadScript && typeof window !== "undefined" && window.instgrm?.Embeds) {
-      window.instgrm.Embeds.process();
+  // Build chromeless Vimeo embed URL with autoplay/loop/muted params
+  const getChromelessUrl = (v: Video): string => {
+    const base = normalizeEmbedUrl(v.url);
+    if (!base) return "";
+    const url = new URL(base);
+    if (v.autoplay_muted !== false) {
+      url.searchParams.set("autoplay", "1");
+      url.searchParams.set("muted", "1");
     }
-  }, [urls, loadScript]);
+    url.searchParams.set("loop", "1");
+    url.searchParams.set("background", "1");
+    url.searchParams.set("controls", "0");
+    url.searchParams.set("playsinline", "1");
+    return url.toString();
+  };
 
   return (
-    <section ref={sectionRef} className="container py-16 md:py-20" data-testid="instagram-reels">
+    <section className="container py-16 md:py-20" data-testid="instagram-reels">
       <div className="flex items-end justify-between mb-6 gap-4">
         <div>
-          <p className="text-xs uppercase tracking-[0.3em] text-gold font-bold mb-2">Instagram</p>
+          <p className="text-xs uppercase tracking-[0.3em] text-gold font-bold mb-2">Video Gallery</p>
           <h2 className="font-display text-3xl md:text-4xl text-navy tracking-tight">{title ?? "From Our Feed"}</h2>
           {subtitle && <p className="mt-2 text-muted">{subtitle}</p>}
         </div>
@@ -71,7 +55,7 @@ export default function InstagramReels({
 
       {items.length === 0 ? (
         <div className="rounded-lg border border-dashed border-gold/40 bg-cream/40 p-10 text-center text-sm text-muted">
-          No Instagram reels added yet.
+          No videos added yet.
         </div>
       ) : (
         <div
@@ -79,43 +63,25 @@ export default function InstagramReels({
           className="flex gap-4 md:gap-5 overflow-x-auto no-scrollbar snap-x snap-mandatory pb-2"
           data-testid="instagram-reels-scroll"
         >
-          {items.map((u, i) => (
+          {items.map((v, i) => (
             <div
-              key={`${u}-${i}`}
+              key={`${v.url}-${i}`}
               className="min-w-[85%] sm:min-w-[360px] max-w-[420px] snap-start"
               data-testid={`instagram-reel-${i}`}
             >
-              <blockquote
-                className="instagram-media"
-                data-instgrm-permalink={u}
-                data-instgrm-version="14"
-                style={{
-                  background: "#FFF",
-                  border: 0,
-                  borderRadius: 8,
-                  boxShadow: "0 0 1px 0 rgba(0,0,0,0.5), 0 1px 10px 0 rgba(0,0,0,0.15)",
-                  margin: 0,
-                  padding: 0,
-                  width: "100%",
-                }}
-              >
-                <a href={u} target="_blank" rel="noreferrer">View on Instagram</a>
-              </blockquote>
+              <div className="relative aspect-[9/16] rounded-lg overflow-hidden bg-navy shadow-soft">
+                <iframe
+                  src={getChromelessUrl(v)}
+                  className="absolute inset-0 w-full h-full"
+                  frameBorder={0}
+                  allow="autoplay; fullscreen; picture-in-picture"
+                  loading="lazy"
+                  title={`Video ${i + 1}`}
+                />
+              </div>
             </div>
           ))}
         </div>
-      )}
-
-      {loadScript && (
-        <Script
-          src="https://www.instagram.com/embed.js"
-          strategy="lazyOnload"
-          onLoad={() => {
-            if (typeof window !== "undefined" && window.instgrm?.Embeds) {
-              window.instgrm.Embeds.process();
-            }
-          }}
-        />
       )}
     </section>
   );
