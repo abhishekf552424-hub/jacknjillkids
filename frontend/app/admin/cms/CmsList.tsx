@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { toast } from "sonner";
 import { Save } from "lucide-react";
+import ImageUploader from "@/components/admin/ImageUploader";
 
 export default function CmsList({ pages, faqs, badges }: { pages: any[]; faqs: any[]; badges: any[] }) {
   const [tab, setTab] = useState<"pages" | "faqs" | "badges">("pages");
@@ -84,11 +85,19 @@ export default function CmsList({ pages, faqs, badges }: { pages: any[]; faqs: a
 
       {tab === "badges" && (
         <div className="mt-6">
-          <button onClick={() => setB([...B, { icon: "Award", label: "", subtext: "", sort_order: B.length + 1, is_active: true }])} className="bg-navy text-white rounded px-4 py-2 text-sm mb-4">+ Add badge</button>
+          <button onClick={() => setB([...B, { icon_type: "lucide", icon: "Award", label: "", subtext: "", sort_order: B.length + 1, is_active: true }])} className="bg-navy text-white rounded px-4 py-2 text-sm mb-4">+ Add badge</button>
           <div className="grid sm:grid-cols-2 gap-3">
             {B.map((b, i) => (
               <div key={b.id ?? `n-${i}`} className="bg-white rounded-lg p-4 shadow-soft space-y-2">
-                <input placeholder="Icon name (lucide)" value={b.icon ?? ""} onChange={(e) => setB(B.map((x, j) => j === i ? { ...x, icon: e.target.value } : x))} className="w-full bg-cream rounded px-3 py-2 text-sm border border-navy/10 outline-none focus:border-gold" />
+                <div className="flex gap-2">
+                  <button onClick={() => setB(B.map((x, j) => j === i ? { ...x, icon_type: "lucide", icon_url: "" } : x))} className={`px-3 py-1 text-xs rounded ${(b.icon_type || "lucide") === "lucide" ? "bg-navy text-white" : "bg-neutral-100 text-neutral-600"}`}>Lucide icon</button>
+                  <button onClick={() => setB(B.map((x, j) => j === i ? { ...x, icon_type: "image", icon: "" } : x))} className={`px-3 py-1 text-xs rounded ${b.icon_type === "image" ? "bg-navy text-white" : "bg-neutral-100 text-neutral-600"}`}>Custom image</button>
+                </div>
+                {(b.icon_type || "lucide") === "lucide" ? (
+                  <input placeholder="Icon name (lucide)" value={b.icon ?? ""} onChange={(e) => setB(B.map((x, j) => j === i ? { ...x, icon: e.target.value } : x))} className="w-full bg-cream rounded px-3 py-2 text-sm border border-navy/10 outline-none focus:border-gold" />
+                ) : (
+                  <ImageUploader value={b.icon_url ?? ""} folder="badges" onChange={(url) => setB(B.map((x, j) => j === i ? { ...x, icon_url: url } : x))} showUrlField />
+                )}
                 <input placeholder="Label" value={b.label} onChange={(e) => setB(B.map((x, j) => j === i ? { ...x, label: e.target.value } : x))} className="w-full bg-cream rounded px-3 py-2 text-sm border border-navy/10 outline-none focus:border-gold" />
                 <input placeholder="Subtext" value={b.subtext ?? ""} onChange={(e) => setB(B.map((x, j) => j === i ? { ...x, subtext: e.target.value } : x))} className="w-full bg-cream rounded px-3 py-2 text-sm border border-navy/10 outline-none focus:border-gold" />
                 <button onClick={() => saveBadge(b)} className="bg-navy text-white rounded px-3 py-1.5 text-xs">Save</button>
