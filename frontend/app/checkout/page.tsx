@@ -10,6 +10,7 @@ import { cart } from "@/lib/cart";
 import type { CartLine } from "@/lib/types";
 import { formatINR } from "@/lib/utils";
 import { CreditCard, Wallet, Check } from "lucide-react";
+import BrandLoader from "@/components/BrandLoader";
 
 declare global {
   interface Window {
@@ -246,8 +247,9 @@ export default function CheckoutPage() {
                     data-testid="place-order-btn"
                     disabled={placing}
                     onClick={placeOrder}
-                    className="flex-1 bg-brand-gradient text-white rounded px-6 py-3 font-bold disabled:opacity-60 shadow-premium"
+                    className="flex-1 bg-brand-gradient text-white rounded px-6 py-3 font-bold disabled:opacity-60 shadow-premium inline-flex items-center justify-center gap-2"
                   >
+                    {placing && <BrandLoader size="sm" />}
                     {placing ? "Placing..." : `Place order • ${formatINR(totals.total)}`}
                   </button>
                 </div>

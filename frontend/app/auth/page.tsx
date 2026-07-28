@@ -6,6 +6,7 @@ import Link from "next/link";
 import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
 import { Mail, Lock, User as UserIcon } from "lucide-react";
+import BrandLoader from "@/components/BrandLoader";
 
 export default function AuthPage() {
   const [mode, setMode] = useState<"login" | "register">("login");
@@ -102,8 +103,9 @@ export default function AuthPage() {
           <button
             data-testid="auth-submit"
             disabled={loading}
-            className="w-full bg-navy text-white rounded-md py-3 font-bold disabled:opacity-60 hover:opacity-90 transition-opacity"
+            className="w-full bg-navy text-white rounded-md py-3 font-bold disabled:opacity-60 hover:opacity-90 transition-opacity inline-flex items-center justify-center gap-2"
           >
+            {loading && <BrandLoader size="sm" />}
             {loading ? "Please wait..." : mode === "login" ? "Sign in" : "Create account"}
           </button>
         </form>
