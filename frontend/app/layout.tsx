@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Fraunces, DM_Sans } from "next/font/google";
+import { Fredoka, Nunito } from "next/font/google";
 import { Toaster } from "sonner";
 import "./globals.css";
 import Header from "@/components/Header";
@@ -11,15 +11,15 @@ import { createClient } from "@/lib/supabase/server";
 import { getTrackingSettings, getPromoPopup } from "@/lib/settings";
 import type { Category, AgeGroup, TrustBadge } from "@/lib/types";
 
-const display = Fraunces({
+const display = Fredoka({
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+  weight: ["500", "600", "700"],
   variable: "--font-display",
   display: "swap",
 });
-const body = DM_Sans({
+const body = Nunito({
   subsets: ["latin"],
-  weight: ["400", "500", "700"],
+  weight: ["400", "600", "700"],
   variable: "--font-body",
   display: "swap",
 });
