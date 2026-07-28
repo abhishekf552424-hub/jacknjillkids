@@ -46,25 +46,25 @@ export default function PLPFilters({
   };
 
   const Content = (
-    <div className="space-y-6">
-      <div>
-        <p className="text-xs uppercase tracking-widest font-bold text-navy mb-3">Sort by</p>
+    <div className="space-y-5">
+      <div className="rounded-lg border border-navy/10 bg-white p-4">
+        <p className="text-[11px] uppercase tracking-widest font-bold text-navy mb-3">Sort by</p>
         <select
           data-testid="filter-sort"
           value={current.sort ?? ""}
           onChange={(e) => setParam("sort", e.target.value)}
-          className="w-full bg-white border border-navy/10 rounded px-3 py-2 text-sm text-navy focus:border-gold outline-none"
+          className="w-full bg-white border border-navy/10 rounded-md px-3 py-2 text-sm text-navy focus:border-gold focus:ring-2 focus:ring-gold/20 outline-none transition-all"
         >
           {SORTS.map((s) => <option key={s.v} value={s.v}>{s.label}</option>)}
         </select>
       </div>
 
-      <div>
-        <p className="text-xs uppercase tracking-widest font-bold text-navy mb-3">Category</p>
-        <div className="space-y-1.5">
+      <div className="rounded-lg border border-navy/10 bg-white p-4">
+        <p className="text-[11px] uppercase tracking-widest font-bold text-navy mb-3">Category</p>
+        <div className="space-y-1">
           <button
             onClick={() => setParam("category", null)}
-            className={`block w-full text-left text-sm py-1 ${!current.category ? "text-gold font-medium" : "text-navy/80 hover:text-navy"}`}
+            className={`block w-full text-left text-sm py-1.5 px-2 rounded-md transition-colors ${!current.category ? "bg-gold/10 text-navy font-bold" : "text-navy/80 hover:bg-navy/5"}`}
           >
             All
           </button>
@@ -73,7 +73,7 @@ export default function PLPFilters({
               key={c.id}
               data-testid={`filter-cat-${c.slug}`}
               onClick={() => setParam("category", c.slug)}
-              className={`block w-full text-left text-sm py-1 ${current.category === c.slug ? "text-gold font-medium" : "text-navy/80 hover:text-navy"}`}
+              className={`block w-full text-left text-sm py-1.5 px-2 rounded-md transition-colors ${current.category === c.slug ? "bg-gold/10 text-navy font-bold" : "text-navy/80 hover:bg-navy/5"}`}
             >
               {c.name}
             </button>
@@ -81,16 +81,16 @@ export default function PLPFilters({
         </div>
       </div>
 
-      <div>
-        <p className="text-xs uppercase tracking-widest font-bold text-navy mb-3">Age Group</p>
+      <div className="rounded-lg border border-navy/10 bg-white p-4">
+        <p className="text-[11px] uppercase tracking-widest font-bold text-navy mb-3">Age Group</p>
         <div className="flex flex-wrap gap-2">
           {ageGroups.map((a) => (
             <button
               key={a.id}
               onClick={() => setParam("age", current.age === a.slug ? null : a.slug)}
-              className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${
+              className={`text-xs px-3 py-1.5 rounded-full border transition-all ${
                 current.age === a.slug
-                  ? "bg-navy text-white border-navy"
+                  ? "bg-navy text-white border-navy shadow-soft"
                   : "bg-white text-navy border-navy/10 hover:border-gold hover:text-gold"
               }`}
             >
@@ -100,15 +100,15 @@ export default function PLPFilters({
         </div>
       </div>
 
-      <div>
-        <p className="text-xs uppercase tracking-widest font-bold text-navy mb-3">Gender</p>
+      <div className="rounded-lg border border-navy/10 bg-white p-4">
+        <p className="text-[11px] uppercase tracking-widest font-bold text-navy mb-3">Gender</p>
         <div className="flex flex-wrap gap-2">
           {GENDERS.map((g) => (
             <button
               key={g.v}
               onClick={() => setParam("gender", current.gender === g.v ? null : g.v)}
-              className={`text-xs px-3 py-1.5 rounded-full border ${
-                current.gender === g.v ? "bg-navy text-white border-navy" : "bg-white text-navy border-navy/10 hover:border-gold"
+              className={`text-xs px-3 py-1.5 rounded-full border transition-all ${
+                current.gender === g.v ? "bg-navy text-white border-navy shadow-soft" : "bg-white text-navy border-navy/10 hover:border-gold"
               }`}
             >
               {g.label}
@@ -117,22 +117,22 @@ export default function PLPFilters({
         </div>
       </div>
 
-      <div>
-        <p className="text-xs uppercase tracking-widest font-bold text-navy mb-3">Price (₹)</p>
+      <div className="rounded-lg border border-navy/10 bg-white p-4">
+        <p className="text-[11px] uppercase tracking-widest font-bold text-navy mb-3">Price (₹)</p>
         <div className="flex gap-2">
           <input
             type="number"
             placeholder="Min"
             value={min}
             onChange={(e) => setMin(e.target.value)}
-            className="w-full bg-white border border-navy/10 rounded px-3 py-2 text-sm outline-none focus:border-gold"
+            className="w-full bg-white border border-navy/10 rounded-md px-3 py-2 text-sm outline-none focus:border-gold focus:ring-2 focus:ring-gold/20"
           />
           <input
             type="number"
             placeholder="Max"
             value={max}
             onChange={(e) => setMax(e.target.value)}
-            className="w-full bg-white border border-navy/10 rounded px-3 py-2 text-sm outline-none focus:border-gold"
+            className="w-full bg-white border border-navy/10 rounded-md px-3 py-2 text-sm outline-none focus:border-gold focus:ring-2 focus:ring-gold/20"
           />
         </div>
         <button
@@ -142,7 +142,7 @@ export default function PLPFilters({
             if (max) q.set("max", max); else q.delete("max");
             start(() => router.push(`/shop?${q.toString()}`));
           }}
-          className="mt-3 w-full bg-navy text-white rounded px-4 py-2 text-sm font-medium hover:opacity-90"
+          className="mt-3 w-full bg-navy text-white rounded-md px-4 py-2 text-sm font-bold hover:opacity-90 transition-opacity"
         >
           Apply
         </button>
@@ -150,9 +150,10 @@ export default function PLPFilters({
 
       <Link
         href="/shop"
-        className="block text-center text-xs text-muted underline hover:text-navy"
+        className="block text-center text-xs text-muted underline hover:text-navy transition-colors"
+        data-testid="filter-clear-all"
       >
-        Reset all filters
+        Clear all filters
       </Link>
     </div>
   );

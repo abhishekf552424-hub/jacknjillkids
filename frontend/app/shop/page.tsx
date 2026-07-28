@@ -1,6 +1,8 @@
 import { createClient } from "@/lib/supabase/server";
 import ProductCard from "@/components/ProductCard";
 import PLPFilters from "@/components/plp/PLPFilters";
+import AppliedFilters from "@/components/plp/AppliedFilters";
+import Pagination from "@/components/Pagination";
 import type { Product, Category, AgeGroup } from "@/lib/types";
 import Link from "next/link";
 import { SlidersHorizontal } from "lucide-react";
@@ -153,17 +155,22 @@ export default async function ShopPage({ searchParams }: { searchParams: Promise
         <PLPFilters categories={categories} ageGroups={ageGroups} current={sp} />
 
         <div>
+          <AppliedFilters current={sp} categories={categories} ageGroups={ageGroups} />
+
           {products.length === 0 ? (
             <div className="bg-white rounded-lg p-12 text-center border border-navy/5">
               <SlidersHorizontal className="w-8 h-8 mx-auto text-muted mb-3" />
               <p className="font-display text-xl text-navy">No matches found</p>
               <p className="text-sm text-muted mt-2">Try adjusting your filters, or explore our full catalogue.</p>
-              <Link href="/shop" className="inline-block mt-6 bg-navy text-white rounded px-6 py-3 text-sm font-medium">Reset filters</Link>
+              <Link href="/shop" className="inline-block mt-6 bg-navy text-white rounded px-6 py-3 text-sm font-bold">Reset filters</Link>
             </div>
           ) : (
-            <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
-              {products.map((p) => <ProductCard key={p.id} product={p} />)}
-            </div>
+            <>
+              <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
+                {products.map((p) => <ProductCard key={p.id} product={p} />)}
+              </div>
+              <Pagination current={page} total={total} perPage={perPage} basePath="/shop" searchParams={sp as any} />
+            </>
           )}
         </div>
       </div>
