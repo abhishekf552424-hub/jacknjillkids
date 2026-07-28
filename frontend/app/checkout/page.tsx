@@ -36,6 +36,8 @@ export default function CheckoutPage() {
   const [pincodeInfo, setPincodeInfo] = useState<any>(null);
   const [payment, setPayment] = useState<"razorpay" | "cod">("razorpay");
   const [totals, setTotals] = useState({ subtotal: 0, shipping: 0, tax: 0, discount: 0, total: 0 });
+  const [couponInput, setCouponInput] = useState("");
+  const [appliedCoupon, setAppliedCoupon] = useState<string | null>(null);
 
   useEffect(() => {
     setLines(cart.get());
@@ -87,6 +89,7 @@ export default function CheckoutPage() {
           lines: lines.map((l) => ({ variant_id: l.variant_id, quantity: l.quantity })),
           address: addr,
           payment_method: payment,
+          coupon_code: appliedCoupon || undefined,
         }),
       });
       const j = await r.json();
@@ -253,22 +256,56 @@ export default function CheckoutPage() {
           </div>
 
           {/* Order summary */}
-          <aside className="bg-white rounded-lg p-6 shadow-soft h-fit sticky top-24">
+          <aside className="bg-white rounded-lg p-6 shadow-soft h-fit lg:sticky lg:top-24 border border-navy/5">
             <h3 className="font-display text-lg text-navy mb-4">Order summary</h3>
             <ul className="divide-y divide-navy/5">
               {lines.map((l) => (
                 <li key={l.variant_id} className="py-3 flex gap-3">
-                  <div className="relative w-14 h-14 rounded overflow-hidden bg-cream shrink-0">
+                  <div className="relative w-14 h-14 rounded-md overflow-hidden bg-cream shrink-0">
                     {l.image && <Image src={l.image} alt={l.product_name} fill sizes="56px" className="object-cover" />}
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm text-navy line-clamp-2">{l.product_name}</p>
                     <p className="text-xs text-muted">{l.variant_label} × {l.quantity}</p>
                   </div>
-                  <p className="text-sm text-navy font-medium">{formatINR(l.price * l.quantity)}</p>
+                  <p className="text-sm text-navy font-bold">{formatINR(l.price * l.quantity)}</p>
                 </li>
               ))}
             </ul>
+
+            {/* Coupon input — matches PDP coupon chip style */}
+            <div className="mt-4 rounded-lg border border-dashed border-gold/40 bg-gold/5 p-3">
+              <p className="text-[11px] uppercase tracking-widest text-navy font-bold mb-2">Have a coupon?</p>
+              <div className="flex gap-2">
+                <input
+                  value={couponInput}
+                  onChange={(e) => setCouponInput(e.target.value.toUpperCase())}
+                  placeholder="Enter code"
+                  className="flex-1 bg-white border border-navy/10 rounded-md px-3 py-2 text-sm outline-none focus:border-gold focus:ring-2 focus:ring-gold/20 uppercase"
+                  data-testid="coupon-input"
+                />
+                <button
+                  onClick={() => {
+                    if (!couponInput.trim()) return;
+                    setAppliedCoupon(couponInput.trim());
+                    toast.success(`Coupon ${couponInput.trim()} applied`, { description: "Discount will be verified at order placement" });
+                  }}
+                  className="bg-navy text-white rounded-md px-4 py-2 text-sm font-bold hover:opacity-90 transition-opacity"
+                  data-testid="coupon-apply"
+                >
+                  Apply
+                </button>
+              </div>
+              {appliedCoupon && (
+                <div className="mt-2 inline-flex items-center gap-1.5 bg-white border border-gold rounded-full pl-3 pr-2 py-1 text-xs font-bold text-navy" data-testid="coupon-applied-chip">
+                  {appliedCoupon}
+                  <button aria-label="Remove coupon" onClick={() => { setAppliedCoupon(null); setCouponInput(""); }} className="opacity-60 hover:opacity-100">
+                    ✕
+                  </button>
+                </div>
+              )}
+            </div>
+
             <div className="mt-4 space-y-1.5 text-sm">
               <Row l="Subtotal" v={formatINR(totals.subtotal)} />
               <Row l="Shipping" v={totals.shipping === 0 ? "FREE" : formatINR(totals.shipping)} />
@@ -287,13 +324,13 @@ export default function CheckoutPage() {
 function Field({ label, value, onChange, onBlur, testid }: { label: string; value: string; onChange: (v: string) => void; onBlur?: () => void; testid?: string }) {
   return (
     <label className="block">
-      <span className="text-xs uppercase tracking-widest text-navy font-bold">{label}</span>
+      <span className="text-[11px] uppercase tracking-widest text-navy font-bold">{label}</span>
       <input
         value={value}
         onChange={(e) => onChange(e.target.value)}
         onBlur={onBlur}
         data-testid={testid}
-        className="mt-1 w-full bg-cream border border-navy/10 rounded px-3 py-2.5 text-sm outline-none focus:border-gold"
+        className="mt-1 w-full bg-cream border border-navy/10 rounded-md px-3 py-2.5 text-sm outline-none focus:border-gold focus:ring-2 focus:ring-gold/20 focus:bg-white transition-all"
       />
     </label>
   );

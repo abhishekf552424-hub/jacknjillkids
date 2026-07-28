@@ -72,17 +72,17 @@ export default function CartDrawer({ open, onClose }: { open: boolean; onClose: 
               ) : (
                 <ul className="space-y-4">
                   {lines.map((l) => (
-                    <li key={l.variant_id} data-testid={`cart-line-${l.variant_id}`} className="flex gap-3 bg-white rounded p-3">
-                      <div className="relative w-20 h-20 rounded-sm overflow-hidden bg-cream shrink-0">
+                    <li key={l.variant_id} data-testid={`cart-line-${l.variant_id}`} className="flex gap-3 bg-white rounded-lg p-3 border border-navy/5">
+                      <div className="relative w-20 h-20 rounded-md overflow-hidden bg-cream shrink-0">
                         {l.image && <Image src={l.image} alt={l.product_name} fill sizes="80px" className="object-cover" />}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <Link href={`/product/${l.slug}`} onClick={onClose} className="text-sm font-medium text-navy line-clamp-2">
+                        <Link href={`/product/${l.slug}`} onClick={onClose} className="text-sm font-bold text-navy line-clamp-2 hover:text-gold transition-colors">
                           {l.product_name}
                         </Link>
                         <p className="text-xs text-muted mt-0.5">{l.variant_label}</p>
                         <div className="flex items-center justify-between mt-2">
-                          <div className="flex items-center gap-2 border border-navy/10 rounded-full">
+                          <div className="flex items-center gap-2 border border-navy/10 rounded-full bg-cream">
                             <button
                               aria-label="Decrease"
                               onClick={() => cart.update(l.variant_id, l.quantity - 1)}
@@ -90,7 +90,7 @@ export default function CartDrawer({ open, onClose }: { open: boolean; onClose: 
                             >
                               <Minus className="w-3.5 h-3.5" />
                             </button>
-                            <span className="text-sm font-medium w-5 text-center">{l.quantity}</span>
+                            <span className="text-sm font-bold w-5 text-center">{l.quantity}</span>
                             <button
                               aria-label="Increase"
                               onClick={() => cart.update(l.variant_id, l.quantity + 1)}
@@ -108,7 +108,7 @@ export default function CartDrawer({ open, onClose }: { open: boolean; onClose: 
                         data-testid={`cart-remove-${l.variant_id}`}
                         aria-label="Remove"
                         onClick={() => cart.remove(l.variant_id)}
-                        className="text-muted hover:text-error p-1 self-start"
+                        className="text-muted hover:text-error p-1 self-start transition-colors"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
