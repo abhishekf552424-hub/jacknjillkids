@@ -47,6 +47,8 @@ export type BrandSettings = {
   gstin: string;
   billing_address: string;
   billing_state: string;
+  logo_size: number; // px height applied everywhere (header, footer, admin sidebar). Range 24-80.
+  logo_align: "left" | "center"; // header-specific alignment
 };
 
 let brandCache: { v: BrandSettings | null; at: number } = { v: null, at: 0 };
@@ -55,15 +57,23 @@ export async function getBrandSettings(): Promise<BrandSettings> {
   const admin = createAdminClient();
   const { data } = await admin.from("settings").select("value").eq("key", "brand").maybeSingle();
   const v = (data?.value ?? {}) as Partial<BrandSettings>;
+  const rawSize = Number(v.logo_size);
+  const logoSize = Number.isFinite(rawSize) && rawSize >= 24 && rawSize <= 80 ? Math.round(rawSize) : 40;
   const brand: BrandSettings = {
     logo_url: v.logo_url || "",
     store_name: v.store_name || "Jack & Jill",
     gstin: v.gstin || "",
     billing_address: v.billing_address || "",
     billing_state: v.billing_state || "Maharashtra",
+    logo_size: logoSize,
+    logo_align: v.logo_align === "center" ? "center" : "left",
   };
   brandCache = { v: brand, at: Date.now() };
   return brand;
+}
+
+export function clearBrandCache() {
+  brandCache = { v: null, at: 0 };
 }
 
 export async function getTrackingSettings() {

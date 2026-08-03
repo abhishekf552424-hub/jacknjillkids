@@ -7,8 +7,9 @@ import Footer from "@/components/Footer";
 import SiteChrome from "@/components/SiteChrome";
 import PromoPopup from "@/components/PromoPopup";
 import AnalyticsPixels from "@/components/AnalyticsPixels";
+import InitialSiteLoader from "@/components/InitialSiteLoader";
 import { createClient } from "@/lib/supabase/server";
-import { getTrackingSettings, getPromoPopup } from "@/lib/settings";
+import { getTrackingSettings, getPromoPopup, getBrandSettings } from "@/lib/settings";
 import type { Category, AgeGroup, TrustBadge } from "@/lib/types";
 
 const display = Fredoka({
@@ -103,6 +104,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const globals = await fetchGlobals();
   const tracking = await getTrackingSettings();
   const promo = await getPromoPopup();
+  const brandCfg = await getBrandSettings();
+  const logoSize = brandCfg.logo_size;
+  const logoAlign = brandCfg.logo_align;
 
   const orgLd = {
     "@context": "https://schema.org",
@@ -170,15 +174,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
   return (
     <html lang="en-IN" className={`${display.variable} ${body.variable}`}>
-      <head>
-        {/* Dynamic favicon + apple-touch-icon from admin-uploaded brand logo (falls back to /favicon.ico if not set) */}
-        <link rel="icon" href={globals.brand?.logo_url || "/favicon.ico"} />
-        <link rel="apple-touch-icon" href={globals.brand?.logo_url || "/favicon.ico"} />
-      </head>
       <body>
+        <InitialSiteLoader logoUrl={globals.brand?.logo_url} />
         <SiteChrome
-          header={<Header categoriesTree={globals.categoriesTree} ageGroups={globals.ageGroups} logoUrl={globals.brand?.logo_url} storeName={globals.brand?.store_name} />}
-          footer={<Footer contact={globals.contact} brand={globals.brand} />}
+          header={<Header categoriesTree={globals.categoriesTree} ageGroups={globals.ageGroups} logoUrl={globals.brand?.logo_url} storeName={globals.brand?.store_name} logoSize={logoSize} logoAlign={logoAlign} />}
+          footer={<Footer contact={globals.contact} brand={globals.brand} logoSize={logoSize} />}
         >
           {children}
         </SiteChrome>

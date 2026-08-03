@@ -1,14 +1,19 @@
 import Link from "next/link";
 import { Instagram, Facebook, Mail, Phone, MapPin } from "lucide-react";
 
-export default function Footer({ contact, brand }: { contact: any; brand: any }) {
+export default function Footer({ contact, brand, logoSize = 44 }: { contact: any; brand: any; logoSize?: number }) {
   return (
     <footer className="bg-navy text-white/90 mt-24" data-testid="site-footer">
       <div className="container py-16 grid grid-cols-2 md:grid-cols-5 gap-10">
         <div className="col-span-2 md:col-span-2">
           {brand?.logo_url ? (
             /* eslint-disable-next-line @next/next/no-img-element */
-            <img src={brand.logo_url} alt={brand?.name || "Jack & Jill"} className="h-11 w-auto object-contain bg-white rounded-md p-1 mb-3" />
+            <img
+              src={brand.logo_url}
+              alt={brand?.name || "Jack & Jill"}
+              style={{ height: logoSize }}
+              className="w-auto object-contain bg-white rounded-md p-1 mb-3"
+            />
           ) : (
             <div className="flex items-baseline gap-1 mb-3">
               <span className="font-display text-3xl font-bold text-white">Jack</span>

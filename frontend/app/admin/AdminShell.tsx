@@ -22,7 +22,7 @@ const NAV = [
   { href: "/admin/settings",     label: "Settings",   icon: Settings,        roles: ["super_admin"] },
 ];
 
-export default function AdminShell({ role, name, logoUrl, children }: { role: string; name: string; logoUrl?: string; children: React.ReactNode }) {
+export default function AdminShell({ role, name, logoUrl, logoSize = 40, children }: { role: string; name: string; logoUrl?: string; logoSize?: number; children: React.ReactNode }) {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
   const items = NAV.filter((n) => n.roles.includes(role));
@@ -39,7 +39,12 @@ export default function AdminShell({ role, name, logoUrl, children }: { role: st
   const Logo = () =>
     logoUrl ? (
       /* eslint-disable-next-line @next/next/no-img-element */
-      <img src={logoUrl} alt="Jack & Jill" className="h-9 w-auto object-contain bg-white rounded-md p-1" />
+      <img
+        src={logoUrl}
+        alt="Jack & Jill"
+        style={{ height: logoSize }}
+        className="w-auto object-contain bg-white rounded-md p-1"
+      />
     ) : (
       <span className="flex items-baseline gap-1">
         <span className="font-display text-2xl font-bold text-white">Jack</span>

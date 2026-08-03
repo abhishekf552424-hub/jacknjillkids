@@ -15,11 +15,15 @@ export default function Header({
   ageGroups,
   logoUrl,
   storeName = "Jack & Jill",
+  logoSize = 40,
+  logoAlign = "left",
 }: {
   categoriesTree: Category[];
   ageGroups: AgeGroup[];
   logoUrl?: string;
   storeName?: string;
+  logoSize?: number;
+  logoAlign?: "left" | "center";
 }) {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -62,20 +66,37 @@ export default function Header({
           scrolled ? "py-2 shadow-soft" : "py-4",
         )}
       >
-        <div className="container flex items-center gap-4">
+        <div className={cn("container flex items-center gap-4", logoAlign === "center" && "relative")}>
           <button
             data-testid="hamburger-btn"
             aria-label="Open menu"
             onClick={() => setMenuOpen(true)}
-            className="lg:hidden p-2 -ml-2 rounded-full hover:bg-navy/5"
+            className={cn(
+              "p-2 -ml-2 rounded-full hover:bg-navy/5",
+              logoAlign === "center" ? "" : "lg:hidden",
+            )}
           >
             <Menu className="w-6 h-6 text-navy" />
           </button>
 
-          <Link href="/" data-testid="logo-link" className="flex items-center gap-1 mr-4">
+          <Link
+            href="/"
+            data-testid="logo-link"
+            className={cn(
+              "flex items-center gap-1",
+              logoAlign === "center"
+                ? "absolute left-1/2 -translate-x-1/2"
+                : "mr-4",
+            )}
+          >
             {logoUrl ? (
               /* eslint-disable-next-line @next/next/no-img-element */
-              <img src={logoUrl} alt={storeName} className="h-8 md:h-10 w-auto object-contain" />
+              <img
+                src={logoUrl}
+                alt={storeName}
+                style={{ height: logoSize }}
+                className="w-auto object-contain"
+              />
             ) : (
               <span className="flex items-baseline gap-1">
                 <span className="font-display text-2xl md:text-3xl font-bold text-navy">Jack</span>
@@ -85,8 +106,13 @@ export default function Header({
             )}
           </Link>
 
-          {/* Desktop nav */}
-          <nav className="hidden lg:flex items-center gap-1 flex-1">
+          {/* Desktop nav — hidden when the logo is centered (cleaner boutique layout) */}
+          <nav
+            className={cn(
+              "items-center gap-1 flex-1",
+              logoAlign === "center" ? "hidden" : "hidden lg:flex",
+            )}
+          >
             {categoriesTree.slice(0, 7).map((c) => (
               <div
                 key={c.id}
@@ -97,7 +123,7 @@ export default function Header({
                 <Link
                   href={`/shop?category=${c.slug}`}
                   data-testid={`nav-${c.slug}`}
-                  className="px-3 py-2 text-sm font-medium text-navy hover:text-gold transition-colors"
+                  className="px-3 py-2 text-base font-semibold text-navy hover:text-gold transition-colors whitespace-nowrap"
                 >
                   {c.name}
                 </Link>
@@ -198,7 +224,7 @@ export default function Header({
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 z-50 bg-navy/40 lg:hidden"
+              className={cn("fixed inset-0 z-50 bg-navy/40", logoAlign === "center" ? "" : "lg:hidden")}
               onClick={() => setMenuOpen(false)}
             />
             <motion.aside
@@ -206,13 +232,18 @@ export default function Header({
               animate={{ x: 0 }}
               exit={{ x: "-100%" }}
               transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-              className="fixed inset-y-0 left-0 z-50 w-[88%] max-w-sm bg-cream lg:hidden overflow-y-auto"
+              className={cn("fixed inset-y-0 left-0 z-50 w-[88%] max-w-sm bg-cream overflow-y-auto", logoAlign === "center" ? "" : "lg:hidden")}
               data-testid="hamburger-panel"
             >
               <div className="flex items-center justify-between p-4 border-b border-navy/10">
                 {logoUrl ? (
                   /* eslint-disable-next-line @next/next/no-img-element */
-                  <img src={logoUrl} alt={storeName} className="h-9 w-auto object-contain" />
+                  <img
+                    src={logoUrl}
+                    alt={storeName}
+                    style={{ height: logoSize }}
+                    className="w-auto object-contain"
+                  />
                 ) : (
                   <span className="flex items-baseline gap-1">
                     <span className="font-display text-2xl font-bold text-navy">Jack</span>
@@ -259,7 +290,7 @@ export default function Header({
                       key={a.id}
                       href={`/shop?age=${a.slug}`}
                       onClick={() => setMenuOpen(false)}
-                      className="px-3 py-1.5 rounded-full bg-white border border-navy/10 text-sm text-navy hover:border-gold hover:text-gold transition-colors"
+                      className="px-3.5 py-2 rounded-full bg-white border border-navy/10 text-sm font-semibold text-navy hover:border-gold hover:text-gold transition-colors"
                     >
                       {a.label}
                     </Link>
@@ -278,8 +309,8 @@ export default function Header({
                     { href: "/track", label: "Track Order" },
                     { href: "/account", label: "My Account" },
                   ].map((l) => (
-                    <Link key={l.href} href={l.href} onClick={() => setMenuOpen(false)} className="py-3 text-navy border-b border-navy/5 flex items-center justify-between">
-                      {l.label} <ChevronRight className="w-4 h-4 opacity-40" />
+                    <Link key={l.href} href={l.href} onClick={() => setMenuOpen(false)} className="py-4 text-base font-semibold text-navy border-b border-navy/5 flex items-center justify-between">
+                      {l.label} <ChevronRight className="w-5 h-5 opacity-50" />
                     </Link>
                   ))}
                 </div>

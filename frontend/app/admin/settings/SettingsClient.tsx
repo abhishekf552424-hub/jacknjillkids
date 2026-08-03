@@ -19,6 +19,8 @@ export default function SettingsClient({ initial }: { initial: Record<string, an
     gstin: initial.brand?.gstin ?? "",
     billing_address: initial.brand?.billing_address ?? "",
     billing_state: initial.brand?.billing_state ?? "Maharashtra",
+    logo_size: Number(initial.brand?.logo_size ?? 40),
+    logo_align: (initial.brand?.logo_align ?? "left") as "left" | "center",
   });
   const [shipping, setShipping] = useState({
     free_above: initial.shipping?.free_above ?? 999,
@@ -75,6 +77,54 @@ export default function SettingsClient({ initial }: { initial: Record<string, an
             <div className="sm:col-span-2">
               <span className="text-xs uppercase tracking-widest text-navy font-bold block mb-1">Site logo</span>
               <ImageUploader value={brand.logo_url} onChange={(url) => setBrand({ ...brand, logo_url: url })} folder="branding" label="Upload logo (PNG/SVG)" accept="image/png,image/jpeg,image/webp,image/svg+xml" maxSizeMB={2} showUrlField />
+            </div>
+            <div className="sm:col-span-2 rounded-md border border-navy/10 bg-cream/40 p-4">
+              <p className="text-xs uppercase tracking-widest text-navy font-bold mb-3">Logo size &amp; alignment</p>
+              <div className="grid sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm text-navy font-medium block mb-2">
+                    Logo height: <span className="font-bold text-gold">{brand.logo_size}px</span>
+                  </label>
+                  <input
+                    data-testid="logo-size-slider"
+                    type="range"
+                    min={24}
+                    max={80}
+                    step={1}
+                    value={brand.logo_size}
+                    onChange={(e) => setBrand({ ...brand, logo_size: Number(e.target.value) })}
+                    className="w-full accent-gold"
+                  />
+                  <div className="flex justify-between text-[10px] uppercase tracking-widest text-muted mt-1">
+                    <span>24px (S)</span>
+                    <span>40px (M)</span>
+                    <span>80px (L)</span>
+                  </div>
+                  <p className="text-xs text-muted mt-2">Applies everywhere the logo renders — header, footer, and admin sidebar.</p>
+                </div>
+                <div>
+                  <span className="text-sm text-navy font-medium block mb-2">Header alignment</span>
+                  <div className="inline-flex rounded-md border border-navy/15 overflow-hidden">
+                    <button
+                      type="button"
+                      data-testid="logo-align-left"
+                      onClick={() => setBrand({ ...brand, logo_align: "left" })}
+                      className={`px-4 py-2 text-sm font-medium transition-colors ${brand.logo_align === "left" ? "bg-navy text-white" : "bg-white text-navy hover:bg-cream"}`}
+                    >
+                      Left
+                    </button>
+                    <button
+                      type="button"
+                      data-testid="logo-align-center"
+                      onClick={() => setBrand({ ...brand, logo_align: "center" })}
+                      className={`px-4 py-2 text-sm font-medium transition-colors ${brand.logo_align === "center" ? "bg-navy text-white" : "bg-white text-navy hover:bg-cream"}`}
+                    >
+                      Centered
+                    </button>
+                  </div>
+                  <p className="text-xs text-muted mt-2">Only affects the public site header. Footer &amp; admin sidebar remain fixed.</p>
+                </div>
+              </div>
             </div>
             <F label="Store name" value={brand.store_name} onChange={(v) => setBrand({ ...brand, store_name: v })} />
             <F label="GSTIN" value={brand.gstin} onChange={(v) => setBrand({ ...brand, gstin: v })} placeholder="27ABCDE1234F1Z5" />

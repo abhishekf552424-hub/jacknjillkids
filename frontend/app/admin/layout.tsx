@@ -34,7 +34,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const brand = await getBrandSettings();
 
   return (
-    <AdminShell role={profile.role} name={profile.full_name || user.email || ""} logoUrl={brand.logo_url}>
+    <AdminShell role={profile.role} name={profile.full_name || user.email || ""} logoUrl={brand.logo_url} logoSize={brand.logo_size}>
       {children}
     </AdminShell>
   );
