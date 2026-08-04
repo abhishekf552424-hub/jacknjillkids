@@ -21,3 +21,13 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
   if (error) return NextResponse.json({ ok: false, error: error.message }, { status: 400 });
   return NextResponse.json({ ok: true });
 }
+
+export async function DELETE(_req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const g = await requireAdmin();
+  if ("error" in g) return NextResponse.json({ ok: false, error: g.error }, { status: g.status });
+  const { id } = await params;
+  const admin = createAdminClient();
+  const { error } = await admin.from("trust_badges").delete().eq("id", id);
+  if (error) return NextResponse.json({ ok: false, error: error.message }, { status: 400 });
+  return NextResponse.json({ ok: true });
+}

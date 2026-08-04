@@ -3,6 +3,8 @@ import Image from "next/image";
 import type { TrustBadge } from "@/lib/types";
 
 export default function TrustStrip({ badges }: { badges: TrustBadge[] }) {
+  // Phase S — render nothing (not even an empty section title) when no badges exist.
+  if (!badges || badges.length === 0) return null;
   return (
     <section className="container py-16 md:py-20" data-testid="trust-strip">
       <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">

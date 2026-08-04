@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
-import { Save } from "lucide-react";
+import { Save, Trash2, Info } from "lucide-react";
 import ImageUploader from "@/components/admin/ImageUploader";
 
 export default function CmsList({ pages, faqs, badges }: { pages: any[]; faqs: any[]; badges: any[] }) {
@@ -39,6 +39,19 @@ export default function CmsList({ pages, faqs, badges }: { pages: any[]; faqs: a
     });
     if (!r.ok) return toast.error("Save failed");
     toast.success("Saved");
+  };
+
+  const deleteBadge = async (b: any, i: number) => {
+    if (!b.id) {
+      // Unsaved local row — just remove it.
+      setB(B.filter((_, j) => j !== i));
+      return;
+    }
+    if (!confirm(`Remove badge "${b.label || 'this badge'}"? This can't be undone.`)) return;
+    const r = await fetch(`/api/admin/cms/badges/${b.id}`, { method: "DELETE" });
+    if (!r.ok) return toast.error("Delete failed");
+    setB(B.filter((_, j) => j !== i));
+    toast.success("Badge removed");
   };
 
   return (
@@ -85,6 +98,13 @@ export default function CmsList({ pages, faqs, badges }: { pages: any[]; faqs: a
 
       {tab === "badges" && (
         <div className="mt-6">
+          <div className="mb-4 rounded-lg border border-gold/30 bg-gold/10 p-3 flex items-start gap-2 text-sm">
+            <Info className="w-4 h-4 text-gold shrink-0 mt-0.5" />
+            <div>
+              <p className="text-navy font-semibold">Recommended: 3-4 badges for a clean, uncluttered strip.</p>
+              <p className="text-muted text-xs mt-1">For the best visual result, use <b>Custom image</b> with a purpose-designed icon or sticker (not the brand logo) — pick 3-4 things families care about (returns, quality, shipping, care).</p>
+            </div>
+          </div>
           <button onClick={() => setB([...B, { icon_type: "lucide", icon: "Award", label: "", subtext: "", sort_order: B.length + 1, is_active: true }])} className="bg-navy text-white rounded px-4 py-2 text-sm mb-4">+ Add badge</button>
           <div className="grid sm:grid-cols-2 gap-3">
             {B.map((b, i) => (
@@ -100,7 +120,10 @@ export default function CmsList({ pages, faqs, badges }: { pages: any[]; faqs: a
                 )}
                 <input placeholder="Label" value={b.label} onChange={(e) => setB(B.map((x, j) => j === i ? { ...x, label: e.target.value } : x))} className="w-full bg-cream rounded px-3 py-2 text-sm border border-navy/10 outline-none focus:border-gold" />
                 <input placeholder="Subtext" value={b.subtext ?? ""} onChange={(e) => setB(B.map((x, j) => j === i ? { ...x, subtext: e.target.value } : x))} className="w-full bg-cream rounded px-3 py-2 text-sm border border-navy/10 outline-none focus:border-gold" />
-                <button onClick={() => saveBadge(b)} className="bg-navy text-white rounded px-3 py-1.5 text-xs">Save</button>
+                <div className="flex items-center justify-between gap-2 pt-1">
+                  <button onClick={() => saveBadge(b)} className="bg-navy text-white rounded px-3 py-1.5 text-xs flex items-center gap-1"><Save className="w-3 h-3" /> Save</button>
+                  <button onClick={() => deleteBadge(b, i)} data-testid={`badge-delete-${i}`} className="text-red-600 hover:bg-red-50 border border-red-200 rounded px-3 py-1.5 text-xs flex items-center gap-1"><Trash2 className="w-3 h-3" /> Remove</button>
+                </div>
               </div>
             ))}
           </div>
