@@ -47,8 +47,13 @@ export type BrandSettings = {
   gstin: string;
   billing_address: string;
   billing_state: string;
-  logo_size: number; // px height applied everywhere (header, footer, admin sidebar). Range 24-80.
-  logo_align: "left" | "center"; // header-specific alignment
+  // Phase Q — three breakpoint-specific logo sizes (in px). Legacy `logo_size`
+  // is kept as a fallback for backward compat with old settings rows.
+  logo_size: number;         // legacy / fallback
+  logo_size_mobile: number;  // mobile <sm (default 36)
+  logo_size_tablet: number;  // sm-lg (default 44)
+  logo_size_desktop: number; // lg+ (default 52)
+  logo_align: "left" | "center"; // logo horizontal position ONLY — never affects nav visibility
 };
 
 let brandCache: { v: BrandSettings | null; at: number } = { v: null, at: 0 };
@@ -57,15 +62,22 @@ export async function getBrandSettings(): Promise<BrandSettings> {
   const admin = createAdminClient();
   const { data } = await admin.from("settings").select("value").eq("key", "brand").maybeSingle();
   const v = (data?.value ?? {}) as Partial<BrandSettings>;
-  const rawSize = Number(v.logo_size);
-  const logoSize = Number.isFinite(rawSize) && rawSize >= 24 && rawSize <= 80 ? Math.round(rawSize) : 40;
+  const clampInt = (n: unknown, lo: number, hi: number, fallback: number) => {
+    const x = Number(n);
+    if (!Number.isFinite(x)) return fallback;
+    return Math.round(Math.max(lo, Math.min(hi, x)));
+  };
+  const legacy = clampInt(v.logo_size, 24, 80, 40);
   const brand: BrandSettings = {
     logo_url: v.logo_url || "",
     store_name: v.store_name || "Jack & Jill",
     gstin: v.gstin || "",
     billing_address: v.billing_address || "",
     billing_state: v.billing_state || "Maharashtra",
-    logo_size: logoSize,
+    logo_size: legacy,
+    logo_size_mobile: clampInt(v.logo_size_mobile, 28, 56, Math.min(Math.max(legacy - 4, 28), 48)),
+    logo_size_tablet: clampInt(v.logo_size_tablet, 32, 64, Math.min(Math.max(legacy, 32), 56)),
+    logo_size_desktop: clampInt(v.logo_size_desktop, 36, 80, Math.min(Math.max(legacy + 4, 36), 64)),
     logo_align: v.logo_align === "center" ? "center" : "left",
   };
   brandCache = { v: brand, at: Date.now() };

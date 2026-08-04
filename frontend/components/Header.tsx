@@ -10,19 +10,35 @@ import { cn } from "@/lib/utils";
 import CartDrawer from "./CartDrawer";
 import { cart } from "@/lib/cart";
 
+/**
+ * Phase Q rewrite — clean, decoupled header design:
+ *  - Desktop (lg+) ALWAYS shows the inline category nav — regardless of logo alignment.
+ *  - Hamburger button is ALWAYS mobile/tablet-only (lg:hidden) — logo alignment
+ *    does NOT change whether hamburger shows.
+ *  - Center alignment uses a proper 3-column CSS grid:
+ *      [ hamburger + inline nav ]   [ logo (centered) ]   [ icons ]
+ *  - Left alignment keeps the existing flex layout.
+ *  - Three separate logo sizes (mobile / tablet / desktop) applied via inline
+ *    style + CSS custom properties + media-query classes for a truly responsive
+ *    logo.
+ */
 export default function Header({
   categoriesTree,
   ageGroups,
   logoUrl,
   storeName = "Jack & Jill",
-  logoSize = 40,
+  logoSizeMobile = 36,
+  logoSizeTablet = 44,
+  logoSizeDesktop = 52,
   logoAlign = "left",
 }: {
   categoriesTree: Category[];
   ageGroups: AgeGroup[];
   logoUrl?: string;
   storeName?: string;
-  logoSize?: number;
+  logoSizeMobile?: number;
+  logoSizeTablet?: number;
+  logoSizeDesktop?: number;
   logoAlign?: "left" | "center";
 }) {
   const [scrolled, setScrolled] = useState(false);
@@ -47,13 +63,135 @@ export default function Header({
 
   useEffect(() => {
     document.body.style.overflow = menuOpen ? "hidden" : "";
-    return () => {
-      document.body.style.overflow = "";
-    };
+    return () => { document.body.style.overflow = ""; };
   }, [menuOpen]);
+
+  // Logo element with responsive breakpoint sizing via a tiny inline <style>
+  // so we can set three distinct pixel heights without extending the Tailwind
+  // config for arbitrary user-chosen values.
+  const styleVars = {
+    ["--logo-h-mobile"]: `${logoSizeMobile}px`,
+    ["--logo-h-tablet"]: `${logoSizeTablet}px`,
+    ["--logo-h-desktop"]: `${logoSizeDesktop}px`,
+  } as React.CSSProperties;
+
+  const LogoInner = () =>
+    logoUrl ? (
+      /* eslint-disable-next-line @next/next/no-img-element */
+      <img
+        src={logoUrl}
+        alt={storeName}
+        className="jj-logo-img w-auto object-contain"
+      />
+    ) : (
+      <span className="flex items-baseline gap-1">
+        <span className="font-display text-2xl md:text-3xl font-bold text-navy">Jack</span>
+        <span
+          className="font-display text-2xl md:text-3xl font-bold"
+          style={{ background: "linear-gradient(135deg,#E63946,#F4A63E,#F7D34C)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}
+        >&amp;</span>
+        <span className="font-display text-2xl md:text-3xl font-bold text-navy">Jill</span>
+      </span>
+    );
+
+  // Icons cluster (search / wishlist / cart / account)
+  const IconsCluster = (
+    <div className="flex items-center gap-1 justify-self-end">
+      <button
+        data-testid="search-toggle"
+        aria-label="Search"
+        onClick={() => setSearchOpen((v) => !v)}
+        className="p-2 rounded-full hover:bg-navy/5"
+      >
+        <Search className="w-5 h-5 text-navy" />
+      </button>
+      <Link href="/account/wishlist" aria-label="Wishlist" data-testid="wishlist-link" className="p-2 rounded-full hover:bg-navy/5">
+        <Heart className="w-5 h-5 text-navy" />
+      </Link>
+      <button
+        data-testid="cart-toggle"
+        aria-label="Cart"
+        onClick={() => setCartOpen(true)}
+        className="p-2 rounded-full hover:bg-navy/5 relative"
+      >
+        <ShoppingBag className="w-5 h-5 text-navy" />
+        {count > 0 && (
+          <span data-testid="cart-count" className="absolute -top-0.5 -right-0.5 bg-brand-gradient text-white text-[10px] rounded-full w-5 h-5 flex items-center justify-center font-bold">
+            {count}
+          </span>
+        )}
+      </button>
+      <Link href="/account" aria-label="Account" data-testid="account-link" className="p-2 rounded-full hover:bg-navy/5">
+        <User className="w-5 h-5 text-navy" />
+      </Link>
+    </div>
+  );
+
+  const HamburgerBtn = (
+    <button
+      data-testid="hamburger-btn"
+      aria-label="Open menu"
+      onClick={() => setMenuOpen(true)}
+      className="lg:hidden p-2 -ml-1 rounded-full hover:bg-navy/5"
+    >
+      <Menu className="w-6 h-6 text-navy" />
+    </button>
+  );
+
+  const DesktopNav = (
+    <nav className="hidden lg:flex items-center gap-1">
+      {categoriesTree.slice(0, 7).map((c) => (
+        <div
+          key={c.id}
+          className="relative"
+          onMouseEnter={() => setHoverCat(c.id)}
+          onMouseLeave={() => setHoverCat(null)}
+        >
+          <Link
+            href={`/shop?category=${c.slug}`}
+            data-testid={`nav-${c.slug}`}
+            className="px-3 py-2 text-base font-semibold text-navy hover:text-gold transition-colors whitespace-nowrap"
+          >
+            {c.name}
+          </Link>
+          <AnimatePresence>
+            {hoverCat === c.id && (c.children?.length ?? 0) > 0 && (
+              <motion.div
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 8 }}
+                transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
+                className="absolute left-0 top-full pt-3 w-64"
+              >
+                <div className="bg-white rounded-lg shadow-premium p-3 border border-navy/5">
+                  {c.children!.map((s) => (
+                    <Link
+                      key={s.id}
+                      href={`/shop?category=${s.slug}`}
+                      className="flex items-center justify-between px-3 py-2 rounded-sm text-sm text-navy hover:bg-cream"
+                    >
+                      {s.name}
+                      <ChevronRight className="w-4 h-4 opacity-40" />
+                    </Link>
+                  ))}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      ))}
+    </nav>
+  );
 
   return (
     <>
+      {/* Responsive per-breakpoint logo height without touching Tailwind config */}
+      <style jsx global>{`
+        .jj-logo-img { height: var(--logo-h-mobile); }
+        @media (min-width: 640px) { .jj-logo-img { height: var(--logo-h-tablet); } }
+        @media (min-width: 1024px) { .jj-logo-img { height: var(--logo-h-desktop); } }
+      `}</style>
+
       {/* Announcement bar */}
       <div className="bg-navy text-white text-xs md:text-sm py-2 text-center px-4">
         <span className="opacity-90">Free shipping on orders above ₹999 • Easy 7-day returns • Made with care in Kolhapur since 2003</span>
@@ -61,131 +199,37 @@ export default function Header({
 
       <header
         data-testid="site-header"
+        style={styleVars}
         className={cn(
           "sticky top-0 z-40 bg-cream/95 backdrop-blur border-b border-navy/5 transition-all",
           scrolled ? "py-2 shadow-soft" : "py-4",
         )}
       >
-        <div className={cn("container flex items-center gap-4", logoAlign === "center" && "relative")}>
-          <button
-            data-testid="hamburger-btn"
-            aria-label="Open menu"
-            onClick={() => setMenuOpen(true)}
-            className={cn(
-              "p-2 -ml-2 rounded-full hover:bg-navy/5",
-              logoAlign === "center" ? "" : "lg:hidden",
-            )}
-          >
-            <Menu className="w-6 h-6 text-navy" />
-          </button>
-
-          <Link
-            href="/"
-            data-testid="logo-link"
-            className={cn(
-              "flex items-center gap-1",
-              logoAlign === "center"
-                ? "absolute left-1/2 -translate-x-1/2"
-                : "mr-4",
-            )}
-          >
-            {logoUrl ? (
-              /* eslint-disable-next-line @next/next/no-img-element */
-              <img
-                src={logoUrl}
-                alt={storeName}
-                style={{ height: logoSize }}
-                className="w-auto object-contain"
-              />
-            ) : (
-              <span className="flex items-baseline gap-1">
-                <span className="font-display text-2xl md:text-3xl font-bold text-navy">Jack</span>
-                <span className="font-display text-2xl md:text-3xl font-bold" style={{ background: "linear-gradient(135deg,#E63946,#F4A63E,#F7D34C)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>&amp;</span>
-                <span className="font-display text-2xl md:text-3xl font-bold text-navy">Jill</span>
-              </span>
-            )}
-          </Link>
-
-          {/* Desktop nav — hidden when the logo is centered (cleaner boutique layout) */}
-          <nav
-            className={cn(
-              "items-center gap-1 flex-1",
-              logoAlign === "center" ? "hidden" : "hidden lg:flex",
-            )}
-          >
-            {categoriesTree.slice(0, 7).map((c) => (
-              <div
-                key={c.id}
-                className="relative"
-                onMouseEnter={() => setHoverCat(c.id)}
-                onMouseLeave={() => setHoverCat(null)}
-              >
-                <Link
-                  href={`/shop?category=${c.slug}`}
-                  data-testid={`nav-${c.slug}`}
-                  className="px-3 py-2 text-base font-semibold text-navy hover:text-gold transition-colors whitespace-nowrap"
-                >
-                  {c.name}
-                </Link>
-                <AnimatePresence>
-                  {hoverCat === c.id && (c.children?.length ?? 0) > 0 && (
-                    <motion.div
-                      initial={{ opacity: 0, y: 8 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: 8 }}
-                      transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
-                      className="absolute left-0 top-full pt-3 w-64"
-                    >
-                      <div className="bg-white rounded-lg shadow-premium p-3 border border-navy/5">
-                        {c.children!.map((s) => (
-                          <Link
-                            key={s.id}
-                            href={`/shop?category=${s.slug}`}
-                            className="flex items-center justify-between px-3 py-2 rounded-sm text-sm text-navy hover:bg-cream"
-                          >
-                            {s.name}
-                            <ChevronRight className="w-4 h-4 opacity-40" />
-                          </Link>
-                        ))}
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
-            ))}
-          </nav>
-
-          {/* Icons */}
-          <div className="flex items-center gap-1 ml-auto">
-            <button
-              data-testid="search-toggle"
-              aria-label="Search"
-              onClick={() => setSearchOpen((v) => !v)}
-              className="p-2 rounded-full hover:bg-navy/5"
-            >
-              <Search className="w-5 h-5 text-navy" />
-            </button>
-            <Link href="/account/wishlist" aria-label="Wishlist" data-testid="wishlist-link" className="p-2 rounded-full hover:bg-navy/5">
-              <Heart className="w-5 h-5 text-navy" />
-            </Link>
-            <button
-              data-testid="cart-toggle"
-              aria-label="Cart"
-              onClick={() => setCartOpen(true)}
-              className="p-2 rounded-full hover:bg-navy/5 relative"
-            >
-              <ShoppingBag className="w-5 h-5 text-navy" />
-              {count > 0 && (
-                <span data-testid="cart-count" className="absolute -top-0.5 -right-0.5 bg-brand-gradient text-white text-[10px] rounded-full w-5 h-5 flex items-center justify-center font-bold">
-                  {count}
-                </span>
-              )}
-            </button>
-            <Link href="/account" aria-label="Account" data-testid="account-link" className="p-2 rounded-full hover:bg-navy/5">
-              <User className="w-5 h-5 text-navy" />
-            </Link>
+        {logoAlign === "center" ? (
+          // 3-column grid: [left cluster] [centered logo] [right icons]
+          <div className="container grid grid-cols-[auto_1fr_auto] items-center gap-3 sm:gap-4">
+            <div className="flex items-center gap-2 min-w-0">
+              {HamburgerBtn}
+              {DesktopNav}
+            </div>
+            <div className="justify-self-center">
+              <Link href="/" data-testid="logo-link" className="flex items-center">
+                <LogoInner />
+              </Link>
+            </div>
+            {IconsCluster}
           </div>
-        </div>
+        ) : (
+          // Left-aligned: hamburger, logo, desktop-nav, icons
+          <div className="container flex items-center gap-3 sm:gap-4">
+            {HamburgerBtn}
+            <Link href="/" data-testid="logo-link" className="flex items-center gap-1 mr-2 sm:mr-4">
+              <LogoInner />
+            </Link>
+            <div className="flex-1 min-w-0">{DesktopNav}</div>
+            {IconsCluster}
+          </div>
+        )}
 
         {/* Inline search */}
         <AnimatePresence>
@@ -216,7 +260,7 @@ export default function Header({
         </AnimatePresence>
       </header>
 
-      {/* Hamburger panel */}
+      {/* Hamburger panel — ALWAYS mobile/tablet only, per Phase Q rules */}
       <AnimatePresence>
         {menuOpen && (
           <>
@@ -224,7 +268,7 @@ export default function Header({
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className={cn("fixed inset-0 z-50 bg-navy/40", logoAlign === "center" ? "" : "lg:hidden")}
+              className="fixed inset-0 z-50 bg-navy/40 lg:hidden"
               onClick={() => setMenuOpen(false)}
             />
             <motion.aside
@@ -232,18 +276,13 @@ export default function Header({
               animate={{ x: 0 }}
               exit={{ x: "-100%" }}
               transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-              className={cn("fixed inset-y-0 left-0 z-50 w-[88%] max-w-sm bg-cream overflow-y-auto", logoAlign === "center" ? "" : "lg:hidden")}
+              className="fixed inset-y-0 left-0 z-50 w-[88%] max-w-sm bg-cream lg:hidden overflow-y-auto"
               data-testid="hamburger-panel"
             >
-              <div className="flex items-center justify-between p-4 border-b border-navy/10">
+              <div className="flex items-center justify-between p-4 border-b border-navy/10" style={styleVars}>
                 {logoUrl ? (
                   /* eslint-disable-next-line @next/next/no-img-element */
-                  <img
-                    src={logoUrl}
-                    alt={storeName}
-                    style={{ height: logoSize }}
-                    className="w-auto object-contain"
-                  />
+                  <img src={logoUrl} alt={storeName} className="jj-logo-img w-auto object-contain" />
                 ) : (
                   <span className="flex items-baseline gap-1">
                     <span className="font-display text-2xl font-bold text-navy">Jack</span>
@@ -256,7 +295,6 @@ export default function Header({
                 </button>
               </div>
 
-              {/* Rounded category carousel */}
               <div className="px-4 py-4">
                 <p className="text-tiny uppercase tracking-widest text-muted mb-3 text-xs font-bold">Shop by category</p>
                 <div className="flex gap-3 overflow-x-auto no-scrollbar pb-2">

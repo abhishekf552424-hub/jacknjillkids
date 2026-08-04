@@ -107,6 +107,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const brandCfg = await getBrandSettings();
   const logoSize = brandCfg.logo_size;
   const logoAlign = brandCfg.logo_align;
+  const logoSizeMobile = brandCfg.logo_size_mobile;
+  const logoSizeTablet = brandCfg.logo_size_tablet;
+  const logoSizeDesktop = brandCfg.logo_size_desktop;
 
   const orgLd = {
     "@context": "https://schema.org",
@@ -177,7 +180,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <body>
         <InitialSiteLoader logoUrl={globals.brand?.logo_url} />
         <SiteChrome
-          header={<Header categoriesTree={globals.categoriesTree} ageGroups={globals.ageGroups} logoUrl={globals.brand?.logo_url} storeName={globals.brand?.store_name} logoSize={logoSize} logoAlign={logoAlign} />}
+          header={<Header categoriesTree={globals.categoriesTree} ageGroups={globals.ageGroups} logoUrl={globals.brand?.logo_url} storeName={globals.brand?.store_name} logoSizeMobile={logoSizeMobile} logoSizeTablet={logoSizeTablet} logoSizeDesktop={logoSizeDesktop} logoAlign={logoAlign} />}
           footer={<Footer contact={globals.contact} brand={globals.brand} logoSize={logoSize} />}
         >
           {children}

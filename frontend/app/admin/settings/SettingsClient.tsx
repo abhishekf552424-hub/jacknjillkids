@@ -20,6 +20,9 @@ export default function SettingsClient({ initial }: { initial: Record<string, an
     billing_address: initial.brand?.billing_address ?? "",
     billing_state: initial.brand?.billing_state ?? "Maharashtra",
     logo_size: Number(initial.brand?.logo_size ?? 40),
+    logo_size_mobile: Number(initial.brand?.logo_size_mobile ?? initial.brand?.logo_size ?? 36),
+    logo_size_tablet: Number(initial.brand?.logo_size_tablet ?? initial.brand?.logo_size ?? 44),
+    logo_size_desktop: Number(initial.brand?.logo_size_desktop ?? initial.brand?.logo_size ?? 52),
     logo_align: (initial.brand?.logo_align ?? "left") as "left" | "center",
   });
   const [shipping, setShipping] = useState({
@@ -80,49 +83,77 @@ export default function SettingsClient({ initial }: { initial: Record<string, an
             </div>
             <div className="sm:col-span-2 rounded-md border border-navy/10 bg-cream/40 p-4">
               <p className="text-xs uppercase tracking-widest text-navy font-bold mb-3">Logo size &amp; alignment</p>
-              <div className="grid sm:grid-cols-2 gap-4">
+              <div className="grid sm:grid-cols-3 gap-4">
                 <div>
                   <label className="text-sm text-navy font-medium block mb-2">
-                    Logo height: <span className="font-bold text-gold">{brand.logo_size}px</span>
+                    Mobile: <span className="font-bold text-gold">{brand.logo_size_mobile}px</span>
                   </label>
                   <input
-                    data-testid="logo-size-slider"
+                    data-testid="logo-size-mobile"
                     type="range"
-                    min={24}
-                    max={80}
+                    min={28}
+                    max={56}
                     step={1}
-                    value={brand.logo_size}
-                    onChange={(e) => setBrand({ ...brand, logo_size: Number(e.target.value) })}
+                    value={brand.logo_size_mobile}
+                    onChange={(e) => setBrand({ ...brand, logo_size_mobile: Number(e.target.value), logo_size: Number(e.target.value) })}
                     className="w-full accent-gold"
                   />
-                  <div className="flex justify-between text-[10px] uppercase tracking-widest text-muted mt-1">
-                    <span>24px (S)</span>
-                    <span>40px (M)</span>
-                    <span>80px (L)</span>
-                  </div>
-                  <p className="text-xs text-muted mt-2">Applies everywhere the logo renders — header, footer, and admin sidebar.</p>
+                  <p className="text-[10px] uppercase tracking-widest text-muted mt-1">28-56px</p>
                 </div>
                 <div>
-                  <span className="text-sm text-navy font-medium block mb-2">Header alignment</span>
-                  <div className="inline-flex rounded-md border border-navy/15 overflow-hidden">
-                    <button
-                      type="button"
-                      data-testid="logo-align-left"
-                      onClick={() => setBrand({ ...brand, logo_align: "left" })}
-                      className={`px-4 py-2 text-sm font-medium transition-colors ${brand.logo_align === "left" ? "bg-navy text-white" : "bg-white text-navy hover:bg-cream"}`}
-                    >
-                      Left
-                    </button>
-                    <button
-                      type="button"
-                      data-testid="logo-align-center"
-                      onClick={() => setBrand({ ...brand, logo_align: "center" })}
-                      className={`px-4 py-2 text-sm font-medium transition-colors ${brand.logo_align === "center" ? "bg-navy text-white" : "bg-white text-navy hover:bg-cream"}`}
-                    >
-                      Centered
-                    </button>
-                  </div>
-                  <p className="text-xs text-muted mt-2">Only affects the public site header. Footer &amp; admin sidebar remain fixed.</p>
+                  <label className="text-sm text-navy font-medium block mb-2">
+                    Tablet: <span className="font-bold text-gold">{brand.logo_size_tablet}px</span>
+                  </label>
+                  <input
+                    data-testid="logo-size-tablet"
+                    type="range"
+                    min={32}
+                    max={64}
+                    step={1}
+                    value={brand.logo_size_tablet}
+                    onChange={(e) => setBrand({ ...brand, logo_size_tablet: Number(e.target.value) })}
+                    className="w-full accent-gold"
+                  />
+                  <p className="text-[10px] uppercase tracking-widest text-muted mt-1">32-64px</p>
+                </div>
+                <div>
+                  <label className="text-sm text-navy font-medium block mb-2">
+                    Desktop: <span className="font-bold text-gold">{brand.logo_size_desktop}px</span>
+                  </label>
+                  <input
+                    data-testid="logo-size-desktop"
+                    type="range"
+                    min={36}
+                    max={80}
+                    step={1}
+                    value={brand.logo_size_desktop}
+                    onChange={(e) => setBrand({ ...brand, logo_size_desktop: Number(e.target.value) })}
+                    className="w-full accent-gold"
+                  />
+                  <p className="text-[10px] uppercase tracking-widest text-muted mt-1">36-80px</p>
+                </div>
+              </div>
+              <p className="text-xs text-muted mt-3">Each breakpoint has its own logo height so it looks right on every screen. Header alignment below only moves the logo horizontally — it never hides the desktop nav or forces the hamburger.</p>
+
+              <div className="mt-4">
+                <span className="text-sm text-navy font-medium block mb-2">Header alignment (logo only)</span>
+                <div className="inline-flex rounded-md border border-navy/15 overflow-hidden">
+                  <button
+                    type="button"
+                    data-testid="logo-align-left"
+                    onClick={() => setBrand({ ...brand, logo_align: "left" })}
+                    className={`px-4 py-2 text-sm font-medium transition-colors ${brand.logo_align === "left" ? "bg-navy text-white" : "bg-white text-navy hover:bg-cream"}`}
+                  >
+                    Left
+                  </button>
+                  <button
+                    type="button"
+                    data-testid="logo-align-center"
+                    onClick={() => setBrand({ ...brand, logo_align: "center" })}
+                    className={`px-4 py-2 text-sm font-medium transition-colors ${brand.logo_align === "center" ? "bg-navy text-white" : "bg-white text-navy hover:bg-cream"}`}
+                  >
+                    Centered
+                  </button>
                 </div>
               </div>
             </div>
