@@ -1,23 +1,23 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { LayoutDashboard, Package, FolderTree, ShoppingCart, Users, Ticket, LayoutTemplate, FileText, Settings, Menu, X, LogOut, ArrowLeft, RotateCcw, LifeBuoy, MessageSquare } from "lucide-react";
+import { usePathname, useRouter } from "next/navigation";
+import { LayoutDashboard, Package, FolderTree, ShoppingCart, Users, Ticket, LayoutTemplate, FileText, Settings, Menu, X, LogOut, ArrowLeft, RotateCcw, LifeBuoy, MessageSquare, MapPin } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
-import { useRouter } from "next/navigation";
 
 const NAV = [
   { href: "/admin",              label: "Dashboard",  icon: LayoutDashboard, roles: ["super_admin", "order_manager", "content_manager"] },
   { href: "/admin/orders",       label: "Orders",     icon: ShoppingCart,    roles: ["super_admin", "order_manager"] },
+  { href: "/admin/returns",      label: "Returns",    icon: RotateCcw,       roles: ["super_admin", "order_manager"] },
+  { href: "/admin/customers",    label: "Customers",  icon: Users,           roles: ["super_admin", "order_manager"] },
   { href: "/admin/products",     label: "Products",   icon: Package,         roles: ["super_admin", "content_manager"] },
   { href: "/admin/categories",   label: "Categories", icon: FolderTree,      roles: ["super_admin", "content_manager"] },
-  { href: "/admin/customers",    label: "Customers",  icon: Users,           roles: ["super_admin"] },
   { href: "/admin/coupons",      label: "Coupons",    icon: Ticket,          roles: ["super_admin", "content_manager"] },
   { href: "/admin/homepage",     label: "Homepage",   icon: LayoutTemplate,  roles: ["super_admin", "content_manager"] },
   { href: "/admin/cms",          label: "CMS",        icon: FileText,        roles: ["super_admin", "content_manager"] },
-  { href: "/admin/returns",      label: "Returns",    icon: RotateCcw,       roles: ["super_admin", "order_manager"] },
   { href: "/admin/reviews",      label: "Reviews",    icon: MessageSquare,   roles: ["super_admin", "content_manager"] },
+  { href: "/admin/pincodes",     label: "Pincodes",   icon: MapPin,          roles: ["super_admin", "content_manager"] },
   { href: "/admin/support",      label: "Support",    icon: LifeBuoy,        roles: ["super_admin", "order_manager"] },
   { href: "/admin/settings",     label: "Settings",   icon: Settings,        roles: ["super_admin"] },
 ];
@@ -27,6 +27,19 @@ export default function AdminShell({ role, name, logoUrl, logoSize = 40, childre
   const pathname = usePathname();
   const items = NAV.filter((n) => n.roles.includes(role));
   const router = useRouter();
+
+  // Route guard: if the user navigates (or is deep-linked) to a section their role
+  // shouldn't access, redirect them to /admin.
+  useEffect(() => {
+    if (!pathname || pathname === "/admin") return;
+    // Find the most-specific NAV entry matching the current path
+    const match = [...NAV]
+      .sort((a, b) => b.href.length - a.href.length)
+      .find((n) => pathname === n.href || pathname.startsWith(n.href + "/"));
+    if (match && !match.roles.includes(role)) {
+      router.replace("/admin");
+    }
+  }, [pathname, role, router]);
 
   const signOut = async () => {
     const s = createClient();

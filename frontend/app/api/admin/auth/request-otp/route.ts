@@ -39,10 +39,12 @@ export async function POST(req: Request) {
     const recentCount = recent?.length ?? 0;
     if (recentCount >= 3) return NextResponse.json({ error: "Too many OTP requests. Try again in 10 minutes." }, { status: 429 });
 
-    // 4) Generate and store OTP
+    // 4) Generate and store OTP (10-minute expiry — matches the challenge cookie
+    //    lifetime so users don't get a false "incorrect code" error caused by
+    //    email delivery lag on a 5-minute code).
     const code = generateOtp(6);
-    const expiresAt = new Date(Date.now() + 5 * 60_000).toISOString();
-    // invalidate any previous unused codes for this purpose
+    const expiresAt = new Date(Date.now() + 10 * 60_000).toISOString();
+    // invalidate any previous unused codes for this purpose so a stale email can't be used
     await admin.from("admin_otp_codes").update({ consumed: true }).eq("user_id", userId).eq("purpose", "admin_login").eq("consumed", false);
     const { error: insErr } = await admin.from("admin_otp_codes").insert({
       user_id: userId,
@@ -61,7 +63,7 @@ export async function POST(req: Request) {
       httpOnly: true, secure: true, sameSite: "lax", path: "/", maxAge: 10 * 60,
     });
 
-    return NextResponse.json({ ok: true, hint: `We sent a 6-digit code to ${email}. It expires in 5 minutes.` });
+    return NextResponse.json({ ok: true, hint: `We sent a fresh 6-digit code to ${email}. It's valid for 10 minutes. Any earlier code has been invalidated — use only the newest email.` });
   } catch (e: any) {
     return NextResponse.json({ error: e?.message || "Server error" }, { status: 500 });
   }

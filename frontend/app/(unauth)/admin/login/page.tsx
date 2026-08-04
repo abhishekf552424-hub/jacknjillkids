@@ -14,12 +14,14 @@ export default function AdminLoginPage() {
   const [otp, setOtp] = useState("");
   const [loading, setLoading] = useState(false);
   const [hint, setHint] = useState("");
+  const [expired, setExpired] = useState(false);
   const router = useRouter();
   const supabase = createClient();
 
   const requestOtp = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setExpired(false);
     try {
       const res = await fetch("/api/admin/auth/request-otp", {
         method: "POST",
@@ -30,7 +32,8 @@ export default function AdminLoginPage() {
       if (!res.ok) throw new Error(j.error || "Failed");
       setHint(j.hint || "");
       setStep("otp");
-      toast.success("OTP sent to your email");
+      setOtp("");
+      toast.success("Fresh OTP sent — use the newest email");
     } catch (e: any) {
       toast.error(e.message);
     } finally {
@@ -48,7 +51,12 @@ export default function AdminLoginPage() {
         body: JSON.stringify({ code: otp }),
       });
       const j = await res.json();
-      if (!res.ok) throw new Error(j.error || "Invalid code");
+      if (!res.ok) {
+        if (j.code === "expired" || j.code === "locked") {
+          setExpired(true);
+        }
+        throw new Error(j.error || "Invalid code");
+      }
 
       // Establish real Supabase session by verifying the returned magic-link hash
       const { error } = await supabase.auth.verifyOtp({ type: "magiclink", token_hash: j.token_hash });
@@ -62,6 +70,11 @@ export default function AdminLoginPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const resend = async () => {
+    if (!email || !password) return;
+    await requestOtp({ preventDefault: () => {} } as any);
   };
 
   return (
@@ -110,17 +123,26 @@ export default function AdminLoginPage() {
               maxLength={6}
               required
               value={otp}
-              onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
+              onChange={(e) => { setOtp(e.target.value.replace(/\D/g, "")); if (expired) setExpired(false); }}
               className="w-full text-center text-3xl tracking-[0.6em] font-display border border-neutral-200 rounded-lg py-4 focus:outline-none focus:border-navy"
               placeholder="000000"
               autoFocus
             />
+            {expired && (
+              <div className="rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-900 flex items-center justify-between gap-2">
+                <span>Your code has expired or is locked. Click <b>Resend code</b>.</span>
+                <button type="button" onClick={resend} disabled={loading} className="ml-auto bg-amber-600 text-white rounded px-2 py-1 text-[11px] font-semibold disabled:opacity-50">Resend</button>
+              </div>
+            )}
             <button disabled={loading || otp.length !== 6} className="w-full bg-navy text-white rounded-lg py-3 text-sm font-medium disabled:opacity-50">
               {loading ? "Verifying..." : "Verify & sign in"}
             </button>
-            <button type="button" onClick={() => { setStep("credentials"); setOtp(""); }} className="w-full text-xs text-neutral-500 hover:text-navy">
-              Use a different account
-            </button>
+            <div className="flex items-center justify-between text-xs">
+              <button type="button" onClick={resend} disabled={loading} className="text-neutral-500 hover:text-navy underline underline-offset-2 disabled:opacity-50">Resend code</button>
+              <button type="button" onClick={() => { setStep("credentials"); setOtp(""); setExpired(false); }} className="text-neutral-500 hover:text-navy">
+                Use a different account
+              </button>
+            </div>
           </form>
         )}
       </div>

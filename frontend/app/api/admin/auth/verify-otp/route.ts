@@ -33,16 +33,16 @@ export async function POST(req: Request) {
     if (!row) return NextResponse.json({ error: "No pending code — please request a new one" }, { status: 400 });
     if (new Date(row.expires_at).getTime() < Date.now()) {
       await admin.from("admin_otp_codes").update({ consumed: true }).eq("id", row.id);
-      return NextResponse.json({ error: "Code expired — request a new one" }, { status: 400 });
+      return NextResponse.json({ error: "This code has expired. Request a new code — the old email is no longer valid.", code: "expired" }, { status: 400 });
     }
     if (row.attempts >= row.max_attempts) {
       await admin.from("admin_otp_codes").update({ consumed: true }).eq("id", row.id);
-      return NextResponse.json({ error: "Too many wrong attempts. Request a new code." }, { status: 429 });
+      return NextResponse.json({ error: "Too many wrong attempts. Request a new code.", code: "locked" }, { status: 429 });
     }
 
     if (hashOtp(code) !== row.code_hash) {
       await admin.from("admin_otp_codes").update({ attempts: row.attempts + 1 }).eq("id", row.id);
-      return NextResponse.json({ error: "Incorrect code" }, { status: 401 });
+      return NextResponse.json({ error: "Incorrect code — double-check the newest email (older codes are invalidated).", code: "mismatch" }, { status: 401 });
     }
 
     // consume
