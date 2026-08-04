@@ -8,6 +8,7 @@ import SiteChrome from "@/components/SiteChrome";
 import PromoPopup from "@/components/PromoPopup";
 import AnalyticsPixels from "@/components/AnalyticsPixels";
 import InitialSiteLoader from "@/components/InitialSiteLoader";
+import SupportChat from "@/components/SupportChat";
 import { createClient } from "@/lib/supabase/server";
 import { getTrackingSettings, getPromoPopup, getBrandSettings } from "@/lib/settings";
 import type { Category, AgeGroup, TrustBadge } from "@/lib/types";
@@ -182,6 +183,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <SiteChrome
           header={<Header categoriesTree={globals.categoriesTree} ageGroups={globals.ageGroups} logoUrl={globals.brand?.logo_url} storeName={globals.brand?.store_name} logoSizeMobile={logoSizeMobile} logoSizeTablet={logoSizeTablet} logoSizeDesktop={logoSizeDesktop} logoAlign={logoAlign} />}
           footer={<Footer contact={globals.contact} brand={globals.brand} logoSize={logoSize} />}
+          support={<SupportChat whatsappNumber={globals.contact?.phone || globals.brand?.whatsapp_number} siteName={globals.brand?.store_name || "Jack & Jill"} />}
         >
           {children}
         </SiteChrome>

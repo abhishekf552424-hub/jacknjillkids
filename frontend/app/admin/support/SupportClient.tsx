@@ -48,7 +48,21 @@ export default function SupportClient({ initial }: { initial: any[] }) {
               </div>
               <div className="space-y-2 mb-3 max-h-[45vh] overflow-y-auto">
                 {(active.msgs || []).sort((a: any, b: any) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()).map((m: any) => (
-                  <div key={m.id} className={`rounded-lg p-3 text-sm ${m.author_role === "admin" ? "bg-navy text-white ml-8" : "bg-cream text-navy mr-8"}`}><p>{m.body}</p><p className={`text-[10px] mt-1 ${m.author_role === "admin" ? "text-white/60" : "text-neutral-500"}`}>{new Date(m.created_at).toLocaleString("en-IN")}</p></div>
+                  <div key={m.id} className={`rounded-lg p-3 text-sm ${m.author_role === "admin" ? "bg-navy text-white ml-8" : "bg-cream text-navy mr-8"}`}>
+                    <p className="whitespace-pre-wrap">{m.body}</p>
+                    {m.attachment_url && (
+                      <a href={m.attachment_url} target="_blank" rel="noreferrer" className="mt-2 block">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={m.attachment_url}
+                          alt="Attachment"
+                          className="max-h-52 rounded border border-white/20 bg-white/10 object-contain"
+                        />
+                        <span className={`mt-1 inline-block text-[10px] underline ${m.author_role === "admin" ? "text-white/80" : "text-navy/70"}`}>Open full size</span>
+                      </a>
+                    )}
+                    <p className={`text-[10px] mt-1 ${m.author_role === "admin" ? "text-white/60" : "text-neutral-500"}`}>{new Date(m.created_at).toLocaleString("en-IN")}</p>
+                  </div>
                 ))}
               </div>
               <div className="border-t pt-3">
