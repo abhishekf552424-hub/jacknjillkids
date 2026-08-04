@@ -415,3 +415,98 @@ agent_communication:
 
       Do NOT re-diagnose the double-wrap bug — root cause and fix are documented
       above. Just verify the fix works end-to-end for the request-otp endpoint.
+
+## Iteration 2 — Main agent (Phase N-V, 2026-08-05)
+
+user_problem_statement: |
+  Phase N-V continuation. The two REPORTED BUGS to verify are:
+  1. Admin OTP login: users get "incorrect code" toast even when the code just came in — likely a delayed-delivery vs 5-minute expiry race that surfaces genuine expiry as a mismatch.
+  2. Role-based admin panels for order_manager and content_manager must be FULLY functional in their scope, not partial.
+
+backend:
+  - task: "Admin OTP request/verify — 10-min expiry, distinct error codes, invalidate stale codes"
+    implemented: true
+    working: "NA"
+    file: "frontend/app/api/admin/auth/request-otp/route.ts, frontend/app/api/admin/auth/verify-otp/route.ts, frontend/app/(unauth)/admin/login/page.tsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - agent: "main"
+        working: "NA"
+        comment: |
+          Phase N1 fix applied:
+          - Bumped OTP expiry from 5min -> 10min (matches admin_otp_challenge cookie lifetime, eliminates the false "incorrect code" cause of email delivery lag).
+          - request-otp now invalidates all previous unused codes for the same user+purpose before inserting the new one (already present, verified), and returns a hint text explaining older codes are invalidated.
+          - verify-otp now returns distinct { code: 'expired' | 'locked' | 'mismatch' } so the client can render "Code expired — resend" vs "Incorrect code" separately.
+          - Admin login page shows an amber Resend banner (with a Resend button) whenever the server returns code:'expired' or 'locked', plus a persistent Resend link on the OTP step.
+          Please verify:
+          1. POST /api/admin/auth/request-otp with valid admin creds returns { ok:true, hint:"..." } and creates an admin_otp_codes row expires_at ~10min ahead.
+          2. Immediately POST /api/admin/auth/verify-otp with a wrong 6-digit code — expect 401 { code:'mismatch' }.
+          3. Manually update expires_at to the past (or wait) and re-verify — expect 400 { code:'expired' }.
+          4. Requesting a second OTP marks the first as consumed=true (invalidation).
+          5. Ratelimit still works: 4th request within 10min returns 429.
+          Do NOT test actual email delivery; Resend acceptance is sufficient (already covered in Iteration 1).
+
+  - task: "Support widget POST /api/support with guest + attachment_url"
+    implemented: true
+    working: "NA"
+    file: "frontend/app/api/support/route.ts, supabase/migrations/0008_support_chat_widget.sql"
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - agent: "main"
+        working: "NA"
+        comment: |
+          Phase T API changes:
+          - POST /api/support now accepts { message, attachment_url, guest_name, guest_email, guest_phone } and works for BOTH signed-in users and anon guests (subject auto-derived from first 60 chars of message).
+          - Migration 0008 adds attachment_url on support_ticket_messages, guest_name/guest_phone on support_tickets, and opens INSERT RLS policies to anon + authenticated.
+          Please verify:
+          1. Anonymous POST /api/support with { message, guest_email } creates a ticket + one message; NO 401.
+          2. Missing message -> 400 "Message required".
+          3. Missing email (guest) -> 400 "Please provide your email so we can respond".
+          4. attachment_url (data URL) is persisted verbatim to support_ticket_messages.attachment_url.
+
+  - task: "Trust badges DELETE endpoint + wipe-defaults migration"
+    implemented: true
+    working: "NA"
+    file: "frontend/app/api/admin/cms/badges/[id]/route.ts, supabase/migrations/0007_trust_badges_wipe_defaults.sql"
+    priority: "medium"
+    needs_retesting: true
+    status_history:
+      - agent: "main"
+        working: "NA"
+        comment: |
+          Phase S: added DELETE handler (super_admin | content_manager only). Migration 0007 wipes the seeded rows.
+          Please verify:
+          1. DELETE /api/admin/cms/badges/<uuid> as super_admin -> 200 ok:true, row removed.
+          2. DELETE without valid admin session -> 401/403.
+
+frontend:
+  - task: "AdminShell NAV role scoping + client-side route guard + Pincodes link"
+    implemented: true
+    working: "NA"
+    file: "frontend/app/admin/AdminShell.tsx"
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - agent: "main"
+        working: "NA"
+        comment: |
+          Phase N2 + R:
+          - NAV re-scoped: order_manager now includes /admin/customers (they need order-history lookup — page is already read-only so it's naturally read-only for them). content_manager unchanged. super_admin unchanged.
+          - Added /admin/pincodes (MapPin icon) scoped to super_admin + content_manager.
+          - useEffect route guard: any pathname whose most-specific NAV match excludes the current role redirects to /admin. Prevents deep-link/direct-URL bypass of NAV filtering.
+          This is a UI-only change and is not being sent to the automated backend testing agent — will be validated by the user manually with a test order_manager and content_manager account.
+
+  - task: "Header: proper decoupled logo alignment + per-breakpoint sizing"
+    implemented: true
+    working: "NA"
+    file: "frontend/components/Header.tsx, frontend/lib/settings.ts, frontend/app/admin/settings/SettingsClient.tsx"
+    priority: "medium"
+    needs_retesting: false
+    status_history:
+      - agent: "main"
+        working: "NA"
+        comment: |
+          Phase Q: three separate logo sizes (mobile 28-56, tablet 32-64, desktop 36-80), alignment (left/center) NEVER hides the desktop nav or forces the hamburger on desktop. Center mode uses a 3-column CSS grid. UI-only, not for automated backend testing.
