@@ -120,6 +120,12 @@ function HeroEditor({ config, onChange }: { config: any; onChange: (c: any) => v
     <div className="space-y-3">
       {slides.map((sl, i) => {
         const mode: "image" | "video" = sl.video_url ? "video" : "image";
+        const overlayOpacity = typeof sl.overlay_opacity === "number" ? sl.overlay_opacity : 20;
+        const overlayColor = sl.overlay_color || "#0a1e3f";
+        const headingColor = sl.heading_color || "#ffffff";
+        const headingSize = sl.heading_size || "lg";
+        const ctaStyle = sl.cta_style || "gradient";
+        const contentPos = sl.content_position || "left";
         return (
           <div key={i} className="border border-neutral-200 rounded-lg p-3 grid md:grid-cols-[220px_1fr_auto] gap-3 items-start">
             <div className="space-y-2">
@@ -145,6 +151,43 @@ function HeroEditor({ config, onChange }: { config: any; onChange: (c: any) => v
                 <input type="date" value={sl.start_date || ""} onChange={(e) => patch(i, { start_date: e.target.value })} className="border rounded px-2 py-1.5 text-xs" placeholder="Show from" />
                 <input type="date" value={sl.end_date || ""} onChange={(e) => patch(i, { end_date: e.target.value })} className="border rounded px-2 py-1.5 text-xs" placeholder="Show until" />
               </div>
+
+              {/* Phase O — Overlay + Style controls */}
+              <div className="mt-2 border-t border-neutral-200 pt-2 grid grid-cols-1 md:grid-cols-2 gap-2">
+                <div className="col-span-full text-[10px] uppercase tracking-widest text-navy font-bold">Overlay</div>
+                <label className="text-[11px] text-neutral-600">Opacity: <span className="font-bold text-navy">{overlayOpacity}%</span>
+                  <input type="range" min={0} max={100} step={5} value={overlayOpacity} onChange={(e) => patch(i, { overlay_opacity: Number(e.target.value) })} className="mt-1 w-full accent-gold" />
+                </label>
+                <label className="text-[11px] text-neutral-600 flex items-center gap-2">Color
+                  <input type="color" value={overlayColor} onChange={(e) => patch(i, { overlay_color: e.target.value })} className="h-8 w-12 border rounded cursor-pointer" />
+                  <span className="text-neutral-400">{overlayColor}</span>
+                </label>
+                <div className="col-span-full text-[10px] uppercase tracking-widest text-navy font-bold mt-1">Style</div>
+                <label className="text-[11px] text-neutral-600 flex items-center gap-2">Heading color
+                  <input type="color" value={headingColor} onChange={(e) => patch(i, { heading_color: e.target.value })} className="h-8 w-12 border rounded cursor-pointer" />
+                </label>
+                <label className="text-[11px] text-neutral-600">Heading size
+                  <select value={headingSize} onChange={(e) => patch(i, { heading_size: e.target.value })} className="mt-1 w-full border rounded px-2 py-1 bg-white text-xs">
+                    <option value="sm">Small</option>
+                    <option value="md">Medium</option>
+                    <option value="lg">Large</option>
+                  </select>
+                </label>
+                <label className="text-[11px] text-neutral-600">CTA button style
+                  <select value={ctaStyle} onChange={(e) => patch(i, { cta_style: e.target.value })} className="mt-1 w-full border rounded px-2 py-1 bg-white text-xs">
+                    <option value="gradient">Solid brand gradient</option>
+                    <option value="outline">Outline (transparent)</option>
+                    <option value="navy">Solid navy</option>
+                  </select>
+                </label>
+                <label className="text-[11px] text-neutral-600">Content position
+                  <select value={contentPos} onChange={(e) => patch(i, { content_position: e.target.value })} className="mt-1 w-full border rounded px-2 py-1 bg-white text-xs">
+                    <option value="left">Left</option>
+                    <option value="center">Center</option>
+                    <option value="right">Right</option>
+                  </select>
+                </label>
+              </div>
             </div>
             <div className="flex flex-col gap-1">
               <button onClick={() => { if (i > 0) { const a = [...slides];[a[i], a[i - 1]] = [a[i - 1], a[i]]; setSlides(a); } }} className="p-1.5 hover:bg-neutral-100 rounded"><ArrowUp className="w-3.5 h-3.5" /></button>
@@ -154,7 +197,7 @@ function HeroEditor({ config, onChange }: { config: any; onChange: (c: any) => v
           </div>
         );
       })}
-      <button onClick={() => setSlides([...slides, { image: "", video_url: "", heading: "", subheading: "", cta_text: "", cta_link: "" }])} className="text-sm text-gold flex items-center gap-1"><Plus className="w-4 h-4" /> Add slide</button>
+      <button onClick={() => setSlides([...slides, { image: "", video_url: "", heading: "", subheading: "", cta_text: "", cta_link: "", overlay_opacity: 20, overlay_color: "#0a1e3f", heading_color: "#ffffff", heading_size: "lg", cta_style: "gradient", content_position: "left" }])} className="text-sm text-gold flex items-center gap-1"><Plus className="w-4 h-4" /> Add slide</button>
     </div>
   );
 }
@@ -285,23 +328,51 @@ function PromoStripEditor({ config, onChange }: { config: any; onChange: (c: any
   return (
     <div className="space-y-3">
       <p className="text-[11px] text-neutral-500">3 clickable image-backed cards. Stacks on mobile, side-by-side on desktop.</p>
-      {cards.map((c, i) => (
-        <div key={i} className="border border-neutral-200 rounded-lg p-3 grid md:grid-cols-[200px_1fr_auto] gap-3 items-start">
-          <ImageUploader value={c.image || ""} folder="promo-strip" onChange={(url) => patch(i, { image: url })} showUrlField />
-          <div className="grid gap-2">
-            <input value={c.headline || ""} onChange={(e) => patch(i, { headline: e.target.value })} placeholder="Headline" className="border rounded px-2 py-1.5 text-sm" />
-            <input value={c.subtext || ""} onChange={(e) => patch(i, { subtext: e.target.value })} placeholder="Small subtext (optional)" className="border rounded px-2 py-1.5 text-sm" />
-            <input value={c.link || ""} onChange={(e) => patch(i, { link: e.target.value })} placeholder="Link (e.g. /shop)" className="border rounded px-2 py-1.5 text-xs" />
+      {cards.map((c, i) => {
+        const overlayOpacity = typeof c.overlay_opacity === "number" ? c.overlay_opacity : 55;
+        const overlayColor = c.overlay_color || "#0a1e3f";
+        const headingColor = c.heading_color || "#ffffff";
+        const radius = c.border_radius || "soft";
+        return (
+          <div key={i} className="border border-neutral-200 rounded-lg p-3 grid md:grid-cols-[200px_1fr_auto] gap-3 items-start">
+            <ImageUploader value={c.image || ""} folder="promo-strip" onChange={(url) => patch(i, { image: url })} showUrlField />
+            <div className="grid gap-2">
+              <input value={c.headline || ""} onChange={(e) => patch(i, { headline: e.target.value })} placeholder="Headline" className="border rounded px-2 py-1.5 text-sm" />
+              <input value={c.subtext || ""} onChange={(e) => patch(i, { subtext: e.target.value })} placeholder="Small subtext (optional)" className="border rounded px-2 py-1.5 text-sm" />
+              <input value={c.link || ""} onChange={(e) => patch(i, { link: e.target.value })} placeholder="Link (e.g. /shop)" className="border rounded px-2 py-1.5 text-xs" />
+              <div className="mt-1 border-t border-neutral-200 pt-2 grid grid-cols-1 md:grid-cols-2 gap-2">
+                <div className="col-span-full text-[10px] uppercase tracking-widest text-navy font-bold">Overlay</div>
+                <label className="text-[11px] text-neutral-600">Opacity: <span className="font-bold text-navy">{overlayOpacity}%</span>
+                  <input type="range" min={0} max={100} step={5} value={overlayOpacity} onChange={(e) => patch(i, { overlay_opacity: Number(e.target.value) })} className="mt-1 w-full accent-gold" />
+                </label>
+                <label className="text-[11px] text-neutral-600 flex items-center gap-2">Color
+                  <input type="color" value={overlayColor} onChange={(e) => patch(i, { overlay_color: e.target.value })} className="h-8 w-12 border rounded cursor-pointer" />
+                  <span className="text-neutral-400">{overlayColor}</span>
+                </label>
+                <div className="col-span-full text-[10px] uppercase tracking-widest text-navy font-bold mt-1">Style</div>
+                <label className="text-[11px] text-neutral-600 flex items-center gap-2">Heading color
+                  <input type="color" value={headingColor} onChange={(e) => patch(i, { heading_color: e.target.value })} className="h-8 w-12 border rounded cursor-pointer" />
+                </label>
+                <label className="text-[11px] text-neutral-600">Corner style
+                  <select value={radius} onChange={(e) => patch(i, { border_radius: e.target.value })} className="mt-1 w-full border rounded px-2 py-1 bg-white text-xs">
+                    <option value="none">None (square)</option>
+                    <option value="soft">Soft (default)</option>
+                    <option value="rounded">Rounded</option>
+                    <option value="pill">Pill (extra rounded)</option>
+                  </select>
+                </label>
+              </div>
+            </div>
+            <div className="flex flex-col gap-1">
+              <button onClick={() => { if (i > 0) { const a = [...cards];[a[i], a[i-1]] = [a[i-1], a[i]]; set(a); } }} className="p-1.5 hover:bg-neutral-100 rounded"><ArrowUp className="w-3.5 h-3.5" /></button>
+              <button onClick={() => { if (i < cards.length - 1) { const a = [...cards];[a[i], a[i+1]] = [a[i+1], a[i]]; set(a); } }} className="p-1.5 hover:bg-neutral-100 rounded"><ArrowDown className="w-3.5 h-3.5" /></button>
+              <button onClick={() => set(cards.filter((_, j) => j !== i))} className="p-1.5 text-error"><Trash2 className="w-3.5 h-3.5" /></button>
+            </div>
           </div>
-          <div className="flex flex-col gap-1">
-            <button onClick={() => { if (i > 0) { const a = [...cards];[a[i], a[i-1]] = [a[i-1], a[i]]; set(a); } }} className="p-1.5 hover:bg-neutral-100 rounded"><ArrowUp className="w-3.5 h-3.5" /></button>
-            <button onClick={() => { if (i < cards.length - 1) { const a = [...cards];[a[i], a[i+1]] = [a[i+1], a[i]]; set(a); } }} className="p-1.5 hover:bg-neutral-100 rounded"><ArrowDown className="w-3.5 h-3.5" /></button>
-            <button onClick={() => set(cards.filter((_, j) => j !== i))} className="p-1.5 text-error"><Trash2 className="w-3.5 h-3.5" /></button>
-          </div>
-        </div>
-      ))}
+        );
+      })}
       {cards.length < 3 && (
-        <button onClick={() => set([...cards, { image: "", headline: "", subtext: "", link: "" }])} className="text-sm text-gold flex items-center gap-1"><Plus className="w-4 h-4" /> Add card</button>
+        <button onClick={() => set([...cards, { image: "", headline: "", subtext: "", link: "", overlay_opacity: 55, overlay_color: "#0a1e3f", heading_color: "#ffffff", border_radius: "soft" }])} className="text-sm text-gold flex items-center gap-1"><Plus className="w-4 h-4" /> Add card</button>
       )}
     </div>
   );

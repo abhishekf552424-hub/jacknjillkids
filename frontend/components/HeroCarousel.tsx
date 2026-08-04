@@ -14,7 +14,49 @@ type Slide = {
   subheading?: string;
   cta_text?: string;
   cta_link?: string;
+  // Phase O — per-slide style controls
+  overlay_opacity?: number;      // 0-100 (%), default 20
+  overlay_color?: string;        // any CSS color, default "#0a1e3f" (navy)
+  heading_color?: string;        // any CSS color, default "#ffffff"
+  heading_size?: "sm" | "md" | "lg"; // preset scale, default "lg"
+  cta_style?: "gradient" | "outline" | "navy"; // default "gradient"
+  content_position?: "left" | "center" | "right"; // default "left"
 };
+
+const HEADING_SIZE_CLASSES: Record<string, string> = {
+  sm: "text-2xl sm:text-3xl lg:text-4xl",
+  md: "text-3xl sm:text-4xl lg:text-5xl",
+  lg: "text-3xl sm:text-4xl lg:text-6xl",
+};
+
+const CONTENT_POS_CLASSES: Record<string, string> = {
+  left: "md:w-2/3 lg:w-1/2 md:mr-auto text-left",
+  center: "md:w-4/5 lg:w-3/4 mx-auto text-center",
+  right: "md:w-2/3 lg:w-1/2 md:ml-auto text-right",
+};
+
+function CtaButton({ style, text, link }: { style: string; text: string; link: string }) {
+  const base = "inline-flex items-center gap-2 font-bold rounded-full px-6 py-3 md:px-8 md:py-4 hover:-translate-y-0.5 transition-transform";
+  if (style === "outline") {
+    return (
+      <Link href={link} data-testid="hero-cta" className={`${base} border-2 border-white text-white hover:bg-white hover:text-navy`}>
+        {text} <ChevronRight className="w-4 h-4" />
+      </Link>
+    );
+  }
+  if (style === "navy") {
+    return (
+      <Link href={link} data-testid="hero-cta" className={`${base} bg-navy text-white shadow-premium`}>
+        {text} <ChevronRight className="w-4 h-4" />
+      </Link>
+    );
+  }
+  return (
+    <Link href={link} data-testid="hero-cta" className={`${base} bg-brand-gradient text-white shadow-premium`}>
+      {text} <ChevronRight className="w-4 h-4" />
+    </Link>
+  );
+}
 
 export default function HeroCarousel({ slides, title, subtitle }: { slides: Slide[]; title?: string | null; subtitle?: string | null }) {
   const [i, setI] = useState(0);
@@ -35,11 +77,15 @@ export default function HeroCarousel({ slides, title, subtitle }: { slides: Slid
   const s = list[i];
   const bgVideo = s.video_url ? getVimeoBackgroundUrl(s.video_url) : null;
   const hasCta = Boolean(s.cta_text && s.cta_link && s.cta_text.trim() && s.cta_link.trim());
+  const overlayOpacity = typeof s.overlay_opacity === "number" ? Math.max(0, Math.min(100, s.overlay_opacity)) : 20;
+  const overlayColor = s.overlay_color || "#0a1e3f";
+  const headingColor = s.heading_color || "#ffffff";
+  const headingSizeCls = HEADING_SIZE_CLASSES[s.heading_size || "lg"];
+  const posCls = CONTENT_POS_CLASSES[s.content_position || "left"];
 
   return (
     <section className="relative overflow-hidden bg-cream" data-testid="hero-carousel">
       <div className="relative container py-4 md:py-8">
-        {/* Fixed horizontal aspect-ratio on ALL breakpoints — never switches to portrait */}
         <div className="relative w-full aspect-[16/10] sm:aspect-[16/9] lg:aspect-[21/9] max-h-[720px] rounded-lg overflow-hidden bg-navy">
           <AnimatePresence mode="wait">
             <motion.div
@@ -52,7 +98,6 @@ export default function HeroCarousel({ slides, title, subtitle }: { slides: Slid
             >
               {bgVideo ? (
                 <div className="absolute inset-0 pointer-events-none overflow-hidden">
-                  {/* Chromeless Vimeo background player, scaled to cover */}
                   <iframe
                     src={bgVideo}
                     title={s.heading || "Hero video"}
@@ -71,12 +116,18 @@ export default function HeroCarousel({ slides, title, subtitle }: { slides: Slid
                   className="object-cover"
                 />
               ) : null}
-              <div className="absolute inset-0 bg-gradient-to-t md:bg-gradient-to-r from-navy/70 md:from-navy/60 via-navy/30 to-transparent" />
+              {/* Per-slide flat overlay — 0% opacity renders NO overlay at all */}
+              {overlayOpacity > 0 && (
+                <div
+                  className="absolute inset-0"
+                  style={{ backgroundColor: overlayColor, opacity: overlayOpacity / 100 }}
+                />
+              )}
             </motion.div>
           </AnimatePresence>
 
           <div className="relative h-full flex items-end md:items-center">
-            <div className="w-full md:w-2/3 lg:w-1/2 p-5 sm:p-8 md:p-14 text-white">
+            <div className={`w-full p-5 sm:p-8 md:p-14 ${posCls}`} style={{ color: headingColor }}>
               <motion.p
                 key={`sub-${i}`}
                 initial={{ opacity: 0, y: 12 }}
@@ -91,7 +142,8 @@ export default function HeroCarousel({ slides, title, subtitle }: { slides: Slid
                 initial={{ opacity: 0, y: 16 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-                className="font-display text-3xl sm:text-4xl lg:text-6xl leading-[1.05] tracking-tight"
+                className={`font-display leading-[1.05] tracking-tight ${headingSizeCls}`}
+                style={{ color: headingColor }}
               >
                 {s.heading ?? "Tiny Steps, Big Smiles"}
               </motion.h1>
@@ -103,14 +155,7 @@ export default function HeroCarousel({ slides, title, subtitle }: { slides: Slid
                   transition={{ delay: 0.3, duration: 0.4 }}
                   className="mt-6 md:mt-8"
                 >
-                  <Link
-                    href={s.cta_link!}
-                    data-testid="hero-cta"
-                    className="inline-flex items-center gap-2 bg-brand-gradient text-white font-bold rounded-full px-6 py-3 md:px-8 md:py-4 shadow-premium hover:-translate-y-0.5 transition-transform"
-                  >
-                    {s.cta_text}
-                    <ChevronRight className="w-4 h-4" />
-                  </Link>
+                  <CtaButton style={s.cta_style || "gradient"} text={s.cta_text!} link={s.cta_link!} />
                 </motion.div>
               )}
             </div>
