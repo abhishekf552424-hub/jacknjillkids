@@ -21,9 +21,9 @@ const DEFAULTS: Card[] = [
 
 const RADIUS_CLASSES: Record<string, string> = {
   none: "rounded-none",
-  soft: "rounded-lg",
-  rounded: "rounded-2xl",
-  pill: "rounded-[32px]",
+  soft: "rounded-[12px]",
+  rounded: "rounded-[24px]",
+  pill: "rounded-[40px]",
 };
 
 export default function PromoStrip({

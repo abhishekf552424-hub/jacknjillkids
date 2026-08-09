@@ -187,6 +187,14 @@ function HeroEditor({ config, onChange }: { config: any; onChange: (c: any) => v
                     <option value="right">Right</option>
                   </select>
                 </label>
+                <label className="text-[11px] text-neutral-600">Corner style
+                  <select value={sl.border_radius || "soft"} onChange={(e) => patch(i, { border_radius: e.target.value })} className="mt-1 w-full border rounded px-2 py-1 bg-white text-xs">
+                    <option value="none">Square (none)</option>
+                    <option value="soft">Soft (12px)</option>
+                    <option value="rounded">Rounded (24px)</option>
+                    <option value="pill">Pill (40px)</option>
+                  </select>
+                </label>
               </div>
             </div>
             <div className="flex flex-col gap-1">
@@ -197,7 +205,7 @@ function HeroEditor({ config, onChange }: { config: any; onChange: (c: any) => v
           </div>
         );
       })}
-      <button onClick={() => setSlides([...slides, { image: "", video_url: "", heading: "", subheading: "", cta_text: "", cta_link: "", overlay_opacity: 20, overlay_color: "#0a1e3f", heading_color: "#ffffff", heading_size: "lg", cta_style: "gradient", content_position: "left" }])} className="text-sm text-gold flex items-center gap-1"><Plus className="w-4 h-4" /> Add slide</button>
+      <button onClick={() => setSlides([...slides, { image: "", video_url: "", heading: "", subheading: "", cta_text: "", cta_link: "", overlay_opacity: 20, overlay_color: "#0a1e3f", heading_color: "#ffffff", heading_size: "lg", cta_style: "gradient", content_position: "left", border_radius: "soft" }])} className="text-sm text-gold flex items-center gap-1"><Plus className="w-4 h-4" /> Add slide</button>
     </div>
   );
 }
@@ -355,10 +363,10 @@ function PromoStripEditor({ config, onChange }: { config: any; onChange: (c: any
                 </label>
                 <label className="text-[11px] text-neutral-600">Corner style
                   <select value={radius} onChange={(e) => patch(i, { border_radius: e.target.value })} className="mt-1 w-full border rounded px-2 py-1 bg-white text-xs">
-                    <option value="none">None (square)</option>
-                    <option value="soft">Soft (default)</option>
-                    <option value="rounded">Rounded</option>
-                    <option value="pill">Pill (extra rounded)</option>
+                    <option value="none">Square (none)</option>
+                    <option value="soft">Soft (12px)</option>
+                    <option value="rounded">Rounded (24px)</option>
+                    <option value="pill">Pill (40px)</option>
                   </select>
                 </label>
               </div>

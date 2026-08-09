@@ -20,18 +20,33 @@ export default function MarqueeStrip({
   const duration = Math.max(15, speedSec || Math.min(60, list.length * 6));
 
   return (
-    <section aria-label={title || "Announcements"} className="bg-navy text-white overflow-hidden marquee-wrap" data-testid="marquee-strip">
-      <div className="relative flex whitespace-nowrap">
-        <div
-          className="marquee-track flex whitespace-nowrap py-3"
-          style={{ ["--marquee-duration" as any]: `${duration}s` }}
-        >
-          {seq.map((it, i) => (
-            <span key={i} className="inline-flex items-center gap-3 px-6 text-sm md:text-base font-bold" data-testid={i < list.length ? `marquee-item-${i}` : undefined}>
-              <Sparkles className="w-3.5 h-3.5 text-gold shrink-0" />
-              <span className="opacity-95">{it.text}</span>
-            </span>
-          ))}
+    // Outer section is a normal container — matches header/hero/other homepage
+    // sections' max-width and side padding so its edges align with the rest of
+    // the page layout, not the full viewport.
+    <section aria-label={title || "Announcements"} className="container py-3 md:py-4" data-testid="marquee-strip">
+      <div
+        className="relative overflow-hidden rounded-lg bg-navy text-white marquee-wrap"
+        style={{
+          // Gradient fade at both edges so the scroll still feels continuous
+          // even though the section is width-constrained.
+          WebkitMaskImage:
+            "linear-gradient(to right, transparent 0, black 32px, black calc(100% - 32px), transparent 100%)",
+          maskImage:
+            "linear-gradient(to right, transparent 0, black 32px, black calc(100% - 32px), transparent 100%)",
+        }}
+      >
+        <div className="relative flex whitespace-nowrap">
+          <div
+            className="marquee-track flex whitespace-nowrap py-3"
+            style={{ ["--marquee-duration" as any]: `${duration}s` }}
+          >
+            {seq.map((it, i) => (
+              <span key={i} className="inline-flex items-center gap-3 px-6 text-sm md:text-base font-bold" data-testid={i < list.length ? `marquee-item-${i}` : undefined}>
+                <Sparkles className="w-3.5 h-3.5 text-gold shrink-0" />
+                <span className="opacity-95">{it.text}</span>
+              </span>
+            ))}
+          </div>
         </div>
       </div>
     </section>

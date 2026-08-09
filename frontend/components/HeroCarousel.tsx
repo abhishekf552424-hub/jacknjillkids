@@ -21,6 +21,7 @@ type Slide = {
   heading_size?: "sm" | "md" | "lg"; // preset scale, default "lg"
   cta_style?: "gradient" | "outline" | "navy"; // default "gradient"
   content_position?: "left" | "center" | "right"; // default "left"
+  border_radius?: "none" | "soft" | "rounded" | "pill"; // corner style, default "soft"
 };
 
 const HEADING_SIZE_CLASSES: Record<string, string> = {
@@ -33,6 +34,14 @@ const CONTENT_POS_CLASSES: Record<string, string> = {
   left: "md:w-2/3 lg:w-1/2 md:mr-auto text-left",
   center: "md:w-4/5 lg:w-3/4 mx-auto text-center",
   right: "md:w-2/3 lg:w-1/2 md:ml-auto text-right",
+};
+
+// Corner style presets — consistent with PromoStrip radii for a unified system.
+const RADIUS_CLASSES: Record<string, string> = {
+  none: "rounded-none",
+  soft: "rounded-[12px]",
+  rounded: "rounded-[24px]",
+  pill: "rounded-[40px]",
 };
 
 function CtaButton({ style, text, link }: { style: string; text: string; link: string }) {
@@ -82,11 +91,12 @@ export default function HeroCarousel({ slides, title, subtitle }: { slides: Slid
   const headingColor = s.heading_color || "#ffffff";
   const headingSizeCls = HEADING_SIZE_CLASSES[s.heading_size || "lg"];
   const posCls = CONTENT_POS_CLASSES[s.content_position || "left"];
+  const radiusCls = RADIUS_CLASSES[s.border_radius || "soft"];
 
   return (
     <section className="relative overflow-hidden bg-cream" data-testid="hero-carousel">
       <div className="relative container py-4 md:py-8">
-        <div className="relative w-full aspect-[16/10] sm:aspect-[16/9] lg:aspect-[21/9] max-h-[720px] rounded-lg overflow-hidden bg-navy">
+        <div className={`relative w-full aspect-[16/10] sm:aspect-[16/9] lg:aspect-[21/9] max-h-[720px] overflow-hidden bg-navy ${radiusCls}`}>
           <AnimatePresence mode="wait">
             <motion.div
               key={i}
