@@ -18,8 +18,21 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
   const body = await req.json();
   const admin = createAdminClient();
   const { id: _drop, ...clean } = body;
+
+  if (!clean.name || !String(clean.name).trim()) {
+    return NextResponse.json({ ok: false, error: "Category name is required." }, { status: 400 });
+  }
+  if (clean.slug && !String(clean.slug).trim()) {
+    return NextResponse.json({ ok: false, error: "Slug cannot be empty." }, { status: 400 });
+  }
+
   const { error } = await admin.from("categories").update(clean).eq("id", id);
-  if (error) return NextResponse.json({ ok: false, error: error.message }, { status: 400 });
+  if (error) {
+    const friendly = error.code === "23505"
+      ? "A category with this slug already exists. Please use a different name or slug."
+      : error.message;
+    return NextResponse.json({ ok: false, error: friendly }, { status: 400 });
+  }
   return NextResponse.json({ ok: true });
 }
 
