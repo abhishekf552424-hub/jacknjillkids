@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 import { UploadCloud, X, Loader2, Image as ImageIcon } from "lucide-react";
 import { toast } from "sonner";
+import { compressImage } from "@/lib/image-compress";
 
 type Props = {
   value?: string | null;
@@ -31,19 +32,28 @@ export default function ImageUploader({
   const [dragging, setDragging] = useState(false);
 
   const upload = async (file: File) => {
-    // client-side validation
-    if (file.size > maxSizeMB * 1024 * 1024) {
-      toast.error(`File too large. Max ${maxSizeMB}MB.`);
+    // Hard sanity cap on the raw file before attempting to process it at
+    // all, independent of maxSizeMB (which is checked against the final,
+    // compressed size below).
+    if (file.size > 25 * 1024 * 1024) {
+      toast.error("File too large to process. Max 25MB before compression.");
       return;
     }
     setUploading(true);
     setProgress(0);
     try {
+      const compressed = await compressImage(file);
+
+      if (compressed.size > maxSizeMB * 1024 * 1024) {
+        toast.error(`File still too large after compression. Max ${maxSizeMB}MB.`);
+        return;
+      }
+
       // 1) get signed URL
       const res = await fetch("/api/admin/uploads/signed", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ filename: file.name, folder, contentType: file.type }),
+        body: JSON.stringify({ filename: compressed.name, folder, contentType: compressed.type }),
       });
       if (!res.ok) throw new Error((await res.json()).error || "Signed URL failed");
       const { signedUrl, publicUrl } = await res.json();
@@ -52,17 +62,18 @@ export default function ImageUploader({
       await new Promise<void>((resolve, reject) => {
         const xhr = new XMLHttpRequest();
         xhr.open("PUT", signedUrl, true);
-        xhr.setRequestHeader("Content-Type", file.type || "application/octet-stream");
+        xhr.setRequestHeader("Content-Type", compressed.type || "application/octet-stream");
         xhr.upload.onprogress = (e) => {
           if (e.lengthComputable) setProgress(Math.round((e.loaded / e.total) * 100));
         };
         xhr.onload = () => (xhr.status >= 200 && xhr.status < 300 ? resolve() : reject(new Error("Upload failed " + xhr.status)));
         xhr.onerror = () => reject(new Error("Upload error"));
-        xhr.send(file);
+        xhr.send(compressed);
       });
 
       onChange(publicUrl);
-      toast.success("Uploaded");
+      const savedPct = file.size > 0 && compressed !== file ? Math.round((1 - compressed.size / file.size) * 100) : 0;
+      toast.success(savedPct > 5 ? `Uploaded — ${savedPct}% smaller after auto-compression` : "Uploaded");
     } catch (e: any) {
       toast.error(e.message || "Upload failed");
     } finally {
@@ -122,7 +133,7 @@ export default function ImageUploader({
             <div className="flex flex-col items-center gap-1.5">
               <UploadCloud className="w-6 h-6 text-neutral-400" />
               <span className="text-xs font-medium text-navy">{label}</span>
-              <span className="text-[10px] text-neutral-400">Drag &amp; drop or click • max {maxSizeMB}MB</span>
+              <span className="text-[10px] text-neutral-400">Drag &amp; drop or click • images auto-compressed on upload</span>
             </div>
           )}
         </label>
