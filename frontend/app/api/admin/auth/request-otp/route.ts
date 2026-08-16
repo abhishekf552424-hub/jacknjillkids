@@ -54,8 +54,25 @@ export async function POST(req: Request) {
     });
     if (insErr) return NextResponse.json({ error: insErr.message }, { status: 500 });
 
-    // 5) Email OTP
-    await sendEmail({ to: email, subject: `Jack & Jill admin login code: ${code}`, html: otpEmailHtml(code, "admin_login") });
+    // 5) Email OTP — check the actual result instead of assuming success.
+    //    Resend's sandbox sender (onboarding@resend.dev) can only deliver to
+    //    the Resend account's own registered email until a custom domain is
+    //    verified — every other recipient silently fails otherwise. Surface
+    //    that clearly instead of pretending the email went out.
+    const emailResult = await sendEmail({ to: email, subject: `Jack & Jill admin login code: ${code}`, html: otpEmailHtml(code, "admin_login") });
+    if (!emailResult.ok) {
+      return NextResponse.json(
+        {
+          error:
+            "Your login code was generated, but the email could not be delivered. " +
+            "This usually means the sending domain isn't verified in Resend yet " +
+            "(the sandbox sender can only email the Resend account's own address). " +
+            "Ask a super admin to verify jacknjillkids.com in Resend and update MAIL_FROM, " +
+            "or check the server logs for a temporary fallback code.",
+        },
+        { status: 502 },
+      );
+    }
 
     // 6) Set challenge cookie (10 min) with just the user_id + email — password NOT stored
     const jar = await cookies();
