@@ -52,7 +52,7 @@ export default function PromoStrip({
           const headingColor = c.heading_color || "#ffffff";
           const radiusCls = RADIUS_CLASSES[c.border_radius || "soft"];
           const inner = (
-            <div className={`group relative aspect-[4/3] md:aspect-[5/4] overflow-hidden bg-navy shadow-soft hover:shadow-premium transition-shadow ${radiusCls}`}>
+            <div className={`group relative aspect-video overflow-hidden bg-navy shadow-soft hover:shadow-premium transition-shadow ${radiusCls}`}>
               {c.image ? (
                 <Image src={c.image} alt={c.headline || ""} fill sizes="(min-width:768px) 33vw, 100vw" className="object-cover transition-transform duration-500 group-hover:scale-105" />
               ) : (

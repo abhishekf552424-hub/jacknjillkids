@@ -24,17 +24,7 @@ export default function MarqueeStrip({
     // sections' max-width and side padding so its edges align with the rest of
     // the page layout, not the full viewport.
     <section aria-label={title || "Announcements"} className="container py-3 md:py-4" data-testid="marquee-strip">
-      <div
-        className="relative overflow-hidden rounded-lg bg-navy text-white marquee-wrap"
-        style={{
-          // Gradient fade at both edges so the scroll still feels continuous
-          // even though the section is width-constrained.
-          WebkitMaskImage:
-            "linear-gradient(to right, transparent 0, black 32px, black calc(100% - 32px), transparent 100%)",
-          maskImage:
-            "linear-gradient(to right, transparent 0, black 32px, black calc(100% - 32px), transparent 100%)",
-        }}
-      >
+      <div className="relative overflow-hidden rounded-lg bg-navy text-white marquee-wrap">
         <div className="relative flex whitespace-nowrap">
           <div
             className="marquee-track flex whitespace-nowrap py-3"
