@@ -69,7 +69,12 @@ function CtaButton({ style, text, link }: { style: string; text: string; link: s
 
 export default function HeroCarousel({ slides, title, subtitle }: { slides: Slide[]; title?: string | null; subtitle?: string | null }) {
   const [i, setI] = useState(0);
-  const list: Slide[] = slides.length ? slides : [{
+  // Defensive filter: a slide with neither an image nor a video configured
+  // (e.g. an admin-added slide that was never finished) would otherwise
+  // render as a blank navy box for its entire ~6s turn — not just during
+  // transitions. Only ever show slides that actually have visual content.
+  const validSlides = slides.filter((sl) => Boolean(sl.image || sl.video_url));
+  const list: Slide[] = validSlides.length ? validSlides : [{
     image: "https://images.unsplash.com/photo-1502086223501-7ea6ecd79368?w=1600",
     heading: title ?? "Tiny Steps, Big Smiles",
     subheading: subtitle ?? "Style • Comfort • Care",

@@ -45,8 +45,8 @@ export default function PromoStrip({
           {subtitle && <p className="mt-1 text-muted">{subtitle}</p>}
         </div>
       )}
-      {(() => {
-        const renderCard = (c: Card, i: number) => {
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-5">
+        {list.map((c, i) => {
           const overlayOpacity = typeof c.overlay_opacity === "number" ? Math.max(0, Math.min(100, c.overlay_opacity)) : 55;
           const overlayColor = c.overlay_color || "#0a1e3f";
           const headingColor = c.heading_color || "#ffffff";
@@ -54,7 +54,7 @@ export default function PromoStrip({
           const inner = (
             <div className={`group relative aspect-video overflow-hidden bg-navy shadow-soft hover:shadow-premium transition-shadow ${radiusCls}`}>
               {c.image ? (
-                <Image src={c.image} alt={c.headline || ""} fill sizes="(min-width:768px) 33vw, 85vw" className="object-cover transition-transform duration-500 group-hover:scale-105" />
+                <Image src={c.image} alt={c.headline || ""} fill sizes="(min-width:768px) 33vw, 100vw" className="object-cover transition-transform duration-500 group-hover:scale-105" />
               ) : (
                 <div className="absolute inset-0 bg-brand-gradient" />
               )}
@@ -80,25 +80,8 @@ export default function PromoStrip({
           ) : (
             <div key={i} data-testid={`promo-card-${i}`}>{inner}</div>
           );
-        };
-
-        return (
-          <>
-            {/* Mobile: horizontal swipeable carousel, matching ProductShelf's pattern */}
-            <div className="md:hidden -mx-4 px-4 flex gap-4 overflow-x-auto no-scrollbar snap-x snap-mandatory pb-2">
-              {list.map((c, i) => (
-                <div key={i} className="w-[85%] flex-shrink-0 snap-start">
-                  {renderCard(c, i)}
-                </div>
-              ))}
-            </div>
-            {/* Desktop/tablet: 3-column grid */}
-            <div className="hidden md:grid md:grid-cols-3 gap-4 md:gap-5">
-              {list.map((c, i) => renderCard(c, i))}
-            </div>
-          </>
-        );
-      })()}
+        })}
+      </div>
     </section>
   );
 }
