@@ -97,7 +97,7 @@ export default function HeroCarousel({ slides, title, subtitle }: { slides: Slid
     <section className="relative overflow-hidden bg-cream" data-testid="hero-carousel">
       <div className="relative container py-4 md:py-8">
         <div className={`relative w-full aspect-[16/10] sm:aspect-[16/9] lg:aspect-[21/9] max-h-[720px] overflow-hidden bg-navy ${radiusCls}`}>
-          <AnimatePresence mode="wait">
+          <AnimatePresence>
             <motion.div
               key={i}
               initial={{ opacity: 0, scale: 1.02 }}
