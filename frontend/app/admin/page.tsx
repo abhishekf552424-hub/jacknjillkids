@@ -3,8 +3,19 @@ import { ShoppingBag, Users, AlertTriangle, Package } from "lucide-react";
 import Link from "next/link";
 import { formatINR } from "@/lib/utils";
 import RevenueChart from "./RevenueChart";
+import { AdminPageHeader, AdminCard, StatusPill } from "@/components/admin/ui";
 
 export const dynamic = "force-dynamic";
+
+const ORDER_STATUS_TONE: Record<string, "success" | "neutral" | "danger" | "warn" | "gold"> = {
+  delivered: "success",
+  confirmed: "gold",
+  packed: "gold",
+  shipped: "gold",
+  out_for_delivery: "gold",
+  cancelled: "danger",
+  returned: "danger",
+};
 
 export default async function AdminDashboard() {
   const admin = createAdminClient();
@@ -18,10 +29,9 @@ export default async function AdminDashboard() {
 
   return (
     <div>
-      <p className="text-xs uppercase tracking-widest text-gold font-bold">Overview</p>
-      <h1 className="font-display text-3xl md:text-4xl text-navy tracking-tight">Dashboard</h1>
+      <AdminPageHeader eyebrow="Overview" title="Dashboard" />
 
-      <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
         <Stat label="Orders (all-time)" value={orderCount ?? 0} icon={ShoppingBag} />
         <Stat label="Active products" value={productCount ?? 0} icon={Package} />
         <Stat label="Customers" value={userCount ?? 0} icon={Users} />
@@ -31,7 +41,7 @@ export default async function AdminDashboard() {
       <div className="mt-6"><RevenueChart /></div>
 
       <div className="mt-6 grid lg:grid-cols-3 gap-4 md:gap-6">
-        <div className="lg:col-span-2 bg-white rounded-lg p-4 md:p-6 shadow-soft">
+        <AdminCard className="lg:col-span-2 p-4 md:p-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="font-display text-xl text-navy">Recent orders</h2>
             <Link href="/admin/orders" className="text-xs text-gold underline">View all</Link>
@@ -43,17 +53,17 @@ export default async function AdminDashboard() {
                   <p className="text-sm font-medium text-navy truncate">{o.order_number}</p>
                   <p className="text-xs text-neutral-500">{new Date(o.created_at).toLocaleString("en-IN")}</p>
                 </div>
-                <div className="text-right ml-3">
+                <div className="text-right ml-3 flex items-center gap-2">
                   <p className="text-sm font-medium text-navy">{formatINR(o.total)}</p>
-                  <p className="text-[10px] uppercase tracking-widest text-gold">{o.status.replace(/_/g, " ")}</p>
+                  <StatusPill label={o.status.replace(/_/g, " ")} tone={ORDER_STATUS_TONE[o.status] ?? "neutral"} />
                 </div>
               </Link>
             ))}
             {(recentOrders ?? []).length === 0 && <p className="text-sm text-neutral-400 py-3">No orders yet.</p>}
           </div>
-        </div>
+        </AdminCard>
 
-        <div className="bg-white rounded-lg p-4 md:p-6 shadow-soft">
+        <AdminCard className="p-4 md:p-6">
           <div className="flex items-center gap-2 mb-4">
             <AlertTriangle className="w-4 h-4 text-error" />
             <h2 className="font-display text-xl text-navy">Low stock</h2>
@@ -67,7 +77,7 @@ export default async function AdminDashboard() {
             ))}
             {(lowStock ?? []).length === 0 && <p className="text-sm text-neutral-400">All stocked up ✓</p>}
           </ul>
-        </div>
+        </AdminCard>
       </div>
     </div>
   );
@@ -75,12 +85,14 @@ export default async function AdminDashboard() {
 
 function Stat({ label, value, icon: Icon, tone }: { label: string; value: any; icon: any; tone?: "warn" }) {
   return (
-    <div className={`bg-white rounded-lg p-4 md:p-5 shadow-soft ${tone === "warn" ? "border-l-4 border-error" : ""}`}>
+    <AdminCard className={`p-4 md:p-5 ${tone === "warn" ? "border-l-4 border-error" : ""}`}>
       <div className="flex items-center justify-between">
         <p className="text-[10px] md:text-xs uppercase tracking-widest text-neutral-500 font-bold">{label}</p>
-        <Icon className={`w-4 h-4 ${tone === "warn" ? "text-error" : "text-gold"}`} />
+        <span className={`w-8 h-8 rounded-full flex items-center justify-center ${tone === "warn" ? "bg-error/10" : "bg-gold/10"}`}>
+          <Icon className={`w-4 h-4 ${tone === "warn" ? "text-error" : "text-gold"}`} />
+        </span>
       </div>
       <p className="mt-2 font-display text-xl md:text-3xl text-navy">{value}</p>
-    </div>
+    </AdminCard>
   );
 }

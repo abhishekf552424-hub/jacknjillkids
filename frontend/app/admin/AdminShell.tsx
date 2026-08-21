@@ -5,21 +5,22 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { LayoutDashboard, Package, FolderTree, ShoppingCart, Users, Ticket, LayoutTemplate, FileText, Settings, Menu, X, LogOut, ArrowLeft, RotateCcw, LifeBuoy, MessageSquare, MapPin } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import NotificationBell from "@/components/admin/NotificationBell";
 
-const NAV = [
-  { href: "/admin",              label: "Dashboard",  icon: LayoutDashboard, roles: ["super_admin", "order_manager", "content_manager"] },
-  { href: "/admin/orders",       label: "Orders",     icon: ShoppingCart,    roles: ["super_admin", "order_manager"] },
-  { href: "/admin/returns",      label: "Returns",    icon: RotateCcw,       roles: ["super_admin", "order_manager"] },
-  { href: "/admin/customers",    label: "Customers",  icon: Users,           roles: ["super_admin", "order_manager"] },
-  { href: "/admin/products",     label: "Products",   icon: Package,         roles: ["super_admin", "content_manager"] },
-  { href: "/admin/categories",   label: "Categories", icon: FolderTree,      roles: ["super_admin", "content_manager"] },
-  { href: "/admin/coupons",      label: "Coupons",    icon: Ticket,          roles: ["super_admin", "content_manager"] },
-  { href: "/admin/homepage",     label: "Homepage",   icon: LayoutTemplate,  roles: ["super_admin", "content_manager"] },
-  { href: "/admin/cms",          label: "CMS",        icon: FileText,        roles: ["super_admin", "content_manager"] },
-  { href: "/admin/reviews",      label: "Reviews",    icon: MessageSquare,   roles: ["super_admin", "content_manager"] },
-  { href: "/admin/pincodes",     label: "Pincodes",   icon: MapPin,          roles: ["super_admin", "content_manager"] },
-  { href: "/admin/support",      label: "Support",    icon: LifeBuoy,        roles: ["super_admin", "order_manager"] },
-  { href: "/admin/settings",     label: "Settings",   icon: Settings,        roles: ["super_admin"] },
+const NAV: { href: string; label: string; icon: any; roles: string[]; group: string }[] = [
+  { href: "/admin",              label: "Dashboard",  icon: LayoutDashboard, roles: ["super_admin", "order_manager", "content_manager"], group: "" },
+  { href: "/admin/orders",       label: "Orders",     icon: ShoppingCart,    roles: ["super_admin", "order_manager"], group: "Sales" },
+  { href: "/admin/returns",      label: "Returns",    icon: RotateCcw,       roles: ["super_admin", "order_manager"], group: "Sales" },
+  { href: "/admin/coupons",      label: "Coupons",    icon: Ticket,          roles: ["super_admin", "content_manager"], group: "Sales" },
+  { href: "/admin/products",     label: "Products",   icon: Package,         roles: ["super_admin", "content_manager"], group: "Catalogue" },
+  { href: "/admin/categories",   label: "Categories", icon: FolderTree,      roles: ["super_admin", "content_manager"], group: "Catalogue" },
+  { href: "/admin/homepage",     label: "Homepage",   icon: LayoutTemplate,  roles: ["super_admin", "content_manager"], group: "Content" },
+  { href: "/admin/cms",          label: "CMS",        icon: FileText,        roles: ["super_admin", "content_manager"], group: "Content" },
+  { href: "/admin/reviews",      label: "Reviews",    icon: MessageSquare,   roles: ["super_admin", "content_manager"], group: "Content" },
+  { href: "/admin/customers",    label: "Customers",  icon: Users,           roles: ["super_admin", "order_manager"], group: "People" },
+  { href: "/admin/support",      label: "Support",    icon: LifeBuoy,        roles: ["super_admin", "order_manager"], group: "People" },
+  { href: "/admin/pincodes",     label: "Pincodes",   icon: MapPin,          roles: ["super_admin", "content_manager"], group: "System" },
+  { href: "/admin/settings",     label: "Settings",   icon: Settings,        roles: ["super_admin"], group: "System" },
 ];
 
 export default function AdminShell({ role, name, logoUrl, logoSize = 40, children }: { role: string; name: string; logoUrl?: string; logoSize?: number; children: React.ReactNode }) {
@@ -80,19 +81,28 @@ export default function AdminShell({ role, name, logoUrl, logoSize = 40, childre
         </div>
         <p className="text-[10px] uppercase tracking-widest text-gold font-bold px-2 mb-3">Admin panel</p>
         <nav className="flex flex-col gap-0.5 flex-1 overflow-y-auto no-scrollbar">
-          {items.map((n) => {
-            const active = pathname === n.href || (n.href !== "/admin" && pathname.startsWith(n.href));
-            return (
-              <Link
-                key={n.href}
-                href={n.href}
-                onClick={() => setOpen(false)}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded text-sm transition-colors ${active ? "bg-white/10 text-white" : "text-white/80 hover:bg-white/5"}`}
-              >
-                <n.icon className={`w-4 h-4 ${active ? "text-gold" : "text-white/60"}`} /> {n.label}
-              </Link>
-            );
-          })}
+          {(() => {
+            let lastGroup: string | null = null;
+            return items.map((n) => {
+              const active = pathname === n.href || (n.href !== "/admin" && pathname.startsWith(n.href));
+              const showGroupLabel = n.group && n.group !== lastGroup;
+              lastGroup = n.group;
+              return (
+                <div key={n.href}>
+                  {showGroupLabel && (
+                    <p className="text-[10px] uppercase tracking-widest text-white/30 font-bold px-3 mt-4 mb-1 first:mt-0">{n.group}</p>
+                  )}
+                  <Link
+                    href={n.href}
+                    onClick={() => setOpen(false)}
+                    className={`flex items-center gap-3 px-3 py-2.5 rounded text-sm transition-colors ${active ? "bg-white/10 text-white border-l-2 border-gold -ml-0.5 pl-[11px]" : "text-white/80 hover:bg-white/5"}`}
+                  >
+                    <n.icon className={`w-4 h-4 ${active ? "text-gold" : "text-white/60"}`} /> {n.label}
+                  </Link>
+                </div>
+              );
+            });
+          })()}
         </nav>
         <div className="mt-3 border-t border-white/10 pt-3 px-2">
           <p className="text-xs text-white/80 truncate">{name}</p>
@@ -115,7 +125,11 @@ export default function AdminShell({ role, name, logoUrl, logoSize = 40, childre
             <span className="font-display text-lg font-bold text-gold">&amp;</span>
             <span className="font-display text-lg font-bold text-navy">Jill</span>
           </div>
-          <div className="w-8" />
+          <NotificationBell />
+        </header>
+        {/* Desktop topbar */}
+        <header className="hidden md:flex sticky top-0 z-20 items-center justify-end bg-white border-b border-neutral-200 px-6 py-3">
+          <NotificationBell />
         </header>
         <main className="p-4 md:p-8 max-w-full">{children}</main>
       </div>
