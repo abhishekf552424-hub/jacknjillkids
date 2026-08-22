@@ -96,7 +96,7 @@ export default function ProductsListClient({ initialProducts, categories }: { in
       setProducts((prev) => prev.filter((p) => !ids.includes(p.id)));
       toast.success(`Deleted ${ids.length} product(s)`);
     } else {
-      setProducts((prev) => prev.map((p) => (ids.includes(p.id) ? { ...p, status: action === "activate" ? "active" : "inactive" } : p)));
+      setProducts((prev) => prev.map((p) => (ids.includes(p.id) ? { ...p, status: action === "activate" ? "active" : "draft" } : p)));
       toast.success(`Updated ${ids.length} product(s)`);
     }
     setSelected(new Set());

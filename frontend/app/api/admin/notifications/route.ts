@@ -69,7 +69,7 @@ export async function GET() {
       Promise.resolve(
         admin
           .from("product_variants")
-          .select("id, sku, stock_qty, created_at, product:products(name)")
+          .select("id, sku, stock_qty, product:products(name)")
           .lte("stock_qty", 5)
           .order("stock_qty", { ascending: true })
           .limit(5)
@@ -81,7 +81,7 @@ export async function GET() {
             type: "stock",
             message: `Low stock: ${productName ?? v.sku} (${v.stock_qty} left)`,
             href: `/admin/products`,
-            created_at: v.created_at ?? new Date().toISOString(),
+            created_at: new Date().toISOString(),
           });
         }
       })

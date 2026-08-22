@@ -25,7 +25,7 @@ export async function POST(req: Request) {
   if (action === "activate" || action === "deactivate") {
     const { error } = await admin
       .from("products")
-      .update({ status: action === "activate" ? "active" : "inactive", updated_at: new Date().toISOString() })
+      .update({ status: action === "activate" ? "active" : "draft", updated_at: new Date().toISOString() })
       .in("id", ids);
     if (error) return NextResponse.json({ ok: false, error: error.message }, { status: 400 });
     return NextResponse.json({ ok: true, updated: ids.length });
