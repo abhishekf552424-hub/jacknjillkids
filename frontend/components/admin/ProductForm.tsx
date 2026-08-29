@@ -101,6 +101,9 @@ export default function ProductForm({ categories, ageGroups, product, images, va
 
   const save = async () => {
     if (!p.name || !p.base_price || !p.mrp) return toast.error("Name, price and MRP are required");
+    if (p.product_type === "simple" && vars.length === 0) {
+      return toast.error("Please set stock for this product in the Variants tab before saving — a product with no stock can't be ordered.");
+    }
     setSaving(true);
     const slug = p.slug || slugify(p.name);
     const r = await fetch(`/api/admin/products${product ? `/${product.id}` : ""}`, {
@@ -181,6 +184,31 @@ export default function ProductForm({ categories, ageGroups, product, images, va
                 <p className="text-sm text-neutral-500">Combo products don't have their own variants \u2014 they inherit stock from the child products in the <b>Combo</b> tab.</p>
               ) : (
                 <>
+                  {vars.length === 0 && (
+                    <div className="bg-gold/10 border border-gold/30 rounded-lg p-4">
+                      <p className="text-sm text-navy font-medium mb-2">No sizes/colors set yet — quick stock entry</p>
+                      <p className="text-xs text-neutral-500 mb-3">If this product doesn't need size/color variants, just set a stock quantity here — a single "One Size" variant will be created automatically. You can still add sizes/colors below at any time instead.</p>
+                      <div className="flex items-center gap-2">
+                        <label className="text-xs text-neutral-500">Stock quantity</label>
+                        <input
+                          type="number"
+                          min={0}
+                          placeholder="e.g. 50"
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                              const n = Number((e.target as HTMLInputElement).value);
+                              if (!isNaN(n)) setVars([{ size: "One Size", color: "", color_hex: "", sku: "", stock_qty: n, price_override: "" }]);
+                            }
+                          }}
+                          onBlur={(e) => {
+                            const n = Number(e.target.value);
+                            if (!isNaN(n) && e.target.value !== "") setVars([{ size: "One Size", color: "", color_hex: "", sku: "", stock_qty: n, price_override: "" }]);
+                          }}
+                          className="w-28 border rounded px-2 py-1.5 text-sm"
+                        />
+                      </div>
+                    </div>
+                  )}
                   <div>
                     <div className="text-xs uppercase tracking-widest text-navy font-bold mb-2">Sizes</div>
                     <div className="flex flex-wrap gap-2 items-center">

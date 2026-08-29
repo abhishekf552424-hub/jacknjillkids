@@ -1,8 +1,9 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { Instagram } from "lucide-react";
 import { normalizeEmbedUrl } from "@/lib/embeds";
+import BrandLoader from "@/components/BrandLoader";
 
 type Video = { url: string; autoplay_muted?: boolean };
 
@@ -16,6 +17,7 @@ export default function InstagramReels({
   videos?: Video[];
 }) {
   const scroll = useRef<HTMLDivElement>(null);
+  const [loaded, setLoaded] = useState<Record<number, boolean>>({});
   const items: Video[] = (videos ?? []).filter((v) => v.url);
 
   // Build chromeless Vimeo embed URL with autoplay/loop/muted params
@@ -69,7 +71,12 @@ export default function InstagramReels({
               className="w-[220px] md:w-[260px] snap-start flex-shrink-0"
               data-testid={`instagram-reel-${i}`}
             >
-              <div className="relative aspect-[9/16] rounded-lg overflow-hidden bg-navy shadow-soft">
+              <div className="relative aspect-[9/16] rounded-lg overflow-hidden bg-cream shadow-soft">
+                {!loaded[i] && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-cream">
+                    <BrandLoader size="md" />
+                  </div>
+                )}
                 <iframe
                   src={getChromelessUrl(v)}
                   className="absolute inset-0 w-full h-full"
@@ -77,6 +84,7 @@ export default function InstagramReels({
                   allow="autoplay; fullscreen; picture-in-picture"
                   loading="lazy"
                   title={`Video ${i + 1}`}
+                  onLoad={() => setLoaded((prev) => ({ ...prev, [i]: true }))}
                 />
               </div>
             </div>
