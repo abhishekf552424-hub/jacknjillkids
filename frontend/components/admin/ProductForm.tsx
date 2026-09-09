@@ -3,9 +3,10 @@
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { Trash2, Plus, Search } from "lucide-react";
+import { Trash2, Plus, Search, GripVertical, Star, Loader2 } from "lucide-react";
 import { slugify } from "@/lib/utils";
 import ImageUploader from "@/components/admin/ImageUploader";
+import { compressImage } from "@/lib/image-compress";
 
 type C = { id: string; name: string; parent_id: string | null };
 type A = { id: string; label: string };
@@ -59,6 +60,59 @@ export default function ProductForm({ categories, ageGroups, product, images, va
   const [imgs, setImgs] = useState<{ url: string; alt_text: string }[]>(
     images.length ? images.map((i) => ({ url: i.url, alt_text: i.alt_text ?? "" })) : [],
   );
+  const [bulkUploading, setBulkUploading] = useState(false);
+  const [dragIdx, setDragIdx] = useState<number | null>(null);
+
+  // Mirrors ImageUploader's own upload path (compress → signed URL → XHR PUT)
+  // so bulk-selected files go through the exact same compression + storage
+  // route as a single upload, just looped per file.
+  const uploadOneFile = async (file: File): Promise<string> => {
+    const compressed = await compressImage(file);
+    const res = await fetch("/api/admin/uploads/signed", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ filename: compressed.name, folder: "products", contentType: compressed.type }),
+    });
+    if (!res.ok) throw new Error((await res.json()).error || "Signed URL failed");
+    const { signedUrl, publicUrl } = await res.json();
+    await new Promise<void>((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      xhr.open("PUT", signedUrl, true);
+      xhr.setRequestHeader("Content-Type", compressed.type || "application/octet-stream");
+      xhr.onload = () => (xhr.status >= 200 && xhr.status < 300 ? resolve() : reject(new Error("Upload failed " + xhr.status)));
+      xhr.onerror = () => reject(new Error("Upload error"));
+      xhr.send(compressed);
+    });
+    return publicUrl;
+  };
+
+  const bulkUpload = async (files: FileList | null) => {
+    if (!files || files.length === 0) return;
+    setBulkUploading(true);
+    let okCount = 0;
+    for (const file of Array.from(files)) {
+      try {
+        const url = await uploadOneFile(file);
+        setImgs((prev) => [...prev, { url, alt_text: "" }]);
+        okCount++;
+      } catch (e: any) {
+        toast.error(`"${file.name}" failed to upload — ${e.message || "unknown error"}`);
+      }
+    }
+    setBulkUploading(false);
+    if (okCount) toast.success(`Uploaded ${okCount} image${okCount > 1 ? "s" : ""}`);
+  };
+
+  const reorderImgs = (from: number, to: number) => {
+    if (from === to) return;
+    setImgs((prev) => {
+      const next = [...prev];
+      const [moved] = next.splice(from, 1);
+      next.splice(to, 0, moved);
+      return next;
+    });
+  };
+  const makeCover = (i: number) => reorderImgs(i, 0);
   const [vars, setVars] = useState<Variant[]>(
     variants.length
       ? variants.map((v) => ({ size: v.size ?? "", color: v.color ?? "", color_hex: v.color_hex ?? "", sku: v.sku ?? "", stock_qty: v.stock_qty ?? 0, price_override: v.price_override ?? "" }))
@@ -282,11 +336,40 @@ export default function ProductForm({ categories, ageGroups, product, images, va
 
           {tab === "Images" && (
             <div>
+              <div className="flex items-center justify-between mb-3">
+                <p className="text-xs text-neutral-500">Drag thumbnails to reorder — the first image is the cover shown on listing cards.</p>
+                <label className={`shrink-0 text-xs font-medium px-3 py-1.5 rounded-lg border cursor-pointer flex items-center gap-1.5 ${bulkUploading ? "opacity-60 pointer-events-none" : "border-gold text-navy hover:bg-gold/10"}`}>
+                  {bulkUploading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Plus className="w-3.5 h-3.5" />}
+                  {bulkUploading ? "Uploading…" : "Add photos"}
+                  <input type="file" multiple accept="image/jpeg,image/png,image/webp,image/gif" className="hidden" onChange={(e) => { bulkUpload(e.target.files); e.target.value = ""; }} />
+                </label>
+              </div>
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                 {imgs.map((im, i) => (
-                  <div key={i} className="space-y-1">
+                  <div
+                    key={i}
+                    draggable
+                    onDragStart={() => setDragIdx(i)}
+                    onDragOver={(e) => e.preventDefault()}
+                    onDrop={(e) => { e.preventDefault(); if (dragIdx !== null) reorderImgs(dragIdx, i); setDragIdx(null); }}
+                    onDragEnd={() => setDragIdx(null)}
+                    className={`space-y-1 rounded-lg transition-opacity ${dragIdx === i ? "opacity-40" : ""}`}
+                  >
+                    <div className="flex items-center justify-between px-0.5">
+                      <span className="flex items-center gap-1 text-[10px] text-neutral-400 cursor-grab active:cursor-grabbing">
+                        <GripVertical className="w-3 h-3" /> {i === 0 ? "Cover" : `#${i + 1}`}
+                      </span>
+                      {i !== 0 && im.url && (
+                        <button type="button" onClick={() => makeCover(i)} className="flex items-center gap-0.5 text-[10px] text-navy/60 hover:text-gold">
+                          <Star className="w-3 h-3" /> Make cover
+                        </button>
+                      )}
+                    </div>
                     <ImageUploader value={im.url} folder="products" onChange={(url) => setImgs(imgs.map((x, j) => j === i ? { ...x, url } : x))} />
-                    <input value={im.alt_text} onChange={(e) => setImgs(imgs.map((x, j) => j === i ? { ...x, alt_text: e.target.value } : x))} placeholder="alt text" className="w-full text-xs border rounded px-2 py-1" />
+                    <div className="flex items-center gap-1">
+                      <input value={im.alt_text} onChange={(e) => setImgs(imgs.map((x, j) => j === i ? { ...x, alt_text: e.target.value } : x))} placeholder="alt text" className="w-full text-xs border rounded px-2 py-1" />
+                      <button type="button" onClick={() => setImgs(imgs.filter((_, j) => j !== i))} className="text-error p-1 shrink-0" aria-label="Remove image"><Trash2 className="w-3.5 h-3.5" /></button>
+                    </div>
                   </div>
                 ))}
                 <button onClick={() => setImgs([...imgs, { url: "", alt_text: "" }])} className="border-2 border-dashed border-neutral-300 rounded-lg aspect-video flex flex-col items-center justify-center gap-1 text-neutral-400 hover:border-gold hover:text-navy text-xs">
