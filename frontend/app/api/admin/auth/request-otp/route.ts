@@ -54,33 +54,39 @@ export async function POST(req: Request) {
     });
     if (insErr) return NextResponse.json({ error: insErr.message }, { status: 500 });
 
-    // 5) Email OTP — check the actual result instead of assuming success.
-    //    Resend's sandbox sender (onboarding@resend.dev) can only deliver to
-    //    the Resend account's own registered email until a custom domain is
-    //    verified — every other recipient silently fails otherwise. Surface
-    //    that clearly instead of pretending the email went out.
-    const emailResult = await sendEmail({ to: email, subject: `Jack & Jill admin login code: ${code}`, html: otpEmailHtml(code, "admin_login") });
-    if (!emailResult.ok) {
-      return NextResponse.json(
-        {
-          error:
-            "Your login code was generated, but the email could not be delivered. " +
-            "This usually means the sending domain isn't verified in Resend yet " +
-            "(the sandbox sender can only email the Resend account's own address). " +
-            "Ask a super admin to verify jacknjillkids.com in Resend and update MAIL_FROM, " +
-            "or check the server logs for a temporary fallback code.",
-        },
-        { status: 502 },
-      );
-    }
-
-    // 6) Set challenge cookie (10 min) with just the user_id + email — password NOT stored
+    // 5) Set the challenge cookie NOW, right after the OTP is generated and stored —
+    //    not after the email send succeeds. This is the fix for a real bug: previously,
+    //    if email delivery failed, this cookie was never set, so the "check server logs
+    //    for a temporary fallback code" advice in the error message below was a dead end —
+    //    there was no way to reach the code-entry screen at all, even with the right code.
+    //    Credentials were already verified in step 1, so it's safe to open the OTP
+    //    challenge here regardless of whether the email goes out.
     const jar = await cookies();
     jar.set("admin_otp_challenge", JSON.stringify({ uid: userId, email, ts: Date.now() }), {
       httpOnly: true, secure: true, sameSite: "lax", path: "/", maxAge: 10 * 60,
     });
 
-    return NextResponse.json({ ok: true, hint: `We sent a fresh 6-digit code to ${email}. It's valid for 10 minutes. Any earlier code has been invalidated — use only the newest email.` });
+    // 6) Email OTP — check the actual result instead of assuming success.
+    //    Resend's sandbox sender (onboarding@resend.dev) can only deliver to
+    //    the Resend account's own registered email until a custom domain is
+    //    verified — every other recipient silently fails otherwise. Surface
+    //    that clearly instead of pretending the email went out, but STILL let
+    //    the admin proceed to the code-entry screen — the code is safely
+    //    logged server-side as a fallback (see lib/resend.ts), and the
+    //    challenge cookie above is already active either way.
+    const emailResult = await sendEmail({ to: email, subject: `Jack & Jill admin login code: ${code}`, html: otpEmailHtml(code, "admin_login") });
+    if (!emailResult.ok) {
+      return NextResponse.json({
+        ok: true,
+        emailDelivered: false,
+        hint:
+          "Your code was generated, but the email failed to send — this usually means the sending domain " +
+          "isn't verified in Resend yet. Ask a super admin to check the server logs for a fallback code " +
+          "(logged as [DEV OTP FALLBACK]), or verify jacknjillkids.com in Resend to fix delivery going forward.",
+      });
+    }
+
+    return NextResponse.json({ ok: true, emailDelivered: true, hint: `We sent a fresh 6-digit code to ${email}. It's valid for 10 minutes. Any earlier code has been invalidated — use only the newest email.` });
   } catch (e: any) {
     return NextResponse.json({ error: e?.message || "Server error" }, { status: 500 });
   }

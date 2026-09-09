@@ -14,6 +14,7 @@ export default function AdminLoginPage() {
   const [otp, setOtp] = useState("");
   const [loading, setLoading] = useState(false);
   const [hint, setHint] = useState("");
+  const [emailDelivered, setEmailDelivered] = useState(true);
   const [expired, setExpired] = useState(false);
   const router = useRouter();
   const supabase = createClient();
@@ -31,9 +32,14 @@ export default function AdminLoginPage() {
       const j = await res.json();
       if (!res.ok) throw new Error(j.error || "Failed");
       setHint(j.hint || "");
+      setEmailDelivered(j.emailDelivered !== false);
       setStep("otp");
       setOtp("");
-      toast.success("Fresh OTP sent — use the newest email");
+      if (j.emailDelivered === false) {
+        toast.error("Code generated, but the email failed to send — see the notice below");
+      } else {
+        toast.success("Fresh OTP sent — use the newest email");
+      }
     } catch (e: any) {
       toast.error(e.message);
     } finally {
@@ -118,6 +124,11 @@ export default function AdminLoginPage() {
         ) : (
           <form onSubmit={verifyOtp} className="space-y-4">
             <p className="text-sm text-neutral-600 text-center">{hint || "Enter the 6-digit code from your email."}</p>
+            {!emailDelivered && (
+              <div className="rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-900">
+                The code email failed to send (sending domain likely isn't verified in Resend yet). A super admin can find the code in the server logs, tagged <code className="font-mono">[DEV OTP FALLBACK]</code>.
+              </div>
+            )}
             <input
               inputMode="numeric"
               maxLength={6}
