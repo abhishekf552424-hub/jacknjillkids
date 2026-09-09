@@ -48,6 +48,10 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
   if (body.age_group_ids?.length) {
     await admin.from("product_age_groups").insert(body.age_group_ids.map((a: string) => ({ product_id: id, age_group_id: a })));
   }
+  await admin.from("product_categories").delete().eq("product_id", id);
+  if (body.category_ids?.length) {
+    await admin.from("product_categories").insert(body.category_ids.map((c: string) => ({ product_id: id, category_id: c })));
+  }
   return NextResponse.json({ ok: true });
 }
 

@@ -18,20 +18,25 @@ export default async function NewOrEditProduct({ params }: { params: Promise<{ i
   let images: any[] = [];
   let variants: any[] = [];
   let productAges: string[] = [];
+  let productCategories: string[] = [];
   let bundles: any[] = [];
   if (!isNew) {
     const { data: p } = await admin.from("products").select("*").eq("id", id).maybeSingle();
     if (p) {
       product = p;
-      const [{ data: imgs }, { data: vs }, { data: pa }, { data: bnd }] = await Promise.all([
+      const [{ data: imgs }, { data: vs }, { data: pa }, { data: pc }, { data: bnd }] = await Promise.all([
         admin.from("product_images").select("*").eq("product_id", id).order("sort_order"),
         admin.from("product_variants").select("*").eq("product_id", id),
         admin.from("product_age_groups").select("age_group_id").eq("product_id", id),
+        admin.from("product_categories").select("category_id").eq("product_id", id),
         admin.from("product_bundles").select("*").eq("bundle_product_id", id).order("sort_order"),
       ]);
       images = imgs ?? [];
       variants = vs ?? [];
       productAges = (pa ?? []).map((r: any) => r.age_group_id);
+      // Fall back to the single primary category for older products saved
+      // before the product_categories junction table was backfilled.
+      productCategories = (pc ?? []).length ? (pc ?? []).map((r: any) => r.category_id) : (p.category_id ? [p.category_id] : []);
       bundles = bnd ?? [];
     }
   }
@@ -43,6 +48,7 @@ export default async function NewOrEditProduct({ params }: { params: Promise<{ i
       images={images}
       variants={variants}
       productAges={productAges}
+      productCategories={productCategories}
       coupons={coupons ?? []}
       otherProducts={others ?? []}
       bundles={bundles}

@@ -14,7 +14,7 @@ async function requireAdmin() {
 
 async function save(payload: any, productId?: string) {
   const admin = createAdminClient();
-  const { product, images, variants, age_group_ids, bundles } = payload;
+  const { product, images, variants, age_group_ids, category_ids, bundles } = payload;
   const record = {
     ...product,
     slug: product.slug || slugify(product.name),
@@ -53,6 +53,10 @@ async function save(payload: any, productId?: string) {
   await admin.from("product_age_groups").delete().eq("product_id", id!);
   if (age_group_ids?.length) {
     await admin.from("product_age_groups").insert(age_group_ids.map((a: string) => ({ product_id: id, age_group_id: a })));
+  }
+  await admin.from("product_categories").delete().eq("product_id", id!);
+  if (category_ids?.length) {
+    await admin.from("product_categories").insert(category_ids.map((c: string) => ({ product_id: id, category_id: c })));
   }
   await admin.from("product_bundles").delete().eq("bundle_product_id", id!);
   if (record.product_type === "combo" && Array.isArray(bundles) && bundles.length) {

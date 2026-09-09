@@ -22,6 +22,7 @@ type ProductProps = {
   images: any[];
   variants: any[];
   productAges: string[];
+  productCategories?: string[];
   coupons?: Coupon[];
   otherProducts?: PickProduct[];
   bundles?: any[];
@@ -30,7 +31,7 @@ type ProductProps = {
 const TABS = ["Basic", "Pricing", "Variants", "Images", "Combo", "Coupons", "SEO"] as const;
 type Tab = typeof TABS[number];
 
-export default function ProductForm({ categories, ageGroups, product, images, variants, productAges, coupons = [], otherProducts = [], bundles = [] }: ProductProps) {
+export default function ProductForm({ categories, ageGroups, product, images, variants, productAges, productCategories = [], coupons = [], otherProducts = [], bundles = [] }: ProductProps) {
   const router = useRouter();
   const [saving, setSaving] = useState(false);
   const [tab, setTab] = useState<Tab>("Basic");
@@ -64,6 +65,7 @@ export default function ProductForm({ categories, ageGroups, product, images, va
       : [],
   );
   const [ages, setAges] = useState<string[]>(productAges);
+  const [catIds, setCatIds] = useState<string[]>(productCategories.length ? productCategories : (product?.category_id ? [product.category_id] : []));
   const [bnd, setBnd] = useState<Bundle[]>(
     bundles.length ? bundles.map((b) => ({ child_product_id: b.child_product_id, child_variant_id: b.child_variant_id ?? "", quantity: b.quantity ?? 1 })) : [],
   );
@@ -101,6 +103,7 @@ export default function ProductForm({ categories, ageGroups, product, images, va
 
   const save = async () => {
     if (!p.name || !p.base_price || !p.mrp) return toast.error("Name, price and MRP are required");
+    if (catIds.length === 0) return toast.error("Please select at least one category.");
     if (p.product_type === "simple" && vars.length === 0) {
       return toast.error("Please set stock for this product in the Variants tab before saving — a product with no stock can't be ordered.");
     }
@@ -110,10 +113,11 @@ export default function ProductForm({ categories, ageGroups, product, images, va
       method: product ? "PUT" : "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        product: { ...p, slug },
+        product: { ...p, slug, category_id: catIds[0] ?? null },
         images: imgs.filter((i) => i.url),
         variants: vars,
         age_group_ids: ages,
+        category_ids: catIds,
         bundles: bnd,
       }),
     });
@@ -157,10 +161,9 @@ export default function ProductForm({ categories, ageGroups, product, images, va
               </div>
               <Field label="Short description (list card)" value={p.short_description} onChange={(v) => setP({ ...p, short_description: v })} />
               <Textarea label="Long description" value={p.description} onChange={(v) => setP({ ...p, description: v })} rows={6} />
-              <div className="grid sm:grid-cols-3 gap-3">
+              <div className="grid sm:grid-cols-2 gap-3">
                 <Select label="Gender" value={p.gender} onChange={(v) => setP({ ...p, gender: v })} options={[["boys","Boys"],["girls","Girls"],["unisex","Unisex"]]} />
                 <Select label="Product type" value={p.product_type} onChange={(v) => setP({ ...p, product_type: v })} options={[["simple","Simple product"],["combo","Combo / bundle"]]} />
-                <Select label="Category" value={p.category_id} onChange={(v) => setP({ ...p, category_id: v })} options={categories.map((c) => [c.id, c.name] as [string, string])} />
               </div>
             </>
           )}
@@ -355,6 +358,22 @@ export default function ProductForm({ categories, ageGroups, product, images, va
             <Select label="Status" value={p.status} onChange={(v) => setP({ ...p, status: v })} options={[["active","Active"],["draft","Draft"],["out_of_stock","Out of stock"],["archived","Archived"]]} />
             <label className="flex items-center gap-2 text-sm text-navy mt-3"><input type="checkbox" checked={p.is_featured} onChange={(e) => setP({ ...p, is_featured: e.target.checked })} /> Most Loved shelf</label>
             <label className="flex items-center gap-2 text-sm text-navy mt-2"><input type="checkbox" checked={p.is_new_arrival} onChange={(e) => setP({ ...p, is_new_arrival: e.target.checked })} /> New Arrival shelf</label>
+          </div>
+
+          <div className="bg-white rounded-lg p-4 shadow-soft">
+            <p className="text-xs uppercase tracking-widest text-gold font-bold mb-1">Categories</p>
+            <p className="text-xs text-neutral-500 mb-3">Select all categories this product should appear in — the first one selected is used as the primary category.</p>
+            <div className="flex flex-wrap gap-1.5">
+              {categories.map((c) => (
+                <button
+                  key={c.id}
+                  onClick={() => setCatIds(catIds.includes(c.id) ? catIds.filter((x) => x !== c.id) : [...catIds, c.id])}
+                  className={`text-xs px-2.5 py-1 rounded-full border ${catIds.includes(c.id) ? "bg-navy text-white border-navy" : "bg-white text-navy border-navy/10"}`}
+                >
+                  {c.name}
+                </button>
+              ))}
+            </div>
           </div>
 
           <div className="bg-white rounded-lg p-4 shadow-soft">

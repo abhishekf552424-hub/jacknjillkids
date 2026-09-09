@@ -63,7 +63,18 @@ export default async function ShopPage({ searchParams }: { searchParams: Promise
     // Include children of selected category
     const childIds = categories.filter((c) => c.parent_id === selectedCat.id).map((c) => c.id);
     const ids = [selectedCat.id, ...childIds];
-    query = query.in("category_id", ids);
+    // A product matches if EITHER its primary category_id is in `ids`, OR
+    // it has a product_categories row for one of `ids` (multi-category).
+    const [{ data: byPrimary }, { data: byJunction }] = await Promise.all([
+      supabase.from("products").select("id").eq("status", "active").in("category_id", ids),
+      supabase.from("product_categories").select("product_id").in("category_id", ids),
+    ]);
+    const unionIds = Array.from(new Set([
+      ...(byPrimary ?? []).map((r: any) => r.id),
+      ...(byJunction ?? []).map((r: any) => r.product_id),
+    ]));
+    // Guard against .in("id", []) which some clients treat as "no filter".
+    query = query.in("id", unionIds.length ? unionIds : ["00000000-0000-0000-0000-000000000000"]);
   }
   if (sp.gender && ["boys", "girls", "unisex"].includes(sp.gender)) {
     query = query.eq("gender", sp.gender);
