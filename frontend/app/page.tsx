@@ -8,6 +8,7 @@ import ParentsReviews from "@/components/ParentsReviews";
 import TrustStrip from "@/components/TrustStrip";
 import MarqueeStrip from "@/components/MarqueeStrip";
 import PromoStrip from "@/components/PromoStrip";
+import Reveal from "@/components/Reveal";
 import type { HomepageSection, Product, Category, TrustBadge } from "@/lib/types";
 
 export const revalidate = 60;
@@ -50,35 +51,68 @@ export default async function HomePage() {
   const renderSection = async (s: HomepageSection) => {
     switch (s.section_type) {
       case "hero":
-        return <HeroCarousel key={s.id} slides={s.config?.slides ?? []} title={s.title} subtitle={s.subtitle} />;
+        return (
+          <Reveal key={s.id}>
+            <HeroCarousel slides={s.config?.slides ?? []} title={s.title} subtitle={s.subtitle} />
+          </Reveal>
+        );
       case "categories":
-        return <CategoryShelf key={s.id} categories={categories} shape={s.config?.shape ?? "circle"} title={s.title} subtitle={s.subtitle} />;
+        return (
+          <Reveal key={s.id}>
+            <CategoryShelf categories={categories} shape={s.config?.shape ?? "circle"} title={s.title} subtitle={s.subtitle} />
+          </Reveal>
+        );
       case "product_shelf": {
         const products = await loadProducts(s.config?.filter ?? "featured", s.config?.limit ?? 8);
         const tint = s.config?.filter === "new_arrivals" ? "sky" : "cream";
         return (
-          <ProductShelf
-            key={s.id}
-            title={s.title || (s.config?.filter === "new_arrivals" ? "New Arrivals" : "Most Loved")}
-            subtitle={s.subtitle}
-            products={products}
-            viewAllHref={s.config?.filter === "new_arrivals" ? "/shop?sort=newest" : "/shop?featured=1"}
-            tint={tint as any}
-          />
+          <Reveal key={s.id}>
+            <ProductShelf
+              title={s.title || (s.config?.filter === "new_arrivals" ? "New Arrivals" : "Most Loved")}
+              subtitle={s.subtitle}
+              products={products}
+              viewAllHref={s.config?.filter === "new_arrivals" ? "/shop?sort=newest" : "/shop?featured=1"}
+              tint={tint as any}
+            />
+          </Reveal>
         );
       }
       case "brand_story":
-        return <BrandStory key={s.id} title={s.title} subtitle={s.subtitle} image={s.config?.image} video={s.config?.video} embed_url={s.config?.embed_url} />;
+        return (
+          <Reveal key={s.id}>
+            <BrandStory title={s.title} subtitle={s.subtitle} image={s.config?.image} video={s.config?.video} embed_url={s.config?.embed_url} />
+          </Reveal>
+        );
       case "instagram_reels":
-        return <InstagramReels key={s.id} title={s.title} subtitle={s.subtitle} videos={s.config?.videos ?? []} />;
+        return (
+          <Reveal key={s.id}>
+            <InstagramReels title={s.title} subtitle={s.subtitle} videos={s.config?.videos ?? []} />
+          </Reveal>
+        );
       case "parents_reviews":
-        return <ParentsReviews key={s.id} title={s.title} subtitle={s.subtitle} videos={s.config?.videos ?? []} />;
+        return (
+          <Reveal key={s.id}>
+            <ParentsReviews title={s.title} subtitle={s.subtitle} videos={s.config?.videos ?? []} />
+          </Reveal>
+        );
       case "trust_badges":
-        return <TrustStrip key={s.id} badges={trust} />;
+        return (
+          <Reveal key={s.id}>
+            <TrustStrip badges={trust} />
+          </Reveal>
+        );
       case "marquee":
-        return <MarqueeStrip key={s.id} title={s.title} items={s.config?.items ?? []} speedSec={s.config?.speed_sec} />;
+        return (
+          <Reveal key={s.id}>
+            <MarqueeStrip title={s.title} items={s.config?.items ?? []} speedSec={s.config?.speed_sec} />
+          </Reveal>
+        );
       case "promo_strip":
-        return <PromoStrip key={s.id} title={s.title} subtitle={s.subtitle} cards={s.config?.cards ?? []} />;
+        return (
+          <Reveal key={s.id}>
+            <PromoStrip title={s.title} subtitle={s.subtitle} cards={s.config?.cards ?? []} />
+          </Reveal>
+        );
       default:
         return null;
     }
