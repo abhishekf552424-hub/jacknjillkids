@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { Heart, ShoppingBag, Truck, ShieldCheck, RotateCcw, Star, ChevronDown, Ticket, Check } from "lucide-react";
 import type { Product, ProductVariant } from "@/lib/types";
@@ -19,6 +19,8 @@ export default function PDPClient({ product, reviews }: { product: Product; revi
   const [color, setColor] = useState<string | undefined>(colors[0]?.[0]);
   const [imgIdx, setImgIdx] = useState(0);
   const [zoom, setZoom] = useState({ on: false, x: 50, y: 50 });
+  const touchStartX = useRef<number | null>(null);
+  const touchDeltaX = useRef(0);
   const [pincode, setPincode] = useState("");
   const [pinResult, setPinResult] = useState<string | null>(null);
   const [qty, setQty] = useState(1);
@@ -90,6 +92,19 @@ export default function PDPClient({ product, reviews }: { product: Product; revi
             const y = ((e.clientY - rect.top) / rect.height) * 100;
             setZoom({ on: true, x, y });
           }}
+          onTouchStart={(e) => { touchStartX.current = e.touches[0].clientX; touchDeltaX.current = 0; }}
+          onTouchMove={(e) => {
+            if (touchStartX.current === null) return;
+            touchDeltaX.current = e.touches[0].clientX - touchStartX.current;
+          }}
+          onTouchEnd={() => {
+            const delta = touchDeltaX.current;
+            const SWIPE_THRESHOLD = 40; // px
+            if (delta <= -SWIPE_THRESHOLD && imgIdx < images.length - 1) setImgIdx(imgIdx + 1);
+            else if (delta >= SWIPE_THRESHOLD && imgIdx > 0) setImgIdx(imgIdx - 1);
+            touchStartX.current = null;
+            touchDeltaX.current = 0;
+          }}
         >
           <Image
             src={images[imgIdx]?.url}
@@ -102,6 +117,13 @@ export default function PDPClient({ product, reviews }: { product: Product; revi
           />
           {discount > 0 && (
             <span className="absolute top-4 left-4 bg-brand-gradient text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-soft">{discount}% OFF</span>
+          )}
+          {images.length > 1 && (
+            <div className="sm:hidden absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-1.5 bg-black/30 backdrop-blur-sm rounded-full px-2.5 py-1.5">
+              {images.map((_, i) => (
+                <span key={i} className={`h-1.5 rounded-full transition-all ${i === imgIdx ? "w-5 bg-white" : "w-1.5 bg-white/50"}`} />
+              ))}
+            </div>
           )}
         </div>
         <div className="mt-3 flex gap-2 overflow-x-auto no-scrollbar snap-x">
