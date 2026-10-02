@@ -43,13 +43,12 @@ body {
 
 ::selection { background: var(--brand-yellow); color: var(--ink); }
 
-.font-display { font-family: var(--font-display), Rockwell, Georgia, serif; font-weight: 700; letter-spacing: -0.005em; }
-.font-hero { font-family: var(--font-hero), Rockwell, Georgia, serif; font-weight: 400; letter-spacing: 0; }
+/* Fredoka for headings and hero lines; Baloo 2 covers Marathi characters. */
+.font-display { font-family: var(--font-display), var(--font-deva), "Arial Rounded MT Bold", system-ui, sans-serif; font-weight: 600; letter-spacing: -0.01em; }
+.font-hero { font-family: var(--font-display), var(--font-deva), "Arial Rounded MT Bold", system-ui, sans-serif; font-weight: 700; letter-spacing: -0.015em; }
 .font-hand { font-family: var(--font-hand), cursive; font-weight: 400; }
 
-/* Admin panel uses the heading slab (Arvo) for titles like the storefront;
-   the hero and handwritten faces are storefront-only. */
-[data-admin] .font-hero,
+/* Admin uses the same heading face; the handwritten face is storefront-only. */
 [data-admin] .font-hand { font-family: var(--font-body), system-ui, sans-serif !important; }
 
 /* Scroll-reveal helpers — ONE consistent motion (fade + translateY, ~400ms) */
@@ -73,8 +72,8 @@ a { color: inherit; text-decoration: none; }
 
 /* Prose fallback for CMS pages */
 .prose-jj p { margin-bottom: 1rem; line-height: 1.75; color: var(--ink); }
-.prose-jj h2 { font-family: var(--font-display), Rockwell, Georgia, serif; font-weight: 700; font-size: 1.75rem; margin: 1.5rem 0 0.75rem; color: var(--brand-navy); }
-.prose-jj h3 { font-family: var(--font-display), Rockwell, Georgia, serif; font-weight: 700; font-size: 1.375rem; margin: 1.25rem 0 0.5rem; color: var(--brand-navy); }
+.prose-jj h2 { font-family: var(--font-display), var(--font-deva), system-ui, sans-serif; font-weight: 700; font-size: 1.75rem; margin: 1.5rem 0 0.75rem; color: var(--brand-navy); }
+.prose-jj h3 { font-family: var(--font-display), var(--font-deva), system-ui, sans-serif; font-weight: 700; font-size: 1.375rem; margin: 1.25rem 0 0.5rem; color: var(--brand-navy); }
 
 /* --- BrandLoader: single site-wide loader animation --- */
 .brand-loader-ring {

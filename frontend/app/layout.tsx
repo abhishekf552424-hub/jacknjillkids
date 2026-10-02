@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Alfa_Slab_One, Arvo, Baloo_2, Nunito, Patrick_Hand } from "next/font/google";
+import { Baloo_2, Fredoka, Nunito, Patrick_Hand } from "next/font/google";
 import { Toaster } from "sonner";
 import "./globals.css";
 import Header from "@/components/Header";
@@ -13,22 +13,14 @@ import { SITE_URL } from "@/lib/site";
 import { getTrackingSettings, getPromoPopup, getBrandSettings } from "@/lib/settings";
 import type { Category, AgeGroup, TrustBadge } from "@/lib/types";
 
-// Brand type system (see the Jack & Jill Kids design system):
-// Arvo = headings (Rockwell-style slab, echoes the logo wordmark)
-// Alfa Slab One = hero/campaign lines only · Nunito = body
+// Brand type system (approved Oct 2026, option A):
+// Fredoka = headings and hero lines (soft, rounded, kid-friendly) · Nunito = body
 // Patrick Hand = doodle notes · Baloo 2 = Marathi/Hindi copy
-const display = Arvo({
+const display = Fredoka({
   subsets: ["latin"],
-  weight: ["400", "700"],
+  weight: ["500", "600", "700"],
   variable: "--font-display",
   display: "swap",
-});
-const hero = Alfa_Slab_One({
-  subsets: ["latin"],
-  weight: "400",
-  variable: "--font-hero",
-  display: "swap",
-  preload: false,
 });
 const body = Nunito({
   subsets: ["latin"],
@@ -210,7 +202,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   };
 
   return (
-    <html lang="en-IN" className={`${display.variable} ${hero.variable} ${body.variable} ${hand.variable} ${deva.variable}`}>
+    <html lang="en-IN" className={`${display.variable} ${body.variable} ${hand.variable} ${deva.variable}`}>
       <body>
         <SiteChrome
           header={<Header categoriesTree={globals.categoriesTree} ageGroups={globals.ageGroups} logoUrl={globals.brand?.logo_url} storeName={globals.brand?.store_name} logoSizeMobile={logoSizeMobile} logoSizeTablet={logoSizeTablet} logoSizeDesktop={logoSizeDesktop} logoAlign={logoAlign} phone={(globals.contact as any)?.phone} freeShippingAbove={globals.freeShippingAbove} exchangeDays={globals.exchangeDays} />}
