@@ -47,7 +47,7 @@ export default function AppliedFilters({
         <button
           key={c.key}
           onClick={() => remove(c.key)}
-          className="inline-flex items-center gap-1.5 bg-white border border-navy/10 rounded-full pl-3 pr-2 py-1 text-xs font-medium text-navy hover:border-gold hover:text-gold transition-colors group"
+          className="inline-flex items-center gap-1.5 bg-white border border-navy/10 rounded-full pl-3 pr-2 py-1 text-xs font-medium text-navy hover:border-gold hover:text-gold-text transition-colors group"
           data-testid={`applied-chip-${c.key}`}
         >
           {c.label}

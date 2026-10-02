@@ -98,7 +98,7 @@ export default function PincodeClient({ initial }: { initial: Pincode[] }) {
     <div>
       <div className="flex items-center justify-between mb-4">
         <div>
-          <p className="text-xs uppercase tracking-widest text-gold font-bold">Logistics</p>
+          <p className="text-xs uppercase tracking-widest text-gold-text font-bold">Logistics</p>
           <h1 className="font-display text-2xl md:text-3xl text-navy tracking-tight">Pincode Management</h1>
         </div>
         <div className="flex gap-2">
@@ -189,7 +189,7 @@ export default function PincodeClient({ initial }: { initial: Pincode[] }) {
                       <td className="px-4 py-2 text-center">{p.cod_available ? <span className="text-green-600">✓</span> : <span className="text-neutral-400">—</span>}</td>
                       <td className="px-4 py-2 text-center">{p.est_delivery_days ?? "—"}</td>
                       <td className="px-4 py-2 text-right">
-                        <button onClick={() => setEditMode(p.pincode)} className="text-xs text-gold hover:underline mr-2">Edit</button>
+                        <button onClick={() => setEditMode(p.pincode)} className="text-xs text-gold-text hover:underline mr-2">Edit</button>
                         <button onClick={() => deletePincode(p.pincode)} className="text-xs text-error hover:underline"><Trash2 className="w-3 h-3 inline" /></button>
                       </td>
                     </>

@@ -22,12 +22,12 @@ export default function ProductShelf({
       <div className="container">
         <div className="flex items-end justify-between mb-8 gap-4">
           <div>
-            <p className="text-xs uppercase tracking-[0.3em] text-gold font-bold mb-2">Curated</p>
+            <p className="text-xs uppercase tracking-[0.3em] text-gold-text font-bold mb-2">Curated</p>
             <h2 className="font-display text-3xl md:text-4xl lg:text-5xl text-navy tracking-tight">{title}</h2>
             {subtitle && <p className="mt-2 text-muted">{subtitle}</p>}
           </div>
           {viewAllHref && (
-            <Link href={viewAllHref} className="hidden sm:inline-flex items-center gap-2 text-sm font-medium text-navy hover:text-gold transition-colors">
+            <Link href={viewAllHref} className="hidden sm:inline-flex items-center gap-2 text-sm font-medium text-navy hover:text-gold-text transition-colors">
               View all <ArrowRight className="w-4 h-4" />
             </Link>
           )}

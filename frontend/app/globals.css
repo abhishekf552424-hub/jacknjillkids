@@ -3,18 +3,31 @@
 @tailwind utilities;
 
 :root {
-  --brand-navy: #1E2A4A;
-  --brand-gold: #C9992E;
-  --bg-cream: #FFF9F2;
-  --bg-blush: #FDEEF0;
-  --bg-sky: #EAF4FB;
-  --ink: #1A1A1A;
-  --muted: #6B7280;
-  --success: #2E9E5B;
-  --error: #D64545;
-  --grad-start: #E63946;
-  --grad-mid: #F4A63E;
-  --grad-end: #F7D34C;
+  /* Jack & Jill brand tokens (sampled from the logo) — keep in sync with tailwind.config.ts */
+  --brand-navy: #354275;
+  --brand-gold: #B9923F;
+  --gold-text: #8A6A22;
+  --gold-light: #E2C47E;
+  --brand-red: #EA4137;
+  --brand-orange: #F38838;
+  --brand-yellow: #FCD325;
+  --doodle-blue: #3661A0;
+  --bg-cream: #FFF8EC;
+  --bg-butter: #FFF3C4;
+  --bg-blush: #FDE4E1;
+  --bg-sky: #E6EDF8;
+  --line: #E8DFCC;
+  --line-strong: #9A8F78;
+  --ink: #1F2650;
+  --muted: #5B6280;
+  --action: #C8302A;
+  --action-hover: #A9251F;
+  --success: #1F7A4A;
+  --warning: #8A5A00;
+  --error: #B3261E;
+  --grad-start: #EA4137;
+  --grad-mid: #F38838;
+  --grad-end: #FCD325;
 }
 
 html, body {
@@ -28,16 +41,16 @@ body {
   font-family: var(--font-body), system-ui, sans-serif;
 }
 
-::selection { background: var(--brand-gold); color: #fff; }
+::selection { background: var(--brand-yellow); color: var(--ink); }
 
-.font-display { font-family: var(--font-display), system-ui, sans-serif; font-weight: 600; letter-spacing: -0.01em; }
+.font-display { font-family: var(--font-display), Rockwell, Georgia, serif; font-weight: 700; letter-spacing: -0.005em; }
+.font-hero { font-family: var(--font-hero), Rockwell, Georgia, serif; font-weight: 400; letter-spacing: 0; }
+.font-hand { font-family: var(--font-hand), cursive; font-weight: 400; }
 
-/* Admin panel: keep Nunito only — no Fredoka bleed into the admin UI. */
-[data-admin] .font-display,
-[data-admin] .font-display * {
-  font-family: var(--font-body), system-ui, sans-serif !important;
-  letter-spacing: -0.005em;
-}
+/* Admin panel uses the heading slab (Arvo) for titles like the storefront;
+   the hero and handwritten faces are storefront-only. */
+[data-admin] .font-hero,
+[data-admin] .font-hand { font-family: var(--font-body), system-ui, sans-serif !important; }
 
 /* Scroll-reveal helpers — ONE consistent motion (fade + translateY, ~400ms) */
 .reveal { opacity: 0; transform: translateY(14px); transition: opacity 400ms cubic-bezier(0.22,1,0.36,1), transform 400ms cubic-bezier(0.22,1,0.36,1); }
@@ -53,19 +66,19 @@ body {
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
 /* Focus ring */
-:focus-visible { outline: 2px solid var(--brand-gold); outline-offset: 2px; border-radius: 4px; }
+:focus-visible { outline: 2px solid var(--doodle-blue); outline-offset: 2px; border-radius: 4px; }
 
 /* Base link */
 a { color: inherit; text-decoration: none; }
 
 /* Prose fallback for CMS pages */
 .prose-jj p { margin-bottom: 1rem; line-height: 1.75; color: var(--ink); }
-.prose-jj h2 { font-family: var(--font-display), system-ui, sans-serif; font-weight: 600; font-size: 1.75rem; margin: 1.5rem 0 0.75rem; color: var(--brand-navy); }
-.prose-jj h3 { font-family: var(--font-display), system-ui, sans-serif; font-weight: 600; font-size: 1.375rem; margin: 1.25rem 0 0.5rem; color: var(--brand-navy); }
+.prose-jj h2 { font-family: var(--font-display), Rockwell, Georgia, serif; font-weight: 700; font-size: 1.75rem; margin: 1.5rem 0 0.75rem; color: var(--brand-navy); }
+.prose-jj h3 { font-family: var(--font-display), Rockwell, Georgia, serif; font-weight: 700; font-size: 1.375rem; margin: 1.25rem 0 0.5rem; color: var(--brand-navy); }
 
 /* --- BrandLoader: single site-wide loader animation --- */
 .brand-loader-ring {
-  background: conic-gradient(from 0deg, transparent 0deg, #E63946 90deg, #F4A63E 180deg, #F7D34C 270deg, transparent 360deg);
+  background: conic-gradient(from 0deg, transparent 0deg, #EA4137 90deg, #F38838 180deg, #FCD325 270deg, transparent 360deg);
   -webkit-mask: radial-gradient(circle, transparent 55%, black 58%);
           mask: radial-gradient(circle, transparent 55%, black 58%);
   animation: brand-loader-spin 1.2s linear infinite;
@@ -98,7 +111,7 @@ a { color: inherit; text-decoration: none; }
   .marquee-track { animation: none !important; }
 }
 .prose-jj ul { list-style: disc; padding-left: 1.5rem; margin-bottom: 1rem; }
-.prose-jj a { color: var(--brand-gold); text-decoration: underline; }
+.prose-jj a { color: var(--doodle-blue); text-decoration: underline; }
 
 /* Grain overlay for hero */
 .grain::after {

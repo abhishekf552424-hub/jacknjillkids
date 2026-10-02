@@ -47,7 +47,7 @@ export default function RevenueChart() {
     <div className="bg-white rounded-lg p-4 md:p-6 shadow-soft">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-4">
         <div className="flex items-center gap-2">
-          <TrendingUp className="w-4 h-4 text-gold" />
+          <TrendingUp className="w-4 h-4 text-gold-text" />
           <h2 className="font-display text-xl text-navy">Revenue</h2>
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -73,9 +73,9 @@ export default function RevenueChart() {
         {loading ? <div className="h-full grid place-items-center text-xs text-neutral-400">Loading…</div> : rows.length === 0 ? <div className="h-full grid place-items-center text-xs text-neutral-400">No orders in this range</div> : (
           <ResponsiveContainer width="100%" height="100%">
             {useBar ? (
-              <BarChart data={rows}><CartesianGrid stroke="#eee" strokeDasharray="3 3" /><XAxis dataKey="date" tick={{ fontSize: 10 }} /><YAxis tick={{ fontSize: 10 }} /><Tooltip formatter={(v: any) => formatINR(Number(v))} /><Bar dataKey="revenue" fill="#C9992E" radius={[4, 4, 0, 0]} /></BarChart>
+              <BarChart data={rows}><CartesianGrid stroke="#eee" strokeDasharray="3 3" /><XAxis dataKey="date" tick={{ fontSize: 10 }} /><YAxis tick={{ fontSize: 10 }} /><Tooltip formatter={(v: any) => formatINR(Number(v))} /><Bar dataKey="revenue" fill="#B9923F" radius={[4, 4, 0, 0]} /></BarChart>
             ) : (
-              <LineChart data={rows}><CartesianGrid stroke="#eee" strokeDasharray="3 3" /><XAxis dataKey="date" tick={{ fontSize: 10 }} /><YAxis tick={{ fontSize: 10 }} /><Tooltip formatter={(v: any) => formatINR(Number(v))} /><Line type="monotone" dataKey="revenue" stroke="#1E2A4A" strokeWidth={2} dot={{ r: 3, fill: "#C9992E" }} /></LineChart>
+              <LineChart data={rows}><CartesianGrid stroke="#eee" strokeDasharray="3 3" /><XAxis dataKey="date" tick={{ fontSize: 10 }} /><YAxis tick={{ fontSize: 10 }} /><Tooltip formatter={(v: any) => formatINR(Number(v))} /><Line type="monotone" dataKey="revenue" stroke="#354275" strokeWidth={2} dot={{ r: 3, fill: "#B9923F" }} /></LineChart>
             )}
           </ResponsiveContainer>
         )}

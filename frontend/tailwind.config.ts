@@ -18,24 +18,46 @@ const config: Config = {
       screens: { "2xl": "1400px" },
     },
     extend: {
+      // Jack & Jill brand tokens — sampled from the logo. Source of truth:
+      // the "Jack & Jill Kids" design system (README + tokens.json). Keep the
+      // values here and the CSS variables in app/globals.css in sync.
       colors: {
-        navy: "#1E2A4A",
-        gold: "#C9992E",
-        cream: "#FFF9F2",
-        blush: "#FDEEF0",
-        sky: "#EAF4FB",
-        ink: "#1A1A1A",
-        muted: "#6B7280",
-        success: "#2E9E5B",
-        error: "#D64545",
-        "grad-start": "#E63946",
-        "grad-mid": "#F4A63E",
-        "grad-end": "#F7D34C",
+        // Logo colours
+        navy: "#354275", // wordmark navy — headings, nav, footer, secondary buttons
+        gold: "#B9923F", // ampersand gold — decoration only (borders, stars, dividers)
+        "gold-text": "#8A6A22", // gold-coloured text on white/cream (4.8:1)
+        "gold-light": "#E2C47E", // gold-coloured text on navy (5.7:1)
+        "brand-red": "#EA4137", // Jack's J
+        "brand-orange": "#F38838",
+        "brand-yellow": "#FCD325", // Jill's J — badges with ink text
+        doodle: "#3661A0", // line colour of the kids' faces — icons, links, focus
+        // Text + grounds
+        ink: "#1F2650",
+        muted: "#5B6280", // ink-muted
+        cream: "#FFF8EC",
+        butter: "#FFF3C4",
+        blush: "#FDE4E1",
+        sky: "#E6EDF8",
+        line: "#E8DFCC",
+        "line-strong": "#9A8F78",
+        // Action + states
+        action: "#C8302A", // the one primary CTA colour (white text 5.4:1)
+        "action-hover": "#A9251F",
+        success: "#1F7A4A",
+        warning: "#8A5A00",
+        error: "#B3261E",
+        // Rise gradient stops (from the J arrows)
+        "grad-start": "#EA4137",
+        "grad-mid": "#F38838",
+        "grad-end": "#FCD325",
       },
       fontFamily: {
-        display: ["var(--font-display)", "system-ui", "sans-serif"],
-        body: ["var(--font-body)", "system-ui", "sans-serif"],
+        display: ["var(--font-display)", "Rockwell", "Georgia", "serif"], // Arvo — headings
+        hero: ["var(--font-hero)", "Rockwell", "Georgia", "serif"], // Alfa Slab One — hero lines only
+        body: ["var(--font-body)", "system-ui", "sans-serif"], // Nunito
         sans: ["var(--font-body)", "system-ui", "sans-serif"],
+        hand: ["var(--font-hand)", "cursive"], // Patrick Hand — doodle notes
+        deva: ["var(--font-deva)", "var(--font-body)", "sans-serif"], // Baloo 2 — Marathi/Hindi
       },
       borderRadius: {
         sm: "12px",
@@ -44,11 +66,12 @@ const config: Config = {
         xl: "24px",
       },
       backgroundImage: {
-        "brand-gradient": "linear-gradient(135deg, #E63946 0%, #F4A63E 50%, #F7D34C 100%)",
+        // Use at most once per screen and never behind text.
+        "brand-gradient": "linear-gradient(135deg, #EA4137 0%, #F38838 50%, #FCD325 100%)",
       },
       boxShadow: {
-        soft: "0 2px 10px rgba(30,42,74,0.06)",
-        premium: "0 20px 40px -12px rgba(30,42,74,0.15)",
+        soft: "0 2px 10px rgba(53,66,117,0.08)",
+        premium: "0 14px 30px -12px rgba(53,66,117,0.25)",
       },
       keyframes: {
         "fade-up": {

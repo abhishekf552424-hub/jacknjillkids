@@ -184,18 +184,18 @@ export default function ProductsListClient({ initialProducts, categories }: { in
                 </td>
                 <td className="px-4 py-3"><StatusPill label={p.status.replace("_", " ")} tone={STATUS_TONE[p.status] ?? "neutral"} /></td>
                 <td className="px-4 py-3 text-xs text-muted">
-                  {p.is_featured && <span className="mr-2 text-gold">★ Featured</span>}
+                  {p.is_featured && <span className="mr-2 text-gold-text">★ Featured</span>}
                   {p.is_new_arrival && <span className="text-success">NEW</span>}
                 </td>
                 <td className="px-4 py-3 text-right">
-                  <Link href={`/admin/products/${p.id}`} className="inline-flex items-center gap-1 text-xs text-navy hover:text-gold"><Edit className="w-3.5 h-3.5" /> Edit</Link>
+                  <Link href={`/admin/products/${p.id}`} className="inline-flex items-center gap-1 text-xs text-navy hover:text-gold-text"><Edit className="w-3.5 h-3.5" /> Edit</Link>
                 </td>
               </AdminTr>
             ))}
             {filtered.length === 0 && (
               <tr><td colSpan={7} className="px-4 py-10 text-center text-muted">
                 {products.length === 0 ? (
-                  <>No products yet. <Link href="/admin/products/new" className="underline text-gold">Add your first product</Link></>
+                  <>No products yet. <Link href="/admin/products/new" className="underline text-gold-text">Add your first product</Link></>
                 ) : (
                   "No products match your search/filters."
                 )}

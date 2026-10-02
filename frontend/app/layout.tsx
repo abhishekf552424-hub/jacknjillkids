@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Fredoka, Nunito } from "next/font/google";
+import { Alfa_Slab_One, Arvo, Baloo_2, Nunito, Patrick_Hand } from "next/font/google";
 import { Toaster } from "sonner";
 import "./globals.css";
 import Header from "@/components/Header";
@@ -13,17 +13,42 @@ import { SITE_URL } from "@/lib/site";
 import { getTrackingSettings, getPromoPopup, getBrandSettings } from "@/lib/settings";
 import type { Category, AgeGroup, TrustBadge } from "@/lib/types";
 
-const display = Fredoka({
+// Brand type system (see the Jack & Jill Kids design system):
+// Arvo = headings (Rockwell-style slab, echoes the logo wordmark)
+// Alfa Slab One = hero/campaign lines only · Nunito = body
+// Patrick Hand = doodle notes · Baloo 2 = Marathi/Hindi copy
+const display = Arvo({
   subsets: ["latin"],
-  weight: ["500", "600", "700"],
+  weight: ["400", "700"],
   variable: "--font-display",
   display: "swap",
 });
+const hero = Alfa_Slab_One({
+  subsets: ["latin"],
+  weight: "400",
+  variable: "--font-hero",
+  display: "swap",
+  preload: false,
+});
 const body = Nunito({
   subsets: ["latin"],
-  weight: ["400", "600", "700"],
+  weight: ["400", "600", "700", "800"],
   variable: "--font-body",
   display: "swap",
+});
+const hand = Patrick_Hand({
+  subsets: ["latin"],
+  weight: "400",
+  variable: "--font-hand",
+  display: "swap",
+  preload: false,
+});
+const deva = Baloo_2({
+  subsets: ["devanagari", "latin"],
+  weight: ["500", "700"],
+  variable: "--font-deva",
+  display: "swap",
+  preload: false,
 });
 
 export const revalidate = 60;
@@ -181,7 +206,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   };
 
   return (
-    <html lang="en-IN" className={`${display.variable} ${body.variable}`}>
+    <html lang="en-IN" className={`${display.variable} ${hero.variable} ${body.variable} ${hand.variable} ${deva.variable}`}>
       <body>
         <SiteChrome
           header={<Header categoriesTree={globals.categoriesTree} ageGroups={globals.ageGroups} logoUrl={globals.brand?.logo_url} storeName={globals.brand?.store_name} logoSizeMobile={logoSizeMobile} logoSizeTablet={logoSizeTablet} logoSizeDesktop={logoSizeDesktop} logoAlign={logoAlign} />}

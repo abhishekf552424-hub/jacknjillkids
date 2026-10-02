@@ -24,7 +24,7 @@ export default function SupportClient({ initial }: { initial: any[] }) {
 
   return (
     <div>
-      <div className="mb-4"><p className="text-xs uppercase tracking-widest text-gold font-bold">Care</p><h1 className="font-display text-2xl md:text-3xl text-navy">Support</h1></div>
+      <div className="mb-4"><p className="text-xs uppercase tracking-widest text-gold-text font-bold">Care</p><h1 className="font-display text-2xl md:text-3xl text-navy">Support</h1></div>
       <div className="grid md:grid-cols-[300px_1fr] gap-4">
         <div className="bg-white rounded-lg shadow-soft max-h-[70vh] overflow-y-auto">
           {tickets.length === 0 && <p className="p-4 text-sm text-neutral-400">No tickets yet.</p>}

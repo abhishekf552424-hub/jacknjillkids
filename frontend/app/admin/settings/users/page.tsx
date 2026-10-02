@@ -143,7 +143,7 @@ export default function AdminUsersPage() {
           <ul className="space-y-2">
             {invites.map((i) => (
               <li key={i.id} className="bg-white border border-neutral-200 rounded-lg px-4 py-3 text-sm flex items-center justify-between">
-                <div><Mail className="w-4 h-4 inline mr-1 text-gold" /> {i.email} — <span className="text-xs uppercase text-gold">{i.role.replace(/_/g, " ")}</span></div>
+                <div><Mail className="w-4 h-4 inline mr-1 text-gold-text" /> {i.email} — <span className="text-xs uppercase text-gold-text">{i.role.replace(/_/g, " ")}</span></div>
                 <span className="text-xs text-neutral-400">Expires {new Date(i.expires_at).toLocaleDateString()}</span>
               </li>
             ))}

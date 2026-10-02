@@ -18,7 +18,7 @@ export default async function AdminReturnsPage() {
   return (
     <div>
       <div className="mb-4">
-        <p className="text-xs uppercase tracking-widest text-gold font-bold">Post-purchase</p>
+        <p className="text-xs uppercase tracking-widest text-gold-text font-bold">Post-purchase</p>
         <h1 className="font-display text-2xl md:text-3xl text-navy tracking-tight">Returns &amp; exchanges</h1>
       </div>
 

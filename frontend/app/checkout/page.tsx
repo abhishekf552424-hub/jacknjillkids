@@ -135,7 +135,7 @@ export default function CheckoutPage() {
         description: `Order ${j.order_number}`,
         order_id: j.razorpay_order_id,
         prefill: { name: addr.full_name, email: addr.email, contact: addr.phone },
-        theme: { color: "#1E2A4A" },
+        theme: { color: "#354275" },
         handler: async (resp: any) => {
           await fetch("/api/razorpay/verify", {
             method: "POST",
@@ -270,7 +270,7 @@ export default function CheckoutPage() {
                     data-testid="place-order-btn"
                     disabled={placing}
                     onClick={placeOrder}
-                    className="flex-1 bg-brand-gradient text-white rounded px-6 py-3 font-bold disabled:opacity-60 shadow-premium inline-flex items-center justify-center gap-2"
+                    className="flex-1 bg-action hover:bg-action-hover text-white rounded px-6 py-3 font-bold disabled:opacity-60 shadow-premium inline-flex items-center justify-center gap-2"
                   >
                     {placing && <BrandLoader size="sm" />}
                     {placing ? "Placing..." : `Place order • ${formatINR(totals.total)}`}

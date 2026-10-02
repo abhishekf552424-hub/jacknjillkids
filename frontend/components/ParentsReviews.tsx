@@ -36,7 +36,7 @@ export default function ParentsReviews({
     <section className="bg-blush py-16 md:py-20" data-testid="parents-reviews">
       <div className="container">
         <div className="text-center mb-10">
-          <p className="text-xs uppercase tracking-[0.3em] text-gold font-bold mb-2">Testimonials</p>
+          <p className="text-xs uppercase tracking-[0.3em] text-gold-text font-bold mb-2">Testimonials</p>
           <h2 className="font-display text-3xl md:text-4xl lg:text-5xl text-navy tracking-tight">{title ?? "Real Parents, Real Stories"}</h2>
           {subtitle && <p className="mt-2 text-muted">{subtitle}</p>}
         </div>

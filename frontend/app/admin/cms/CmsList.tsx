@@ -56,11 +56,11 @@ export default function CmsList({ pages, faqs, badges }: { pages: any[]; faqs: a
 
   return (
     <div>
-      <p className="text-xs uppercase tracking-widest text-gold font-bold">Content</p>
+      <p className="text-xs uppercase tracking-widest text-gold-text font-bold">Content</p>
       <h1 className="font-display text-3xl text-navy tracking-tight">CMS</h1>
       <div className="mt-4 flex gap-2 border-b border-navy/10">
         {(["pages", "faqs", "badges"] as const).map((t) => (
-          <button key={t} onClick={() => setTab(t)} className={`px-4 py-2 text-sm capitalize ${tab === t ? "border-b-2 border-gold text-gold font-medium" : "text-muted"}`}>{t}</button>
+          <button key={t} onClick={() => setTab(t)} className={`px-4 py-2 text-sm capitalize ${tab === t ? "border-b-2 border-gold text-gold-text font-medium" : "text-muted"}`}>{t}</button>
         ))}
       </div>
 
@@ -68,7 +68,7 @@ export default function CmsList({ pages, faqs, badges }: { pages: any[]; faqs: a
         <div className="mt-6 space-y-4">
           {P.map((p, i) => (
             <div key={p.id} className="bg-white rounded-lg p-5 shadow-soft">
-              <p className="text-xs uppercase tracking-widest text-gold font-bold">/legal/{p.slug}</p>
+              <p className="text-xs uppercase tracking-widest text-gold-text font-bold">/legal/{p.slug}</p>
               <input value={p.title} onChange={(e) => setP(P.map((x, j) => j === i ? { ...x, title: e.target.value } : x))} className="mt-1 w-full font-display text-lg bg-cream rounded px-3 py-2 border border-navy/10 outline-none focus:border-gold" />
               <textarea rows={8} value={p.content ?? ""} onChange={(e) => setP(P.map((x, j) => j === i ? { ...x, content: e.target.value } : x))} className="mt-2 w-full text-sm bg-cream rounded px-3 py-2 border border-navy/10 outline-none focus:border-gold" />
               <div className="grid sm:grid-cols-2 gap-2 mt-2">
@@ -99,7 +99,7 @@ export default function CmsList({ pages, faqs, badges }: { pages: any[]; faqs: a
       {tab === "badges" && (
         <div className="mt-6">
           <div className="mb-4 rounded-lg border border-gold/30 bg-gold/10 p-3 flex items-start gap-2 text-sm">
-            <Info className="w-4 h-4 text-gold shrink-0 mt-0.5" />
+            <Info className="w-4 h-4 text-gold-text shrink-0 mt-0.5" />
             <div>
               <p className="text-navy font-semibold">Recommended: 3-4 badges for a clean, uncluttered strip.</p>
               <p className="text-muted text-xs mt-1">For the best visual result, use <b>Custom image</b> with a purpose-designed icon or sticker (not the brand logo) — pick 3-4 things families care about (returns, quality, shipping, care).</p>

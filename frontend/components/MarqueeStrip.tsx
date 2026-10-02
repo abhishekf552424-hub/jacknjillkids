@@ -32,7 +32,7 @@ export default function MarqueeStrip({
           >
             {seq.map((it, i) => (
               <span key={i} className="inline-flex items-center gap-3 px-6 text-sm md:text-base font-bold" data-testid={i < list.length ? `marquee-item-${i}` : undefined}>
-                <Sparkles className="w-3.5 h-3.5 text-gold shrink-0" />
+                <Sparkles className="w-3.5 h-3.5 text-gold-light shrink-0" />
                 <span className="opacity-95">{it.text}</span>
               </span>
             ))}

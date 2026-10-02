@@ -21,14 +21,14 @@ export default function ReviewsClient({ initial }: { initial: any[] }) {
 
   return (
     <div>
-      <div className="mb-4"><p className="text-xs uppercase tracking-widest text-gold font-bold">Community</p><h1 className="font-display text-2xl md:text-3xl text-navy">Reviews</h1></div>
+      <div className="mb-4"><p className="text-xs uppercase tracking-widest text-gold-text font-bold">Community</p><h1 className="font-display text-2xl md:text-3xl text-navy">Reviews</h1></div>
       <div className="space-y-3">
         {rows.length === 0 && <p className="text-sm text-neutral-400">No reviews yet.</p>}
         {rows.map((r) => (
           <div key={r.id} className="bg-white rounded-lg p-4 shadow-soft">
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
-                <div className="flex items-center gap-1 text-gold">{Array.from({ length: 5 }).map((_, i) => (<Star key={i} className={`w-3.5 h-3.5 ${i < (r.rating || 0) ? "fill-current" : "opacity-30"}`} />))}</div>
+                <div className="flex items-center gap-1 text-gold-text">{Array.from({ length: 5 }).map((_, i) => (<Star key={i} className={`w-3.5 h-3.5 ${i < (r.rating || 0) ? "fill-current" : "opacity-30"}`} />))}</div>
                 <p className="text-sm font-medium text-navy mt-1">{r.title || "(no title)"}</p>
                 <p className="text-xs text-neutral-500">{r.reviewer_name || r.email || "Anonymous"} • <a href={`/product/${r.product?.slug}`} className="underline">{r.product?.name}</a></p>
                 <p className="text-sm text-neutral-700 mt-2">{r.body}</p>

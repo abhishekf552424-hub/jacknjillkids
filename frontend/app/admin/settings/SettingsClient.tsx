@@ -56,12 +56,12 @@ export default function SettingsClient({ initial }: { initial: Record<string, an
 
   return (
     <div>
-      <p className="text-xs uppercase tracking-widest text-gold font-bold">Configuration</p>
+      <p className="text-xs uppercase tracking-widest text-gold-text font-bold">Configuration</p>
       <h1 className="font-display text-3xl text-navy tracking-tight">Settings</h1>
 
       <Link href="/admin/settings/users" className="mt-6 mb-2 flex items-center justify-between bg-white rounded-lg p-4 shadow-soft border-l-4 border-gold hover:shadow-md transition-shadow">
         <div className="flex items-center gap-3">
-          <Users className="w-5 h-5 text-gold" />
+          <Users className="w-5 h-5 text-gold-text" />
           <div>
             <div className="font-medium text-navy">Admin users</div>
             <div className="text-xs text-neutral-500">Invite, roles, deactivate, reset password</div>
@@ -73,7 +73,7 @@ export default function SettingsClient({ initial }: { initial: Record<string, an
       <div className="mt-4 grid gap-6">
         <div className="bg-white rounded-lg p-6 shadow-soft">
           <div className="flex items-center gap-2 mb-4">
-            <Palette className="w-4 h-4 text-gold" />
+            <Palette className="w-4 h-4 text-gold-text" />
             <h2 className="font-display text-xl text-navy">Branding &amp; store info</h2>
           </div>
           <div className="grid sm:grid-cols-2 gap-4">
@@ -86,7 +86,7 @@ export default function SettingsClient({ initial }: { initial: Record<string, an
               <div className="grid sm:grid-cols-3 gap-4">
                 <div>
                   <label className="text-sm text-navy font-medium block mb-2">
-                    Mobile: <span className="font-bold text-gold">{brand.logo_size_mobile}px</span>
+                    Mobile: <span className="font-bold text-gold-text">{brand.logo_size_mobile}px</span>
                   </label>
                   <input
                     data-testid="logo-size-mobile"
@@ -102,7 +102,7 @@ export default function SettingsClient({ initial }: { initial: Record<string, an
                 </div>
                 <div>
                   <label className="text-sm text-navy font-medium block mb-2">
-                    Tablet: <span className="font-bold text-gold">{brand.logo_size_tablet}px</span>
+                    Tablet: <span className="font-bold text-gold-text">{brand.logo_size_tablet}px</span>
                   </label>
                   <input
                     data-testid="logo-size-tablet"
@@ -118,7 +118,7 @@ export default function SettingsClient({ initial }: { initial: Record<string, an
                 </div>
                 <div>
                   <label className="text-sm text-navy font-medium block mb-2">
-                    Desktop: <span className="font-bold text-gold">{brand.logo_size_desktop}px</span>
+                    Desktop: <span className="font-bold text-gold-text">{brand.logo_size_desktop}px</span>
                   </label>
                   <input
                     data-testid="logo-size-desktop"
@@ -167,7 +167,7 @@ export default function SettingsClient({ initial }: { initial: Record<string, an
 
         <div className="bg-white rounded-lg p-6 shadow-soft">
           <div className="flex items-center gap-2 mb-4">
-            <CreditCard className="w-4 h-4 text-gold" />
+            <CreditCard className="w-4 h-4 text-gold-text" />
             <h2 className="font-display text-xl text-navy">Razorpay</h2>
           </div>
           <p className="text-sm text-muted mb-4">Enter keys from Razorpay Dashboard → Settings → API Keys (test mode).</p>
@@ -183,7 +183,7 @@ export default function SettingsClient({ initial }: { initial: Record<string, an
 
         <div className="bg-white rounded-lg p-6 shadow-soft">
           <div className="flex items-center gap-2 mb-4">
-            <Truck className="w-4 h-4 text-gold" />
+            <Truck className="w-4 h-4 text-gold-text" />
             <h2 className="font-display text-xl text-navy">Shipping & Tax</h2>
           </div>
           <div className="grid sm:grid-cols-3 gap-4">
@@ -203,7 +203,7 @@ export default function SettingsClient({ initial }: { initial: Record<string, an
 
         <div className="bg-white rounded-lg p-6 shadow-soft">
           <div className="flex items-center gap-2 mb-4">
-            <Percent className="w-4 h-4 text-gold" />
+            <Percent className="w-4 h-4 text-gold-text" />
             <h2 className="font-display text-xl text-navy">Marketing &amp; analytics</h2>
           </div>
           <div className="grid sm:grid-cols-2 gap-4">
@@ -216,7 +216,7 @@ export default function SettingsClient({ initial }: { initial: Record<string, an
 
         <div className="bg-white rounded-lg p-6 shadow-soft">
           <div className="flex items-center gap-2 mb-4">
-            <Info className="w-4 h-4 text-gold" />
+            <Info className="w-4 h-4 text-gold-text" />
             <h2 className="font-display text-xl text-navy">Contact info</h2>
           </div>
           <div className="grid sm:grid-cols-2 gap-4">
