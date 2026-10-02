@@ -48,7 +48,7 @@
   ],
   "updated_files": ["/app/backend/tests/backend_test.py"],
   "success_rate": {"backend": "20 of 24 pytest assertions pass (public HTML pages + admin redirect all pass; 3 /api/* tests fail due to ingress). Effective API coverage 0% via public URL, 100% via localhost:3000.", "frontend": "SSR pages ~95% functional; every interactive flow that calls /api/* is broken (checkout, tracking, contact submit, admin writes, pincode check) — ~40% of interactive flows working."},
-  "test_credentials": "admin@jacknjillkids.com / AdminJJ@2026! — verified working (Supabase auth). No customer test account created due to /api/contact and /api/orders blockage.",
+  "test_credentials": "admin@jacknjillkids.com / <redacted> — verified working (Supabase auth). No customer test account created due to /api/contact and /api/orders blockage.",
   "seed_data_creation": "None — no writes possible via public URL. Attempted /api/contact POST failed (404).",
   "retest_needed": true,
   "should_main_agent_self_test": false,

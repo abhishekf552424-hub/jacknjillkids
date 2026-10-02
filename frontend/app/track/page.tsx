@@ -19,7 +19,7 @@ export default function TrackPage() {
     setBusy(false);
     const j = await r.json();
     if (!r.ok || !j.ok) return toast.error(j.error || "Order not found");
-    router.push(`/orders/${orderNumber}`);
+    router.push(`/orders/${j.order_number}?t=${j.access_token ?? ""}`);
   };
 
   return (

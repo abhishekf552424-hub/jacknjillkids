@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { checkAdmin } from "@/lib/admin-auth";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { sendEmail } from "@/lib/resend";
@@ -6,11 +7,8 @@ import { sendEmail } from "@/lib/resend";
 export const runtime = "nodejs";
 
 export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
-  const s = await createClient();
-  const { data: { user } } = await s.auth.getUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  const { data: p } = await s.from("profiles").select("role").eq("id", user.id).maybeSingle();
-  if (!p || p.role === "customer") return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  const g = await checkAdmin();
+  if ("error" in g) return NextResponse.json({ error: g.error }, { status: g.status });
   const { id } = await params;
   const { status } = await req.json();
   if (!["approved", "rejected", "in_progress"].includes(status)) return NextResponse.json({ error: "Bad status" }, { status: 400 });

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { isValidOrderAccessToken } from "@/lib/order-access";
 import { getBrandSettings, getShippingSettings } from "@/lib/settings";
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
 
@@ -9,7 +10,7 @@ export const dynamic = "force-dynamic";
 
 function fmt(n: number) { return "Rs. " + (n || 0).toLocaleString("en-IN", { maximumFractionDigits: 2 }); }
 
-export async function GET(_req: Request, { params }: { params: Promise<{ number: string }> }) {
+export async function GET(req: Request, { params }: { params: Promise<{ number: string }> }) {
   const s = await createClient();
   const { data: { user } } = await s.auth.getUser();
   const { number } = await params;
@@ -19,8 +20,8 @@ export async function GET(_req: Request, { params }: { params: Promise<{ number:
   if (!order) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
   // Allow: admin OR the order's owner
-  let allowed = false;
-  if (user) {
+  let allowed = isValidOrderAccessToken(number, new URL(req.url).searchParams.get("t"));
+  if (!allowed && user) {
     if (order.user_id === user.id) allowed = true;
     else {
       const { data: profile } = await admin.from("profiles").select("role").eq("id", user.id).maybeSingle();

@@ -45,7 +45,8 @@ export default function AdminShell({ role, name, logoUrl, logoSize = 40, childre
   const signOut = async () => {
     const s = createClient();
     await s.auth.signOut();
-    document.cookie = "admin_2fa_ok=; Max-Age=0; path=/";
+    // The 2FA cookie is httpOnly, so only the server can clear it.
+    await fetch("/api/admin/auth/logout", { method: "POST" }).catch(() => {});
     router.push("/admin/login");
     router.refresh();
   };

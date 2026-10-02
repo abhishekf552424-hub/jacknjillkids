@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import AdminShell from "./AdminShell";
+import { TWO_FA_COOKIE, isTwoFaCookieValid } from "@/lib/admin-auth";
 import { getBrandSettings } from "@/lib/settings";
 
 export const dynamic = "force-dynamic";
@@ -24,7 +25,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
   // Require the 2FA cookie set by /api/admin/auth/verify-otp
   const jar = await cookies();
-  const twoFaOk = jar.get("admin_2fa_ok")?.value === "1";
+  const twoFaOk = isTwoFaCookieValid(jar.get(TWO_FA_COOKIE)?.value, user.id);
   if (!twoFaOk) {
     await supabase.auth.signOut();
     redirect("/admin/login");

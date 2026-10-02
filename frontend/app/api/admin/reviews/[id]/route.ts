@@ -1,13 +1,12 @@
 import { NextResponse } from "next/server";
+import { checkAdmin } from "@/lib/admin-auth";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 export const runtime = "nodejs";
 async function requireAdmin() {
-  const s = await createClient(); const { data: { user } } = await s.auth.getUser();
-  if (!user) return null;
-  const { data: p } = await s.from("profiles").select("role").eq("id", user.id).maybeSingle();
-  return p && p.role !== "customer" ? user : null;
+  const g = await checkAdmin(["super_admin", "order_manager", "content_manager"]);
+  return "error" in g ? null : g.user;
 }
 export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const me = await requireAdmin(); if (!me) return NextResponse.json({ error: "Forbidden" }, { status: 403 });

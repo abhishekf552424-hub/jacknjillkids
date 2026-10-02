@@ -4,6 +4,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient as createBrowserClient } from "@supabase/supabase-js";
 import { generateOtp, hashOtp, otpEmailHtml } from "@/lib/otp";
 import { sendEmail } from "@/lib/resend";
+import { CHALLENGE_COOKIE, CHALLENGE_TTL_SECONDS, cookieOptions, makeChallengeCookie } from "@/lib/admin-auth";
 
 export const runtime = "nodejs";
 
@@ -30,13 +31,14 @@ export async function POST(req: Request) {
     if (profile.is_active === false) return NextResponse.json({ error: "This admin account is deactivated" }, { status: 403 });
 
     // 3) Rate-limit: 3 OTP requests per 10 minutes per user
-    const { data: recent } = await admin
+    // head:true returns no rows, only `count` — the old code read `data.length`, so the limit never triggered.
+    const { count: recentCount0 } = await admin
       .from("admin_otp_codes")
       .select("id", { count: "exact", head: true })
       .eq("user_id", userId)
       .eq("purpose", "admin_login")
       .gte("created_at", new Date(Date.now() - 10 * 60_000).toISOString());
-    const recentCount = recent?.length ?? 0;
+    const recentCount = recentCount0 ?? 0;
     if (recentCount >= 3) return NextResponse.json({ error: "Too many OTP requests. Try again in 10 minutes." }, { status: 429 });
 
     // 4) Generate and store OTP (10-minute expiry — matches the challenge cookie
@@ -62,9 +64,9 @@ export async function POST(req: Request) {
     //    Credentials were already verified in step 1, so it's safe to open the OTP
     //    challenge here regardless of whether the email goes out.
     const jar = await cookies();
-    jar.set("admin_otp_challenge", JSON.stringify({ uid: userId, email, ts: Date.now() }), {
-      httpOnly: true, secure: true, sameSite: "lax", path: "/", maxAge: 10 * 60,
-    });
+    // Signed and bound to the user id; the email is looked up again at verify time,
+    // never trusted from the cookie.
+    jar.set(CHALLENGE_COOKIE, makeChallengeCookie(userId), cookieOptions(CHALLENGE_TTL_SECONDS));
 
     // 6) Email OTP — check the actual result instead of assuming success.
     //    Resend's sandbox sender (onboarding@resend.dev) can only deliver to

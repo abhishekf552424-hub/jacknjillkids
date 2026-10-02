@@ -1,15 +1,11 @@
 import { NextResponse } from "next/server";
+import { checkAdmin } from "@/lib/admin-auth";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { slugify } from "@/lib/utils";
 
 async function requireAdmin() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return { error: "Not signed in", status: 401 };
-  const { data: p } = await supabase.from("profiles").select("role").eq("id", user.id).maybeSingle();
-  if (!p || !["super_admin", "content_manager"].includes(p.role)) return { error: "Forbidden", status: 403 };
-  return { user };
+  return checkAdmin(["super_admin", "content_manager"]);
 }
 
 async function save(payload: any, productId?: string) {

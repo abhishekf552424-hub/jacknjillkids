@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+import { checkAdmin } from "@/lib/admin-auth";
+import { orderUrl } from "@/lib/order-access";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { sendEmail, orderStatusTemplate } from "@/lib/resend";
@@ -6,12 +8,7 @@ import { sendEmail, orderStatusTemplate } from "@/lib/resend";
 const VALID_STATUSES = ["placed", "confirmed", "packed", "shipped", "out_for_delivery", "delivered", "cancelled"];
 
 async function requireAdmin() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return { error: "Not signed in", status: 401 };
-  const { data: p } = await supabase.from("profiles").select("role").eq("id", user.id).maybeSingle();
-  if (!p || !["super_admin", "order_manager"].includes(p.role)) return { error: "Forbidden", status: 403 };
-  return { user };
+  return checkAdmin(["super_admin", "order_manager"]);
 }
 
 export async function POST(req: Request) {
@@ -45,7 +42,7 @@ export async function POST(req: Request) {
       html: orderStatusTemplate({
         order_number: o.order_number,
         status_label: status.replace(/_/g, " "),
-        tracking_url: `${process.env.NEXT_PUBLIC_SITE_URL}/orders/${o.order_number}`,
+        tracking_url: orderUrl(o.order_number),
       }),
     }).catch(() => {});
   }

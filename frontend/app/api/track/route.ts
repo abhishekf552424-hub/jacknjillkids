@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { makeOrderAccessToken } from "@/lib/order-access";
 
 export async function GET(req: Request) {
   const url = new URL(req.url);
@@ -17,5 +18,6 @@ export async function GET(req: Request) {
   if (contact !== email && (!clean || clean !== phone)) {
     return NextResponse.json({ ok: false, error: "Order and contact don't match" }, { status: 403 });
   }
-  return NextResponse.json({ ok: true, order_number: data.order_number });
+  // Contact matched — hand back the access token so guests can open their order page.
+  return NextResponse.json({ ok: true, order_number: data.order_number, access_token: makeOrderAccessToken(data.order_number) });
 }

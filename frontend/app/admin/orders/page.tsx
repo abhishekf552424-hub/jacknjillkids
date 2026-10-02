@@ -1,9 +1,11 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import OrdersClient from "./OrdersClient";
+import { requireAdminPage } from "@/lib/admin-auth";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminOrders({ searchParams }: { searchParams: Promise<{ q?: string; status?: string; payment?: string; from?: string; to?: string }> }) {
+  await requireAdminPage(["super_admin", "order_manager"]);
   const sp = await searchParams;
   const admin = createAdminClient();
   let q = admin.from("orders").select("*").order("created_at", { ascending: false }).limit(200);

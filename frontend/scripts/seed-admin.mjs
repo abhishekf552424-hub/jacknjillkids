@@ -4,9 +4,13 @@ import { createClient } from "@supabase/supabase-js";
 import fs from "node:fs";
 import path from "node:path";
 
-const email = process.argv[2] || "admin@jacknjillkids.com";
-const password = process.argv[3] || "AdminJJ@2026!";
+const email = process.argv[2];
+const password = process.argv[3];
 const fullName = process.argv[4] || "Jack & Jill Admin";
+if (!email || !password || password.length < 12) {
+  console.error("Usage: node scripts/seed-admin.mjs <email> <password (12+ chars)> [full name]");
+  process.exit(1);
+}
 
 // Load env
 const envPath = path.resolve(process.cwd(), ".env.local");
@@ -54,7 +58,6 @@ console.log("Set role: super_admin");
 
 // Sample coupon
 await admin.from("coupons").upsert({ code: "WELCOME10", type: "percent", value: 10, min_cart_value: 500, per_user_limit: 1, is_active: true }, { onConflict: "code" });
-console.log("\nAdmin login:");
+console.log("\nAdmin created:");
 console.log("  Email:   ", email);
-console.log("  Password:", password);
 console.log("  Admin URL:", (env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000") + "/admin");

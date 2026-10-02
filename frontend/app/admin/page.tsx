@@ -4,6 +4,7 @@ import Link from "next/link";
 import { formatINR } from "@/lib/utils";
 import RevenueChart from "./RevenueChart";
 import { AdminPageHeader, AdminCard, StatusPill } from "@/components/admin/ui";
+import { requireAdminPage } from "@/lib/admin-auth";
 
 export const dynamic = "force-dynamic";
 
@@ -18,6 +19,7 @@ const ORDER_STATUS_TONE: Record<string, "success" | "neutral" | "danger" | "warn
 };
 
 export default async function AdminDashboard() {
+  await requireAdminPage();
   const admin = createAdminClient();
   const [{ data: recentOrders }, { count: orderCount }, { count: productCount }, { count: userCount }, { data: lowStock }] = await Promise.all([
     admin.from("orders").select("*").order("created_at", { ascending: false }).limit(6),

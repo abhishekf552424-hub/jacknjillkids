@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { checkAdmin } from "@/lib/admin-auth";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -6,11 +7,8 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function GET(req: Request) {
-  const s = await createClient();
-  const { data: { user } } = await s.auth.getUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  const { data: profile } = await s.from("profiles").select("role").eq("id", user.id).maybeSingle();
-  if (!profile || profile.role === "customer") return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  const g = await checkAdmin();
+  if ("error" in g) return NextResponse.json({ error: g.error }, { status: g.status });
 
   const url = new URL(req.url);
   const from = url.searchParams.get("from") || new Date(Date.now() - 7 * 86400_000).toISOString();

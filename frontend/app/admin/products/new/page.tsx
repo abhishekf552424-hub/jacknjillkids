@@ -1,9 +1,11 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import ProductForm from "@/components/admin/ProductForm";
+import { requireAdminPage } from "@/lib/admin-auth";
 
 export const dynamic = "force-dynamic";
 
 export default async function NewProduct() {
+  await requireAdminPage(["super_admin", "content_manager"]);
   const admin = createAdminClient();
   const [{ data: cats }, { data: ages }, { data: coupons }, { data: others }] = await Promise.all([
     admin.from("categories").select("id, name, parent_id").order("sort_order"),
