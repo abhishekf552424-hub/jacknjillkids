@@ -91,3 +91,15 @@ test("listing URLs: category in path, filters in query, page reset", () => {
   assert.equal(plpHref({ category: "toys", page: "1" }, { page: "2" }), "/category/toys?page=2");
   assert.equal(plpHref({ min: "100", max: "900" }, { min: null, max: "500" }), "/shop?max=500");
 });
+
+import { safeNext } from "../lib/safe-next";
+
+test("sign-in redirect only goes to pages on this site", () => {
+  assert.equal(safeNext("/product/frock#reviews"), "/product/frock#reviews");
+  assert.equal(safeNext("/account/wishlist"), "/account/wishlist");
+  assert.equal(safeNext("//evil.com"), "/account");
+  assert.equal(safeNext("/\\evil.com"), "/account");
+  assert.equal(safeNext("https://evil.com"), "/account");
+  assert.equal(safeNext("javascript:alert(1)"), "/account");
+  assert.equal(safeNext(null), "/account");
+});

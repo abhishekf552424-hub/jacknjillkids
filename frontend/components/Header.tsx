@@ -77,10 +77,13 @@ export default function Header({
     onScroll();
     onCart();
     window.addEventListener("scroll", onScroll, { passive: true });
+    const onOpen = () => setCartOpen(true);
     window.addEventListener("cart:update", onCart);
+    window.addEventListener("cart:open", onOpen);
     return () => {
       window.removeEventListener("scroll", onScroll);
       window.removeEventListener("cart:update", onCart);
+      window.removeEventListener("cart:open", onOpen);
     };
   }, []);
 
@@ -506,7 +509,7 @@ export default function Header({
         )}
       </AnimatePresence>
 
-      <CartDrawer open={cartOpen} onClose={() => setCartOpen(false)} />
+      <CartDrawer open={cartOpen} onClose={() => setCartOpen(false)} freeShippingAbove={freeShippingAbove} />
     </>
   );
 }

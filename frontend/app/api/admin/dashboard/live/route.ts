@@ -82,6 +82,13 @@ export async function GET(req: Request) {
     ]);
 
     if (lowStock.error) throw new Error(lowStock.error.message);
+
+    // Active products a shopper can't add to the bag (no size, or every size sold out).
+    let notBuyable = 0;
+    if (showMoney) {
+      const { data: act } = await admin.from("products").select("id, variants:product_variants(stock_qty)").eq("status", "active").limit(2000);
+      notBuyable = ((act ?? []) as any[]).filter((p) => !(p.variants ?? []).some((v: any) => Number(v.stock_qty) > 0)).length;
+    }
     const lowRows = (lowStock.data ?? []) as any[];
 
     const stats = computeDashboard(w, current, previous);
@@ -114,6 +121,7 @@ export async function GET(req: Request) {
         returnRequests: returns.count ?? 0,
         lowStock: lowRows.length,
         pendingReviews: reviews.count ?? 0,
+        notBuyable,
       },
       newCustomers: newCustomers.count ?? 0,
       feed,

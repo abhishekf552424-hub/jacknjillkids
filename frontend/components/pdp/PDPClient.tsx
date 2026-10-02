@@ -1,15 +1,19 @@
 "use client";
 
 import Image from "next/image";
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
-import { Heart, ShoppingBag, Truck, ShieldCheck, RotateCcw, Star, ChevronDown, Ticket, Check } from "lucide-react";
+import { ShoppingBag, Truck, ShieldCheck, RotateCcw, Star, ChevronDown, Ticket, Check, BadgeCheck } from "lucide-react";
+import WishlistButton from "@/components/WishlistButton";
+import ReviewForm from "./ReviewForm";
+import NotifyMe from "./NotifyMe";
+import { track } from "@/lib/track";
 import type { Product, ProductVariant } from "@/lib/types";
 import { calcDiscountPct, formatINR } from "@/lib/utils";
 import { cart } from "@/lib/cart";
 import { toast } from "sonner";
 
-export default function PDPClient({ product, reviews }: { product: Product; reviews: any[] }) {
+export default function PDPClient({ product, reviews, whatsapp, freeShippingAbove = 999 }: { product: Product; reviews: any[]; whatsapp?: string; freeShippingAbove?: number }) {
   const variants = (product.variants ?? []) as ProductVariant[];
   const sizes = Array.from(new Set(variants.map((v) => v.size).filter(Boolean))) as string[];
   const colors = Array.from(
@@ -36,6 +40,11 @@ export default function PDPClient({ product, reviews }: { product: Product; revi
   const mrp = product.mrp;
   const discount = calcDiscountPct(mrp, price);
   const oos = !activeVariant || activeVariant.stock_qty <= 0;
+  const noneInStock = !variants.some((v) => v.stock_qty > 0);
+
+  useEffect(() => {
+    track("view_item", [{ id: product.id, name: product.name, price: Number(product.base_price) }]);
+  }, [product.id, product.name, product.base_price]);
 
   const avgRating = reviews.length ? reviews.reduce((s, r) => s + r.rating, 0) / reviews.length : 0;
   const coupons = (product as any).eligible_coupon_codes as string[] | undefined;
@@ -56,6 +65,7 @@ export default function PDPClient({ product, reviews }: { product: Product; revi
       quantity: qty,
       stock_qty: activeVariant.stock_qty,
     });
+    track("add_to_cart", [{ id: product.id, name: product.name, price: Number(price), quantity: qty, variant: [activeVariant.size, activeVariant.color].filter(Boolean).join(" / ") || undefined }]);
     toast.success("Added to bag", { description: `${qty} × ${product.name}` });
     window.dispatchEvent(new CustomEvent("cart:open"));
   };
@@ -236,19 +246,19 @@ export default function PDPClient({ product, reviews }: { product: Product; revi
             onClick={addToCart}
             className="flex-1 bg-action hover:bg-action-hover text-white rounded-md px-6 py-3 font-bold disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2 transition-opacity"
           >
-            <ShoppingBag className="w-4 h-4" /> {oos ? "Out of stock" : "Add to Bag"}
+            <ShoppingBag className="w-4 h-4" /> {oos ? (variants.length ? "Out of stock" : "Coming soon") : "Add to Bag"}
           </button>
-          <button aria-label="Wishlist" className="w-12 border-2 border-gold text-gold-text rounded-md flex items-center justify-center hover:bg-gold-text hover:border-gold-text hover:text-white transition-colors">
-            <Heart className="w-4 h-4" />
-          </button>
+          <WishlistButton productId={product.id} name={product.name} price={Number(price)} variant="square" />
         </div>
+
+        {noneInStock && <NotifyMe productId={product.id} productName={product.name} whatsapp={whatsapp} />}
 
         {/* Trust badges — same lucide icons as homepage TrustStrip */}
         <div className="mt-6 grid grid-cols-3 gap-3 text-center">
           {[
             { icon: ShieldCheck, l: "Skin-Safe" },
             { icon: RotateCcw, l: "Easy Returns" },
-            { icon: Truck, l: "Free above ₹999" },
+            { icon: Truck, l: `Free above ₹${freeShippingAbove.toLocaleString("en-IN")}` },
           ].map((b, i) => (
             <div key={i} className="bg-cream rounded-lg p-3">
               <b.icon className="w-5 h-5 text-gold-text mx-auto mb-1" />
@@ -268,21 +278,28 @@ export default function PDPClient({ product, reviews }: { product: Product; revi
         )}
 
         {/* Reviews */}
-        <div className="mt-8 border-t border-navy/10 pt-6">
+        <div className="mt-8 border-t border-navy/10 pt-6 scroll-mt-28" id="reviews">
           <div className="flex items-baseline justify-between mb-4">
             <h3 className="font-display text-xl text-navy">Reviews {reviews.length > 0 && `(${reviews.length})`}</h3>
             {reviews.length > 0 && (
               <span className="text-sm text-muted">Avg <span className="text-navy font-bold">{avgRating.toFixed(1)}/5</span></span>
             )}
           </div>
-          {reviews.length === 0 ? (
-            <p className="text-sm text-muted">Be the first to review this product.</p>
-          ) : (
+          <div className="mb-4">
+            {reviews.length === 0 && <p className="text-sm text-muted mb-3">Be the first to review this product.</p>}
+            <ReviewForm productId={product.id} slug={product.slug} />
+          </div>
+          {reviews.length === 0 ? null : (
             <div className="space-y-3">
               {reviews.map((r) => (
                 <div key={r.id} className="bg-white rounded-lg p-4 border border-navy/5" data-testid={`review-${r.id}`}>
                   <div className="flex items-center gap-2">
                     <span className="font-bold text-navy">{r.author_name || "Anonymous"}</span>
+                    {r.is_verified && (
+                      <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-success">
+                        <BadgeCheck className="w-3.5 h-3.5" /> Verified buyer
+                      </span>
+                    )}
                     <div className="flex text-gold-text">
                       {[1, 2, 3, 4, 5].map((n) => <Star key={n} className="w-3.5 h-3.5" fill={r.rating >= n ? "currentColor" : "none"} />)}
                     </div>

@@ -30,7 +30,7 @@ const nextConfig = {
   async redirects() {
     return [
       { source: "/wishsuite", destination: "/account", permanent: true },
-      { source: "/wishlist", destination: "/account", permanent: true },
+      { source: "/wishlist", destination: "/account/wishlist", permanent: false },
       { source: "/my-account/:path*", destination: "/account", permanent: true },
       { source: "/cart", destination: "/checkout", permanent: true },
       { source: "/product-category/:slug*", destination: "/category/:slug*", permanent: true },

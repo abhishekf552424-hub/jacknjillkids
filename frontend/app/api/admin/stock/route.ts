@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { checkAdmin } from "@/lib/admin-auth";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { notifyBackInStock } from "@/lib/back-in-stock";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -72,5 +73,9 @@ export async function PATCH(req: Request) {
   const { data, error } = await admin.rpc("adjust_stock", { p_variant_id: variant_id, p_delta: delta });
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   if (data === null || data === undefined) return NextResponse.json({ error: "Size not found" }, { status: 404 });
+  if (expected <= 0 && Number(data) > 0) {
+    const { data: v } = await admin.from("product_variants").select("product_id").eq("id", variant_id).maybeSingle();
+    if (v?.product_id) void notifyBackInStock(admin, v.product_id);
+  }
   return NextResponse.json({ ok: true, stock: data });
 }

@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
 import { Mail, Lock, User as UserIcon } from "lucide-react";
 import BrandLoader from "@/components/BrandLoader";
+import { safeNext } from "@/lib/safe-next";
 
 export default function AuthPage() {
   const [mode, setMode] = useState<"login" | "register">("login");
@@ -16,6 +17,8 @@ export default function AuthPage() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const supabase = createClient();
+
+  const nextPath = () => safeNext(typeof window === "undefined" ? null : new URLSearchParams(window.location.search).get("next"));
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -29,12 +32,12 @@ export default function AuthPage() {
         });
         if (error) throw error;
         toast.success("Account created! Please check email to verify (if required).");
-        router.push("/account");
+        router.push(nextPath());
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
         toast.success("Welcome back!");
-        router.push("/account");
+        router.push(nextPath());
       }
       router.refresh();
     } catch (e: any) {
@@ -47,6 +50,8 @@ export default function AuthPage() {
   const googleSignIn = async () => {
     setLoading(true);
     try {
+      // Remember where to come back to (the callback URL itself must stay exact for Supabase).
+      document.cookie = `jj_next=${encodeURIComponent(nextPath())}; path=/; max-age=600; samesite=lax; secure`;
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {

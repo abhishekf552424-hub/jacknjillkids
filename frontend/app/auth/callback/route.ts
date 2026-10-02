@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
+import { safeNext } from "@/lib/safe-next";
 
 export async function GET(request: Request) {
   const requestUrl = new URL(request.url);
@@ -28,6 +29,15 @@ export async function GET(request: Request) {
     }
   }
 
-  // Redirect to account page
-  return NextResponse.redirect(new URL("/account", requestUrl.origin));
+  // Back to where the shopper started (same site only).
+  const cookieNext = request.headers.get("cookie")?.match(/(?:^|;\s*)jj_next=([^;]+)/)?.[1];
+  let next = "/account";
+  try {
+    next = safeNext(cookieNext ? decodeURIComponent(cookieNext) : null);
+  } catch {
+    /* bad cookie → account page */
+  }
+  const res = NextResponse.redirect(new URL(next, requestUrl.origin));
+  res.cookies.set("jj_next", "", { path: "/", maxAge: 0 });
+  return res;
 }
