@@ -59,7 +59,7 @@ export default function WishlistButton({
         className,
       )}
     >
-      <Heart className={cn("w-4 h-4", variant === "icon" && (on ? "text-action" : "text-navy"))} fill={on ? "currentColor" : "none"} />
+      <Heart key={String(on)} className={cn("w-4 h-4", on && "pop", variant === "icon" && (on ? "text-action" : "text-navy"))} fill={on ? "currentColor" : "none"} />
     </button>
   );
 }

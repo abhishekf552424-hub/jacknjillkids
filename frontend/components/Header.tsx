@@ -163,7 +163,7 @@ export default function Header({
       <button data-testid="cart-toggle" aria-label={`Bag, ${count} item${count === 1 ? "" : "s"}`} onClick={() => setCartOpen(true)} className={iconBtn}>
         <ShoppingBag className="w-5 h-5" />
         {count > 0 && (
-          <span data-testid="cart-count" className="absolute top-0.5 right-0.5 min-w-[18px] h-[18px] px-1 rounded-full bg-action text-white text-[10px] font-bold leading-[18px] text-center ring-2 ring-white">
+          <span key={count} data-testid="cart-count" className="pop absolute top-0.5 right-0.5 min-w-[18px] h-[18px] px-1 rounded-full bg-action text-white text-[10px] font-bold leading-[18px] text-center ring-2 ring-white">
             {count > 99 ? "99+" : count}
           </span>
         )}

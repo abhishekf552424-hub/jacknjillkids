@@ -6,17 +6,18 @@ import WishlistButton from "./WishlistButton";
 
 export default function ProductCard({ product }: { product: Product }) {
   const img = product.images?.[0]?.url || "https://images.unsplash.com/photo-1529776292731-c2246c65df5a?w=800";
+  const img2 = product.images?.[1]?.url || null;
   const price = product.base_price;
   const mrp = product.mrp;
   const discount = calcDiscountPct(mrp, price);
   const outOfStock = product.status === "out_of_stock";
 
   return (
-    <div className="relative group transition-transform duration-300 hover:-translate-y-1">
+    <div className="relative group h-full transition-transform duration-300 ease-premium hover:-translate-y-1.5">
     <Link
       href={`/product/${product.slug}`}
       data-testid={`product-card-${product.slug}`}
-      className="group block bg-white rounded p-3 shadow-soft hover:shadow-premium transition-shadow duration-300"
+      className="group block h-full bg-white rounded p-3 shadow-soft hover:shadow-premium transition-shadow duration-300 active:scale-[0.98]"
     >
       <div className="relative aspect-[4/5] w-full overflow-hidden rounded-sm bg-cream">
         <Image
@@ -24,8 +25,19 @@ export default function ProductCard({ product }: { product: Product }) {
           alt={product.alt_text || product.name}
           fill
           sizes="(min-width:1024px) 25vw, (min-width:640px) 33vw, 50vw"
-          className="object-cover transition-transform duration-500 group-hover:scale-105"
+          className="object-cover transition-[transform,opacity] duration-700 ease-premium group-hover:scale-[1.06]"
         />
+        {/* Second photo fades in on hover (desktop), like big fashion stores. */}
+        {img2 && (
+          <Image
+            src={img2}
+            alt=""
+            aria-hidden="true"
+            fill
+            sizes="(min-width:1024px) 25vw, (min-width:640px) 33vw, 50vw"
+            className="hidden md:block object-cover opacity-0 transition-[transform,opacity] duration-700 ease-premium group-hover:opacity-100 group-hover:scale-[1.06]"
+          />
+        )}
         {product.is_new_arrival && (
           <span className="absolute top-3 left-3 bg-success text-white text-[10px] font-bold px-2.5 py-1 rounded-full">NEW</span>
         )}

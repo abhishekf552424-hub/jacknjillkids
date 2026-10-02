@@ -42,7 +42,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
       )}
 
       {results.length > 0 && (
-        <div className="mt-8 grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
+        <div className="stagger-load mt-8 grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
           {results.map((p) => <ProductCard key={p.id} product={p} />)}
         </div>
       )}

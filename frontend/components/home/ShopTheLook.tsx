@@ -109,8 +109,8 @@ export default function ShopTheLook({ title, subtitle, config, products, tone }:
               Whole look <b className="font-display text-2xl text-navy tabular-nums">{formatINR(total)}</b>
               {mrpTotal > total && <s className="ml-2 tabular-nums">{formatINR(mrpTotal)}</s>}
             </p>
-            <button onClick={addAll} className="inline-flex items-center gap-2 rounded-full bg-action hover:bg-action-hover text-white px-6 py-3.5 text-[15px] font-bold transition-colors">
-              {added ? <Check className="w-4 h-4" /> : <ShoppingBag className="w-4 h-4" />} {added ? "Added to bag" : `Add all ${lines.length} to bag`}
+            <button onClick={addAll} className="inline-flex items-center gap-2 rounded-full bg-action hover:bg-action-hover text-white px-6 py-3.5 text-[15px] font-bold transition-all duration-300 hover:-translate-y-0.5 hover:shadow-premium">
+              {added ? <Check className="w-4 h-4 pop" /> : <ShoppingBag className="w-4 h-4" />} {added ? "Added to bag" : `Add all ${lines.length} to bag`}
             </button>
           </div>
         </div>

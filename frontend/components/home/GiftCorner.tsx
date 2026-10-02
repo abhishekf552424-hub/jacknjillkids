@@ -31,12 +31,12 @@ export default function GiftCorner({
           </Link>
         </div>
         {budgets.length > 0 && (
-          <ul className={`grid gap-3 md:gap-4 grid-cols-2 ${budgets.length >= 3 ? "sm:grid-cols-3" : ""} ${budgets.length === 4 ? "lg:grid-cols-4" : ""}`}>
+          <ul className={`stagger grid gap-3 md:gap-4 grid-cols-2 ${budgets.length >= 3 ? "sm:grid-cols-3" : ""} ${budgets.length === 4 ? "lg:grid-cols-4" : ""}`}>
             {budgets.map((b, i) => (
               <li key={i}>
                 <Link
                   href={safeHref(b.link, `/shop?max=${Number(b.amount)}`)}
-                  className="h-full min-h-[150px] flex flex-col items-center justify-center gap-1.5 rounded-[22px] bg-white border border-line px-4 py-6 text-center transition-all hover:-translate-y-1 hover:shadow-premium"
+                  className="h-full min-h-[150px] flex flex-col items-center justify-center gap-1.5 rounded-[22px] bg-white border border-line px-4 py-6 text-center transition-all duration-300 ease-premium hover:-translate-y-1.5 hover:shadow-premium hover:border-transparent active:scale-[0.97]"
                 >
                   <span className="text-xs font-extrabold uppercase tracking-[0.1em] text-muted">Under</span>
                   <span className={`font-display font-bold text-3xl md:text-[40px] leading-none ${COLORS[i % COLORS.length]}`}>₹{Number(b.amount).toLocaleString("en-IN")}</span>
