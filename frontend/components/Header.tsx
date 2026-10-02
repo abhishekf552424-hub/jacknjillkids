@@ -148,7 +148,7 @@ export default function Header({
           onMouseLeave={() => setHoverCat(null)}
         >
           <Link
-            href={`/shop?category=${c.slug}`}
+            href={`/category/${c.slug}`}
             data-testid={`nav-${c.slug}`}
             className="px-3 py-2 text-base font-semibold text-navy hover:text-gold transition-colors whitespace-nowrap"
           >
@@ -167,7 +167,7 @@ export default function Header({
                   {c.children!.map((s) => (
                     <Link
                       key={s.id}
-                      href={`/shop?category=${s.slug}`}
+                      href={`/category/${s.slug}`}
                       className="flex items-center justify-between px-3 py-2 rounded-sm text-sm text-navy hover:bg-cream"
                     >
                       {s.name}
@@ -301,7 +301,7 @@ export default function Header({
                   {categoriesTree.map((c) => (
                     <Link
                       key={c.id}
-                      href={`/shop?category=${c.slug}`}
+                      href={`/category/${c.slug}`}
                       onClick={() => setMenuOpen(false)}
                       className="flex flex-col items-center gap-2 min-w-[72px]"
                       data-testid={`ham-cat-${c.slug}`}

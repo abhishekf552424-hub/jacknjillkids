@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { SITE_URL } from "@/lib/site";
 import { checkAdmin } from "@/lib/admin-auth";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -55,7 +56,7 @@ export async function POST(req: Request) {
     await sendEmail({
       to: email,
       subject: `You've been added as ${role.replace(/_/g, " ")} on Jack & Jill`,
-      html: `<p>Hi ${full_name || ""}, an admin account has been created for you on Jack &amp; Jill.</p><p>Login at <a href="${process.env.NEXT_PUBLIC_SITE_URL}/admin/login">the admin panel</a> using this email and your password. You'll be prompted for a one-time code emailed to you on every login.</p>`,
+      html: `<p>Hi ${full_name || ""}, an admin account has been created for you on Jack &amp; Jill.</p><p>Login at <a href="${SITE_URL}/admin/login">the admin panel</a> using this email and your password. You'll be prompted for a one-time code emailed to you on every login.</p>`,
     });
     return NextResponse.json({ ok: true, user_id: userId });
   }
@@ -64,7 +65,7 @@ export async function POST(req: Request) {
   const token = randomBytes(24).toString("hex");
   const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60_000).toISOString();
   await admin.from("admin_invites").upsert({ email, role, token, expires_at: expiresAt, invited_by: me.id }, { onConflict: "email" });
-  const link = `${process.env.NEXT_PUBLIC_SITE_URL}/admin/invite/${token}`;
+  const link = `${SITE_URL}/admin/invite/${token}`;
   await sendEmail({
     to: email,
     subject: `You're invited to Jack & Jill admin (${role.replace(/_/g, " ")})`,

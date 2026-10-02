@@ -25,6 +25,10 @@ const Body = z.object({
   coupon_code: z.string().max(40).optional(),
 });
 
+// Online orders hold their stock this long; unpaid ones are then cancelled
+// and the stock returned (expire_unpaid_orders in migration 0011).
+const RESERVATION_MINUTES = 45;
+
 const fail = (error: string, status = 400) => NextResponse.json({ ok: false, error }, { status });
 
 export async function POST(req: Request) {
@@ -33,6 +37,10 @@ export async function POST(req: Request) {
     const supabase = await createClient();
     const admin = createAdminClient();
     const email = body.address.email.trim().toLowerCase();
+
+    // Free stock held by abandoned online payments before checking availability.
+    const { error: expErr } = await admin.rpc("expire_unpaid_orders", { p_minutes: RESERVATION_MINUTES });
+    if (expErr) console.error("[orders/create] expire_unpaid_orders", expErr.message);
 
     const { data: { user } } = await supabase.auth.getUser();
 
@@ -107,38 +115,36 @@ export async function POST(req: Request) {
     const s = await getShippingSettings();
     const t = computeTotals(subtotal, discount, s);
 
-    // Insert order
-    const { data: order, error: oErr } = await admin.from("orders").insert({
-      user_id: user?.id ?? null,
-      guest_email: user ? null : email,
-      guest_phone: user ? null : body.address.phone,
-      status: "placed",
-      subtotal: t.subtotal, discount: t.discount, shipping_fee: t.shipping, tax: t.tax, total: t.total,
-      coupon_code: couponCode,
-      payment_status: body.payment_method === "cod" ? "cod" : "pending",
-      payment_method: body.payment_method,
-      shipping_address: { ...body.address, email },
-    }).select().single();
-    if (oErr) throw oErr;
-
-    await admin.from("order_items").insert(orderItems.map((it) => ({ ...it, order_id: order.id })));
-    await admin.from("order_status_history").insert({ order_id: order.id, status: "placed", note: "Order placed" });
-    if (couponId) await admin.from("coupon_usages").insert({ coupon_id: couponId, user_id: user?.id ?? null, order_id: order.id });
-
-    // Decrement stock (conditional on the value we read, so a concurrent order
-    // cannot silently oversell; a full reservation system comes with the
-    // place_order() transaction in the next phase).
-    for (const l of lines) {
-      const v: any = varMap.get(l.variant_id);
-      const { data: dec } = await admin
-        .from("product_variants")
-        .update({ stock_qty: v.stock_qty - l.quantity })
-        .eq("id", l.variant_id)
-        .eq("stock_qty", v.stock_qty)
-        .select("id");
-      if (!dec || dec.length === 0) {
-        console.error("[orders/create] stock changed concurrently", { order: order.order_number, variant: l.variant_id });
+    // One database transaction: reserve stock for every line (only if enough is
+    // left), create the order, items, history and coupon usage. If any line is
+    // short, nothing is written. See supabase/migrations/0011_order_engine.sql.
+    const isOnline = body.payment_method === "razorpay";
+    const { data: order, error: oErr } = await admin.rpc("place_order", {
+      p_order: {
+        user_id: user?.id ?? null,
+        guest_email: user ? null : email,
+        guest_phone: user ? null : body.address.phone,
+        subtotal: t.subtotal,
+        discount: t.discount,
+        shipping_fee: t.shipping,
+        tax: t.tax,
+        total: t.total,
+        coupon_code: couponCode,
+        payment_status: isOnline ? "pending" : "cod",
+        payment_method: body.payment_method,
+        shipping_address: { ...body.address, email },
+        reserved_until: isOnline ? new Date(Date.now() + RESERVATION_MINUTES * 60_000).toISOString() : null,
+      },
+      p_items: orderItems,
+      p_coupon_id: couponId,
+    });
+    if (oErr || !order) {
+      const m = /OUT_OF_STOCK:([0-9a-f-]{36})/.exec(oErr?.message || "");
+      if (m) {
+        const v: any = varMap.get(m[1]);
+        return fail(`Sorry — ${v?.product?.name ?? "an item in your bag"} just sold out in that size. Please update your bag.`, 409);
       }
+      throw oErr ?? new Error("place_order returned no order");
     }
 
     const access_token = makeOrderAccessToken(order.order_number);
@@ -161,7 +167,7 @@ export async function POST(req: Request) {
       const cfg = await getRazorpayConfig();
       if (!cfg.enabled || !cfg.key_id || !cfg.key_secret || cfg.key_id.startsWith("rzp_test_placeholder")) {
         // No real keys — degrade to COD so the flow still works end-to-end
-        await admin.from("orders").update({ payment_method: "cod", payment_status: "cod" }).eq("id", order.id);
+        await admin.from("orders").update({ payment_method: "cod", payment_status: "cod", reserved_until: null }).eq("id", order.id);
         sendConfirmation();
         return NextResponse.json({
           ok: true,
@@ -184,7 +190,11 @@ export async function POST(req: Request) {
         await admin.from("orders").update({ razorpay_order_id }).eq("id", order.id);
       } catch (e: any) {
         console.error("Razorpay create error", e?.message);
-        return fail("Payment gateway unavailable. Try COD.", 500);
+        // Give the reserved stock straight back — this order can never be paid.
+        await admin.from("orders").update({ status: "cancelled", payment_status: "failed" }).eq("id", order.id);
+        await admin.rpc("release_order_stock", { p_order_id: order.id });
+        await admin.from("order_status_history").insert({ order_id: order.id, status: "cancelled", note: "Payment gateway unavailable — stock released" });
+        return fail("Payment gateway unavailable. Please try again or choose Cash on Delivery.", 503);
       }
       // Confirmation email for online payments is sent after payment is verified.
     } else {

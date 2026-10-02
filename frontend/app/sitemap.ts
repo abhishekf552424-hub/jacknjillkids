@@ -1,10 +1,11 @@
 import type { MetadataRoute } from "next";
-import { createClient } from "@/lib/supabase/server";
+import { createPublicClient } from "@/lib/supabase/public";
+import { SITE_URL } from "@/lib/site";
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://alankarfashions.com";
+export const revalidate = 3600;
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const supabase = await createClient();
+  const supabase = createPublicClient();
 
   const [{ data: products }, { data: cats }, { data: pages }] = await Promise.all([
     supabase.from("products").select("slug, updated_at").eq("status", "active"),
@@ -14,27 +15,29 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const now = new Date();
   const staticUrls: MetadataRoute.Sitemap = [
-    { url: `${SITE_URL}/`,          lastModified: now, priority: 1.0 },
-    { url: `${SITE_URL}/shop`,      lastModified: now, priority: 0.9 },
-    { url: `${SITE_URL}/about`,     lastModified: now, priority: 0.7 },
-    { url: `${SITE_URL}/contact`,   lastModified: now, priority: 0.6 },
-    { url: `${SITE_URL}/faq`,       lastModified: now, priority: 0.6 },
-    { url: `${SITE_URL}/track`,     lastModified: now, priority: 0.5 },
+    { url: `${SITE_URL}/`, lastModified: now, changeFrequency: "daily", priority: 1.0 },
+    { url: `${SITE_URL}/shop`, lastModified: now, changeFrequency: "daily", priority: 0.9 },
+    { url: `${SITE_URL}/about`, lastModified: now, changeFrequency: "monthly", priority: 0.6 },
+    { url: `${SITE_URL}/contact`, lastModified: now, changeFrequency: "monthly", priority: 0.6 },
+    { url: `${SITE_URL}/faq`, lastModified: now, changeFrequency: "monthly", priority: 0.6 },
   ];
-  const productUrls = (products ?? []).map((p: any) => ({
-    url: `${SITE_URL}/product/${p.slug}`,
-    lastModified: p.updated_at ? new Date(p.updated_at) : now,
+  const catUrls: MetadataRoute.Sitemap = (cats ?? []).map((c: any) => ({
+    url: `${SITE_URL}/category/${c.slug}`,
+    lastModified: now,
+    changeFrequency: "daily",
     priority: 0.8,
   }));
-  const catUrls = (cats ?? []).map((c: any) => ({
-    url: `${SITE_URL}/shop?category=${c.slug}`,
-    lastModified: now,
+  const productUrls: MetadataRoute.Sitemap = (products ?? []).map((p: any) => ({
+    url: `${SITE_URL}/product/${p.slug}`,
+    lastModified: p.updated_at ? new Date(p.updated_at) : now,
+    changeFrequency: "weekly",
     priority: 0.7,
   }));
-  const cmsUrls = (pages ?? []).map((p: any) => ({
+  const cmsUrls: MetadataRoute.Sitemap = (pages ?? []).map((p: any) => ({
     url: `${SITE_URL}/legal/${p.slug}`,
     lastModified: p.updated_at ? new Date(p.updated_at) : now,
-    priority: 0.4,
+    changeFrequency: "yearly",
+    priority: 0.3,
   }));
-  return [...staticUrls, ...productUrls, ...catUrls, ...cmsUrls];
+  return [...staticUrls, ...catUrls, ...productUrls, ...cmsUrls];
 }

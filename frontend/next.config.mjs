@@ -26,6 +26,22 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: false,
   },
+  // Old WordPress/WooCommerce URLs still indexed by Google -> new pages (301).
+  async redirects() {
+    return [
+      { source: "/wishsuite", destination: "/account", permanent: true },
+      { source: "/wishlist", destination: "/account", permanent: true },
+      { source: "/my-account/:path*", destination: "/account", permanent: true },
+      { source: "/cart", destination: "/checkout", permanent: true },
+      { source: "/product-category/:slug*", destination: "/category/:slug*", permanent: true },
+      { source: "/product-tag/:tag", destination: "/shop", permanent: true },
+      { source: "/about-us", destination: "/about", permanent: true },
+      { source: "/contact-us", destination: "/contact", permanent: true },
+      { source: "/privacy-policy", destination: "/legal/privacy", permanent: true },
+      { source: "/terms-and-conditions", destination: "/legal/terms", permanent: true },
+      { source: "/refund_returns", destination: "/legal/returns", permanent: true },
+    ];
+  },
   async headers() {
     return [
       {

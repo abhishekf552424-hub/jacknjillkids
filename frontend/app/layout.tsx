@@ -7,9 +7,9 @@ import Footer from "@/components/Footer";
 import SiteChrome from "@/components/SiteChrome";
 import PromoPopup from "@/components/PromoPopup";
 import AnalyticsPixels from "@/components/AnalyticsPixels";
-import InitialSiteLoader from "@/components/InitialSiteLoader";
 import SupportChat from "@/components/SupportChat";
-import { createClient } from "@/lib/supabase/server";
+import { createPublicClient } from "@/lib/supabase/public";
+import { SITE_URL } from "@/lib/site";
 import { getTrackingSettings, getPromoPopup, getBrandSettings } from "@/lib/settings";
 import type { Category, AgeGroup, TrustBadge } from "@/lib/types";
 
@@ -25,8 +25,6 @@ const body = Nunito({
   variable: "--font-body",
   display: "swap",
 });
-
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://alankarfashions.com";
 
 export const revalidate = 60;
 
@@ -72,11 +70,14 @@ export const metadata: Metadata = {
     images: [`${SITE_URL}/og-default.png`],
   },
   robots: { index: true, follow: true },
-  alternates: { canonical: SITE_URL },
+  // No site-wide canonical here: each page sets its own. (A canonical in the
+  // root layout is inherited by every page that forgets one, telling Google
+  // that /about, /faq, /contact… are duplicates of the homepage.)
 };
 
 async function fetchGlobals() {
-  const supabase = await createClient();
+  // Public catalogue data only — no cookies, so pages can be cached.
+  const supabase = createPublicClient();
   const [{ data: cats }, { data: ages }, { data: badges }, { data: setBrand }, { data: contact }] = await Promise.all([
     supabase.from("categories").select("*").eq("is_active", true).order("sort_order"),
     supabase.from("age_groups").select("*").order("sort_order"),
@@ -112,6 +113,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const logoSizeTablet = brandCfg.logo_size_tablet;
   const logoSizeDesktop = brandCfg.logo_size_desktop;
 
+  // One NAP source: the phone set in Admin › Settings › Contact (the old code
+  // hard-coded a number that differs from the store's directory listings).
+  const napPhone: string = (globals.contact as any)?.phone || "+91-83299-84160";
   const orgLd = {
     "@context": "https://schema.org",
     "@type": "Organization",
@@ -130,7 +134,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     contactPoint: [
       {
         "@type": "ContactPoint",
-        telephone: "+91-83299-84160",
+        telephone: napPhone,
         contactType: "customer service",
         areaServed: "IN",
       },
@@ -154,7 +158,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     name: "Jack & Jill",
     image: `${SITE_URL}/logo.svg`,
     url: SITE_URL,
-    telephone: "+91-83299-84160",
+    telephone: napPhone,
     priceRange: "₹₹",
     address: {
       "@type": "PostalAddress",
@@ -179,7 +183,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   return (
     <html lang="en-IN" className={`${display.variable} ${body.variable}`}>
       <body>
-        <InitialSiteLoader logoUrl={globals.brand?.logo_url} />
         <SiteChrome
           header={<Header categoriesTree={globals.categoriesTree} ageGroups={globals.ageGroups} logoUrl={globals.brand?.logo_url} storeName={globals.brand?.store_name} logoSizeMobile={logoSizeMobile} logoSizeTablet={logoSizeTablet} logoSizeDesktop={logoSizeDesktop} logoAlign={logoAlign} />}
           footer={<Footer contact={globals.contact} brand={globals.brand} logoSize={logoSize} />}

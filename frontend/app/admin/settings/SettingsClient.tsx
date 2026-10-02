@@ -210,7 +210,7 @@ export default function SettingsClient({ initial }: { initial: Record<string, an
             <F label="Meta (Facebook) Pixel ID" value={tracking.meta_pixel_id} onChange={(v) => setTracking({ ...tracking, meta_pixel_id: v })} placeholder="1234567890" />
             <F label="Google Analytics 4 ID" value={tracking.ga4_id} onChange={(v) => setTracking({ ...tracking, ga4_id: v })} placeholder="G-XXXXXXX" />
           </div>
-          <p className="text-xs text-neutral-400 mt-2">Google Shopping feed: <code>{process.env.NEXT_PUBLIC_SITE_URL || ""}/api/feed/google-shopping.xml</code></p>
+          <p className="text-xs text-neutral-400 mt-2">Google Shopping feed: <code>{process.env.NEXT_PUBLIC_SITE_URL || ""}/feeds/google-shopping.xml</code></p>
           <button onClick={() => save("tracking", tracking)} className="mt-4 bg-navy text-white rounded px-4 py-2 text-sm">Save marketing</button>
         </div>
 

@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getRazorpayConfig } from "@/lib/settings";
 import { isValidCheckoutSignature } from "@/lib/payments";
-import { sendOrderConfirmation } from "@/lib/order-emails";
+import { markOrderPaid } from "@/lib/order-payments";
 import { z } from "zod";
 
 const Body = z.object({
@@ -37,24 +37,9 @@ export async function POST(req: Request) {
       return NextResponse.json({ ok: true, already: true });
     }
 
-    // Conditional update: only the first caller (this route or the webhook) wins.
-    const { data: updated } = await admin
-      .from("orders")
-      .update({ payment_status: "paid", razorpay_payment_id: body.razorpay_payment_id, status: "confirmed" })
-      .eq("id", order.id)
-      .eq("razorpay_order_id", body.razorpay_order_id)
-      .neq("payment_status", "paid")
-      .select("id");
-    if (updated && updated.length > 0) {
-      await admin.from("order_status_history").insert({
-        order_id: order.id,
-        status: "confirmed",
-        note: "Payment received via Razorpay",
-      });
-      await sendOrderConfirmation(admin, order.id);
-    }
-
-    return NextResponse.json({ ok: true });
+    // Only the first caller (this route or the webhook) marks it paid.
+    const result = await markOrderPaid(admin, order.id, body.razorpay_payment_id, "checkout");
+    return NextResponse.json({ ok: true, result });
   } catch (e: any) {
     console.error("[razorpay/verify]", e?.message);
     return NextResponse.json({ ok: false, error: "Verify failed" }, { status: 400 });

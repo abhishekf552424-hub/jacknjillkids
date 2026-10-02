@@ -19,13 +19,11 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
 
   await admin.from("returns").update({ status, updated_at: new Date().toISOString() }).eq("id", id);
 
-  // On approval of size exchange: swap stock (increment old variant, decrement new)
-  if (status === "approved" && r.type === "size_exchange" && r.variant_id && r.exchange_variant_id) {
-    // Fetch current stock and update
-    const { data: old } = await admin.from("product_variants").select("stock_qty").eq("id", r.variant_id).maybeSingle();
-    const { data: nu } = await admin.from("product_variants").select("stock_qty").eq("id", r.exchange_variant_id).maybeSingle();
-    if (old) await admin.from("product_variants").update({ stock_qty: (old.stock_qty || 0) + 1 }).eq("id", r.variant_id);
-    if (nu) await admin.from("product_variants").update({ stock_qty: Math.max(0, (nu.stock_qty || 0) - 1) }).eq("id", r.exchange_variant_id);
+  // On approval of a size exchange: old size back on the shelf, new size out.
+  // Only on the first approval, and atomically (adjust_stock in migration 0011).
+  if (status === "approved" && r.status !== "approved" && r.type === "size_exchange" && r.variant_id && r.exchange_variant_id) {
+    await admin.rpc("adjust_stock", { p_variant_id: r.variant_id, p_delta: 1 });
+    await admin.rpc("adjust_stock", { p_variant_id: r.exchange_variant_id, p_delta: -1 });
   }
 
   const email = r.order?.shipping_address?.email;

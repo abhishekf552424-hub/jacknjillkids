@@ -3,6 +3,7 @@ import { checkAdmin } from "@/lib/admin-auth";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { slugify } from "@/lib/utils";
+import { syncProductVariants } from "@/lib/product-variants";
 
 async function requireAdmin() {
   return checkAdmin(["super_admin", "content_manager"]);
@@ -28,18 +29,8 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
   if (body.images?.length) {
     await admin.from("product_images").insert(body.images.map((im: any, i: number) => ({ product_id: id, url: im.url, alt_text: im.alt_text, sort_order: i })));
   }
-  await admin.from("product_variants").delete().eq("product_id", id);
-  if (body.variants?.length) {
-    await admin.from("product_variants").insert(body.variants.filter((v: any) => v.sku || v.size || v.color).map((v: any) => ({
-      product_id: id,
-      size: v.size || null,
-      color: v.color || null,
-      color_hex: v.color_hex || null,
-      sku: v.sku || null,
-      stock_qty: Number(v.stock_qty) || 0,
-      price_override: v.price_override ? Number(v.price_override) : null,
-    })));
-  }
+  const vs = await syncProductVariants(admin, id, body.variants);
+  if (vs.error) return NextResponse.json({ ok: false, error: vs.error }, { status: 400 });
   await admin.from("product_age_groups").delete().eq("product_id", id);
   if (body.age_group_ids?.length) {
     await admin.from("product_age_groups").insert(body.age_group_ids.map((a: string) => ({ product_id: id, age_group_id: a })));

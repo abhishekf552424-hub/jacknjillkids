@@ -1,4 +1,6 @@
-import { createClient } from "@/lib/supabase/server";
+import { createPublicClient } from "@/lib/supabase/public";
+import type { Metadata } from "next";
+import { abs } from "@/lib/site";
 import HeroCarousel from "@/components/HeroCarousel";
 import CategoryShelf from "@/components/CategoryShelf";
 import ProductShelf from "@/components/ProductShelf";
@@ -11,10 +13,17 @@ import PromoStrip from "@/components/PromoStrip";
 import Reveal from "@/components/Reveal";
 import type { HomepageSection, Product, Category, TrustBadge } from "@/lib/types";
 
+export const metadata: Metadata = {
+  title: { absolute: "Jack & Jill Kolhapur — Kids' Clothing, Footwear, Toys & Baby Essentials Since 2003" },
+  description:
+    "Kolhapur's kids store since 2003: clothing, footwear, baby essentials, school bags, toys and gift hampers for ages 0–14. Free delivery above ₹999, easy 7-day exchange, COD available.",
+  alternates: { canonical: abs("/") },
+};
+
 export const revalidate = 60;
 
 async function loadProducts(filter: string, limit = 8): Promise<Product[]> {
-  const supabase = await createClient();
+  const supabase = createPublicClient();
   // Select only columns needed by ProductCard (avoid select('*') for perf).
   let q = supabase
     .from("products")
@@ -31,7 +40,7 @@ async function loadProducts(filter: string, limit = 8): Promise<Product[]> {
 }
 
 export default async function HomePage() {
-  const supabase = await createClient();
+  const supabase = createPublicClient();
   const [{ data: sections }, { data: cats }, { data: badges }] = await Promise.all([
     supabase.from("homepage_sections").select("*").eq("is_active", true).order("sort_order"),
     supabase

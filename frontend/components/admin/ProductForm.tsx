@@ -13,7 +13,7 @@ type A = { id: string; label: string };
 type Coupon = { id: string; code: string; type: string; value: number };
 type PickProduct = { id: string; name: string; slug: string; base_price: number };
 
-type Variant = { size: string; color: string; color_hex: string; sku: string; stock_qty: number; price_override: string };
+type Variant = { id?: string; size: string; color: string; color_hex: string; sku: string; stock_qty: number; price_override: string };
 type Bundle = { child_product_id: string; child_variant_id: string; quantity: number };
 
 type ProductProps = {
@@ -115,7 +115,7 @@ export default function ProductForm({ categories, ageGroups, product, images, va
   const makeCover = (i: number) => reorderImgs(i, 0);
   const [vars, setVars] = useState<Variant[]>(
     variants.length
-      ? variants.map((v) => ({ size: v.size ?? "", color: v.color ?? "", color_hex: v.color_hex ?? "", sku: v.sku ?? "", stock_qty: v.stock_qty ?? 0, price_override: v.price_override ?? "" }))
+      ? variants.map((v) => ({ id: v.id, size: v.size ?? "", color: v.color ?? "", color_hex: v.color_hex ?? "", sku: v.sku ?? "", stock_qty: v.stock_qty ?? 0, price_override: v.price_override ?? "" }))
       : [],
   );
   const [ages, setAges] = useState<string[]>(productAges);

@@ -26,7 +26,7 @@ export default function CategoryShelf({
         {categories.map((c) => (
           <Link
             key={c.id}
-            href={`/shop?category=${c.slug}`}
+            href={`/category/${c.slug}`}
             data-testid={`cat-tile-${c.slug}`}
             className="flex flex-col items-center gap-3 min-w-[120px] md:min-w-[160px] group"
           >

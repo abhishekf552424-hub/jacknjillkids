@@ -80,3 +80,14 @@ test("totals: discount reduces taxable amount; free shipping on subtotal", () =>
   assert.deepEqual(computeTotals(1000, 100, s), { subtotal: 1000, discount: 100, shipping: 0, tax: 45, total: 945 });
   assert.deepEqual(computeTotals(500, 0, s), { subtotal: 500, discount: 0, shipping: 79, tax: 29, total: 608 });
 });
+
+import { plpHref } from "../lib/plp-url";
+
+test("listing URLs: category in path, filters in query, page reset", () => {
+  assert.equal(plpHref({ category: "clothing" }), "/category/clothing");
+  assert.equal(plpHref({ category: "clothing", page: "3" }, { age: "2-4y" }), "/category/clothing?age=2-4y");
+  assert.equal(plpHref({ category: "clothing", age: "2-4y" }, { category: null }), "/shop?age=2-4y");
+  assert.equal(plpHref({}, { sort: "newest" }), "/shop?sort=newest");
+  assert.equal(plpHref({ category: "toys", page: "1" }, { page: "2" }), "/category/toys?page=2");
+  assert.equal(plpHref({ min: "100", max: "900" }, { min: null, max: "500" }), "/shop?max=500");
+});

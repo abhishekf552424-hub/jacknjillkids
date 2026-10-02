@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getRazorpayConfig } from "@/lib/settings";
 import { isValidWebhookSignature, toPaise } from "@/lib/payments";
-import { sendOrderConfirmation } from "@/lib/order-emails";
+import { markOrderPaid } from "@/lib/order-payments";
 
 export async function POST(req: Request) {
   const raw = await req.text();
@@ -35,16 +35,7 @@ export async function POST(req: Request) {
           console.error("[razorpay/webhook] amount mismatch", { order: o.id, paidAmount, expected: toPaise(o.total) });
           return NextResponse.json({ ok: true, ignored: "amount_mismatch" });
         }
-        const { data: updated } = await admin
-          .from("orders")
-          .update({ payment_status: "paid", razorpay_payment_id: paymentId, status: "confirmed" })
-          .eq("id", o.id)
-          .neq("payment_status", "paid")
-          .select("id");
-        if (updated && updated.length > 0) {
-          await admin.from("order_status_history").insert({ order_id: o.id, status: "confirmed", note: "Payment captured (webhook)" });
-          await sendOrderConfirmation(admin, o.id);
-        }
+        await markOrderPaid(admin, o.id, paymentId, "webhook");
       }
     }
   }
