@@ -19,9 +19,9 @@ export default function BrandStory({
   const mediaType = embed_url ? "embed" : video ? "video" : "image";
 
   return (
-    <section className="container py-16 md:py-24" data-testid="brand-story">
-      <div className="grid md:grid-cols-2 gap-10 md:gap-16 items-center">
-        <div className="relative aspect-[5/4] rounded-lg overflow-hidden bg-blush">
+    <section className="container py-10 md:py-16" data-testid="brand-story">
+      <div className="bg-blush rounded-[28px] p-5 md:p-10 grid md:grid-cols-2 gap-6 md:gap-12 items-center">
+        <div className="relative aspect-[5/4] rounded-2xl overflow-hidden bg-white">
           {mediaType === "embed" && embed_url && (
             <iframe
               src={normalizeEmbedUrl(embed_url)}
@@ -50,21 +50,21 @@ export default function BrandStory({
           )}
         </div>
         <div>
-          <p className="text-xs uppercase tracking-[0.3em] text-gold-text font-bold mb-3">Our Story</p>
-          <h2 className="font-display text-3xl md:text-4xl lg:text-5xl text-navy leading-tight tracking-tight">
-            {title ?? "The Jack & Jill Story"}
+          <p className="text-xs uppercase tracking-[0.12em] text-gold-text font-extrabold mb-2">Since 17 August 2003</p>
+          <h2 className="font-display text-2xl leading-8 md:text-4xl md:leading-tight text-navy">
+            {title ?? "Kolhapur's happiest wardrobe"}
           </h2>
-          <p className="mt-4 text-muted leading-relaxed">
+          <p className="mt-3 text-ink/80 leading-relaxed">
             {subtitle ?? "Kolhapur's trusted kids brand since 2003."}
           </p>
           <p className="mt-4 text-ink leading-relaxed">
             Founded in 2003 by Ajit Mehta with a single flagship store in Shahupuri, Kolhapur, Jack &amp; Jill has grown into a beloved kids lifestyle destination — trusted by over <strong>10,000 families</strong> across India. From newborn cuddles to teen adventures, everything we curate is <strong>skin-safe, thoughtfully designed and built to last</strong>.
           </p>
-          <div className="mt-8 flex flex-wrap gap-3">
-            <Link href="/about" className="inline-flex items-center bg-navy text-white rounded px-6 py-3 text-sm font-medium hover:opacity-90 transition-opacity">
+          <div className="mt-6 flex flex-wrap gap-3">
+            <Link href="/about" className="inline-flex items-center h-12 bg-navy text-white rounded-full px-6 text-[15px] font-extrabold hover:bg-ink transition-colors">
               Read the full story
             </Link>
-            <Link href="/shop" className="inline-flex items-center border-2 border-gold text-gold-text rounded px-6 py-3 text-sm font-medium hover:bg-gold-text hover:border-gold-text hover:text-white transition-all">
+            <Link href="/shop" className="inline-flex items-center h-12 border-2 border-navy text-navy rounded-full px-6 text-[15px] font-extrabold hover:bg-navy hover:text-white transition-colors">
               Explore the store
             </Link>
           </div>

@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useId } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { getVimeoBackgroundUrl } from "@/lib/embeds";
 
@@ -14,73 +14,39 @@ type Slide = {
   subheading?: string;
   cta_text?: string;
   cta_link?: string;
-  // Phase O — per-slide style controls
-  overlay_opacity?: number;      // 0-100 (%), default 20
-  overlay_color?: string;        // any CSS color, default "#1F2650" (navy)
-  heading_color?: string;        // any CSS color, default "#ffffff"
-  heading_size?: "sm" | "md" | "lg"; // preset scale, default "lg"
-  cta_style?: "gradient" | "outline" | "navy"; // default "gradient"
-  content_position?: "left" | "center" | "right"; // default "left"
-  border_radius?: "none" | "soft" | "rounded" | "pill"; // corner style, default "soft"
+  // Older per-slide style controls. The redesigned hero puts the words on the
+  // cream page (not over the photo), so only cta_style is still used.
+  overlay_opacity?: number;
+  overlay_color?: string;
+  heading_color?: string;
+  heading_size?: "sm" | "md" | "lg";
+  cta_style?: "gradient" | "outline" | "navy";
+  content_position?: "left" | "center" | "right";
+  border_radius?: "none" | "soft" | "rounded" | "pill";
 };
 
-const HEADING_SIZE_CLASSES: Record<string, string> = {
-  sm: "text-2xl sm:text-3xl lg:text-4xl",
-  md: "text-3xl sm:text-4xl lg:text-5xl",
-  lg: "text-3xl sm:text-4xl lg:text-6xl",
-};
-
-const CONTENT_POS_CLASSES: Record<string, string> = {
-  left: "md:w-2/3 lg:w-1/2 md:mr-auto text-left",
-  center: "md:w-4/5 lg:w-3/4 mx-auto text-center",
-  right: "md:w-2/3 lg:w-1/2 md:ml-auto text-right",
-};
-
-// Corner style presets — consistent with PromoStrip radii for a unified system.
-const RADIUS_CLASSES: Record<string, string> = {
-  none: "rounded-none",
-  soft: "rounded-[12px]",
-  rounded: "rounded-[24px]",
-  pill: "rounded-[40px]",
-};
-
-function CtaButton({ style, text, link }: { style: string; text: string; link: string }) {
-  const base = "inline-flex items-center gap-2 font-bold rounded-full px-6 py-3 md:px-8 md:py-4 hover:-translate-y-0.5 transition-transform";
-  if (style === "outline") {
-    return (
-      <Link href={link} data-testid="hero-cta" className={`${base} border-2 border-white text-white hover:bg-white hover:text-navy`}>
-        {text} <ChevronRight className="w-4 h-4" />
-      </Link>
-    );
-  }
-  if (style === "navy") {
-    return (
-      <Link href={link} data-testid="hero-cta" className={`${base} bg-navy text-white shadow-premium`}>
-        {text} <ChevronRight className="w-4 h-4" />
-      </Link>
-    );
-  }
-  return (
-    <Link href={link} data-testid="hero-cta" className={`${base} bg-action hover:bg-action-hover text-white shadow-premium`}>
-      {text} <ChevronRight className="w-4 h-4" />
-    </Link>
-  );
-}
-
+/**
+ * Homepage hero — layout from the approved mockup: a rounded photo card with
+ * the logo's rising red→yellow arc along its foot, and the words on the cream
+ * page beside it (below it on phones), so text stays readable on any photo.
+ */
 export default function HeroCarousel({ slides, title, subtitle }: { slides: Slide[]; title?: string | null; subtitle?: string | null }) {
   const [i, setI] = useState(0);
-  // Defensive filter: a slide with neither an image nor a video configured
-  // (e.g. an admin-added slide that was never finished) would otherwise
-  // render as a blank navy box for its entire ~6s turn — not just during
-  // transitions. Only ever show slides that actually have visual content.
+  const gradId = `rise-${useId().replace(/:/g, "")}`;
+
+  // Only slides with a picture or video; an unfinished slide would show an empty card.
   const validSlides = slides.filter((sl) => Boolean(sl.image || sl.video_url));
-  const list: Slide[] = validSlides.length ? validSlides : [{
-    image: "https://images.unsplash.com/photo-1502086223501-7ea6ecd79368?w=1600",
-    heading: title ?? "Tiny Steps, Big Smiles",
-    subheading: subtitle ?? "Style • Comfort • Care",
-    cta_text: "Shop New Arrivals",
-    cta_link: "/shop?sort=newest",
-  }];
+  const list: Slide[] = validSlides.length
+    ? validSlides
+    : [
+        {
+          image: "https://images.unsplash.com/photo-1502086223501-7ea6ecd79368?w=1600",
+          heading: title ?? "Little outfits for big adventures",
+          subheading: "Since 2003 · Shahupuri, Kolhapur",
+          cta_text: "Shop new arrivals",
+          cta_link: "/shop?sort=newest",
+        },
+      ];
 
   useEffect(() => {
     if (list.length < 2) return;
@@ -90,123 +56,126 @@ export default function HeroCarousel({ slides, title, subtitle }: { slides: Slid
 
   const s = list[i];
   const bgVideo = s.video_url ? getVimeoBackgroundUrl(s.video_url) : null;
-  const hasCta = Boolean(s.cta_text && s.cta_link && s.cta_text.trim() && s.cta_link.trim());
-  const overlayOpacity = typeof s.overlay_opacity === "number" ? Math.max(0, Math.min(100, s.overlay_opacity)) : 20;
-  const overlayColor = s.overlay_color || "#1F2650";
-  const headingColor = s.heading_color || "#ffffff";
-  const headingSizeCls = HEADING_SIZE_CLASSES[s.heading_size || "lg"];
-  const posCls = CONTENT_POS_CLASSES[s.content_position || "left"];
-  const radiusCls = RADIUS_CLASSES[s.border_radius || "soft"];
+  const hasCta = Boolean(s.cta_text?.trim() && s.cta_link?.trim());
+  const primary =
+    s.cta_style === "navy" || s.cta_style === "outline"
+      ? "bg-navy hover:bg-ink text-white"
+      : "bg-action hover:bg-action-hover text-white";
 
   return (
-    <section className="relative overflow-hidden bg-cream" data-testid="hero-carousel">
-      <div className="relative container py-4 md:py-8">
-        <div className={`relative w-full aspect-[16/10] sm:aspect-[16/9] lg:aspect-[21/9] max-h-[720px] overflow-hidden bg-navy ${radiusCls}`}>
-          <AnimatePresence>
-            <motion.div
-              key={i}
-              initial={{ opacity: 0, scale: 1.02 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-              className="absolute inset-0"
-            >
-              {bgVideo ? (
-                <div className="absolute inset-0 pointer-events-none overflow-hidden">
-                  <iframe
-                    src={bgVideo}
-                    title={s.heading || "Hero video"}
-                    frameBorder={0}
-                    allow="autoplay; fullscreen; picture-in-picture"
-                    className="absolute top-1/2 left-1/2 w-[177.78vh] h-[56.25vw] min-w-full min-h-full -translate-x-1/2 -translate-y-1/2 border-0"
-                  />
-                </div>
-              ) : s.image ? (
-                <Image
-                  src={s.image}
-                  alt={s.heading || "Hero"}
-                  fill
-                  priority
-                  sizes="100vw"
-                  className="object-cover"
-                />
-              ) : null}
-              {/* Per-slide flat overlay — 0% opacity renders NO overlay at all */}
-              {overlayOpacity > 0 && (
-                <div
-                  className="absolute inset-0"
-                  style={{ backgroundColor: overlayColor, opacity: overlayOpacity / 100 }}
-                />
-              )}
-            </motion.div>
-          </AnimatePresence>
+    <section className="bg-cream" data-testid="hero-carousel">
+      <div className="container pt-4 pb-8 md:py-12 grid md:grid-cols-2 gap-6 md:gap-12 items-center">
+        {/* Photo card */}
+        <div className="relative md:order-2">
+          <div className="relative w-full aspect-[4/3] md:aspect-[5/4] overflow-hidden rounded-[28px] bg-sky">
+            <AnimatePresence>
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, scale: 1.02 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+                className="absolute inset-0"
+              >
+                {bgVideo ? (
+                  <div className="absolute inset-0 pointer-events-none overflow-hidden">
+                    <iframe
+                      src={bgVideo}
+                      title={s.heading || "Jack & Jill video"}
+                      frameBorder={0}
+                      allow="autoplay; fullscreen; picture-in-picture"
+                      className="absolute top-1/2 left-1/2 w-[177.78%] h-[177.78%] min-w-full min-h-full -translate-x-1/2 -translate-y-1/2 border-0"
+                    />
+                  </div>
+                ) : s.image ? (
+                  <Image src={s.image} alt={s.heading || "Kids in Jack & Jill outfits"} fill priority sizes="(min-width:768px) 50vw, 100vw" className="object-cover" />
+                ) : null}
+              </motion.div>
+            </AnimatePresence>
 
-          <div className="relative h-full flex items-end md:items-center">
-            <div className={`w-full p-5 sm:p-8 md:p-14 ${posCls}`} style={{ color: headingColor }}>
-              <motion.p
-                key={`sub-${i}`}
-                initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.15, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-                className="uppercase tracking-[0.3em] text-gold-light text-[10px] sm:text-xs font-bold mb-3"
-              >
-                {s.subheading ?? "Since 2003 • Kolhapur"}
-              </motion.p>
-              <motion.h1
-                key={`h-${i}`}
-                initial={{ opacity: 0, y: 16 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-                className={`font-display leading-[1.05] tracking-tight ${headingSizeCls}`}
-                style={{ color: headingColor }}
-              >
-                {s.heading ?? "Tiny Steps, Big Smiles"}
-              </motion.h1>
-              {hasCta && (
-                <motion.div
-                  key={`c-${i}`}
-                  initial={{ opacity: 0, y: 12 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.3, duration: 0.4 }}
-                  className="mt-6 md:mt-8"
+            {/* The logo's rising arrows, drawn as a hill along the card's foot */}
+            <svg viewBox="0 0 400 64" preserveAspectRatio="none" className="absolute inset-x-0 -bottom-px w-full h-12 md:h-16" aria-hidden="true">
+              <defs>
+                <linearGradient id={gradId} x1="0" y1="1" x2="1" y2="0">
+                  <stop offset="0" stopColor="#EA4137" />
+                  <stop offset="0.5" stopColor="#F38838" />
+                  <stop offset="1" stopColor="#FCD325" />
+                </linearGradient>
+              </defs>
+              <path d="M0 64 C 110 64, 180 28, 400 6 L 400 64 Z" fill="#FFF8EC" />
+              <path d="M0 58 C 110 58, 180 22, 400 2" fill="none" stroke={`url(#${gradId})`} strokeWidth="5" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
+            </svg>
+
+            {list.length > 1 && (
+              <>
+                <button
+                  onClick={() => setI((v) => (v - 1 + list.length) % list.length)}
+                  className="hidden md:flex absolute left-4 top-1/2 -translate-y-1/2 w-11 h-11 items-center justify-center rounded-full bg-white/90 hover:bg-white text-navy shadow-soft"
+                  aria-label="Previous slide"
+                  data-testid="hero-prev"
                 >
-                  <CtaButton style={s.cta_style || "gradient"} text={s.cta_text!} link={s.cta_link!} />
-                </motion.div>
-              )}
-            </div>
+                  <ChevronLeft className="w-5 h-5" />
+                </button>
+                <button
+                  onClick={() => setI((v) => (v + 1) % list.length)}
+                  className="hidden md:flex absolute right-4 top-1/2 -translate-y-1/2 w-11 h-11 items-center justify-center rounded-full bg-white/90 hover:bg-white text-navy shadow-soft"
+                  aria-label="Next slide"
+                  data-testid="hero-next"
+                >
+                  <ChevronRight className="w-5 h-5" />
+                </button>
+              </>
+            )}
           </div>
-
           {list.length > 1 && (
-            <>
-              <button
-                onClick={() => setI((v) => (v - 1 + list.length) % list.length)}
-                className="hidden md:flex absolute left-6 top-1/2 -translate-y-1/2 w-11 h-11 items-center justify-center rounded-full bg-white/80 hover:bg-white text-navy shadow-soft"
-                aria-label="Previous slide"
-                data-testid="hero-prev"
-              >
-                <ChevronLeft className="w-5 h-5" />
-              </button>
-              <button
-                onClick={() => setI((v) => (v + 1) % list.length)}
-                className="hidden md:flex absolute right-6 top-1/2 -translate-y-1/2 w-11 h-11 items-center justify-center rounded-full bg-white/80 hover:bg-white text-navy shadow-soft"
-                aria-label="Next slide"
-                data-testid="hero-next"
-              >
-                <ChevronRight className="w-5 h-5" />
-              </button>
-              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
-                {list.map((_, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => setI(idx)}
-                    aria-label={`Go to slide ${idx + 1}`}
-                    className={`h-1.5 rounded-full transition-all ${idx === i ? "w-8 bg-white" : "w-1.5 bg-white/50"}`}
-                    data-testid={`hero-dot-${idx}`}
-                  />
-                ))}
-              </div>
-            </>
+            <div className="mt-3 flex justify-center gap-2">
+              {list.map((_, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => setI(idx)}
+                  aria-label={`Go to slide ${idx + 1}`}
+                  aria-current={idx === i}
+                  className="p-2 -m-1"
+                  data-testid={`hero-dot-${idx}`}
+                >
+                  <span className={`block h-1.5 rounded-full transition-all ${idx === i ? "w-6 bg-navy" : "w-1.5 bg-line-strong"}`} />
+                </button>
+              ))}
+            </div>
           )}
+        </div>
+
+        {/* Words on the page */}
+        <div className="md:order-1">
+          <motion.p
+            key={`sub-${i}`}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.35 }}
+            className="text-xs font-extrabold uppercase tracking-[0.12em] text-gold-text"
+          >
+            {s.subheading || "Since 2003 · Shahupuri, Kolhapur"}
+          </motion.p>
+          <motion.h1
+            key={`h-${i}`}
+            initial={{ opacity: 0, y: 14 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.05, duration: 0.4 }}
+            className="mt-3 font-hero text-navy text-[36px] leading-[40px] sm:text-5xl sm:leading-[1.05] lg:text-6xl"
+          >
+            {s.heading || title || "Little outfits for big adventures"}
+          </motion.h1>
+          {subtitle && <p className="mt-4 text-base md:text-lg leading-relaxed text-ink max-w-xl">{subtitle}</p>}
+          <div className="mt-6 flex gap-3">
+            {hasCta && (
+              <Link href={s.cta_link!} data-testid="hero-cta" className={`flex-1 sm:flex-none min-w-0 inline-flex items-center justify-center gap-2 h-[52px] px-5 sm:px-7 rounded-full font-extrabold text-[15px] transition-colors ${primary}`}>
+                <span className="truncate">{s.cta_text}</span> <ChevronRight className="hidden sm:block w-4 h-4 shrink-0" aria-hidden="true" />
+              </Link>
+            )}
+            <Link href="#shop-by-age" className="shrink-0 inline-flex items-center justify-center h-[52px] px-5 sm:px-6 rounded-full border-2 border-navy text-navy font-extrabold text-[15px] hover:bg-navy hover:text-white transition-colors">
+              Shop by age
+            </Link>
+          </div>
         </div>
       </div>
     </section>

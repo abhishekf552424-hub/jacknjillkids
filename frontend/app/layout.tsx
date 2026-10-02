@@ -8,9 +8,10 @@ import SiteChrome from "@/components/SiteChrome";
 import PromoPopup from "@/components/PromoPopup";
 import AnalyticsPixels from "@/components/AnalyticsPixels";
 import SupportChat from "@/components/SupportChat";
+import AnnouncementBar from "@/components/AnnouncementBar";
 import { createPublicClient } from "@/lib/supabase/public";
 import { SITE_URL } from "@/lib/site";
-import { getTrackingSettings, getPromoPopup, getBrandSettings } from "@/lib/settings";
+import { getTrackingSettings, getPromoPopup, getBrandSettings, getShippingSettings, getReturnsSettings } from "@/lib/settings";
 import type { Category, AgeGroup, TrustBadge } from "@/lib/types";
 
 // Brand type system (see the Jack & Jill Kids design system):
@@ -132,6 +133,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const tracking = await getTrackingSettings();
   const promo = await getPromoPopup();
   const brandCfg = await getBrandSettings();
+  const [shipCfg, returnsCfg] = await Promise.all([getShippingSettings(), getReturnsSettings()]);
+  const { data: codRow } = await createPublicClient().from("settings").select("value").eq("key", "cod").maybeSingle();
   const logoSize = brandCfg.logo_size;
   const logoAlign = brandCfg.logo_align;
   const logoSizeMobile = brandCfg.logo_size_mobile;
@@ -209,7 +212,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     <html lang="en-IN" className={`${display.variable} ${hero.variable} ${body.variable} ${hand.variable} ${deva.variable}`}>
       <body>
         <SiteChrome
-          header={<Header categoriesTree={globals.categoriesTree} ageGroups={globals.ageGroups} logoUrl={globals.brand?.logo_url} storeName={globals.brand?.store_name} logoSizeMobile={logoSizeMobile} logoSizeTablet={logoSizeTablet} logoSizeDesktop={logoSizeDesktop} logoAlign={logoAlign} />}
+          header={<><AnnouncementBar freeAbove={shipCfg.free_above} exchangeDays={returnsCfg.exchange_window_days} cod={(codRow?.value as any)?.enabled !== false} /><Header categoriesTree={globals.categoriesTree} ageGroups={globals.ageGroups} logoUrl={globals.brand?.logo_url} storeName={globals.brand?.store_name} logoSizeMobile={logoSizeMobile} logoSizeTablet={logoSizeTablet} logoSizeDesktop={logoSizeDesktop} logoAlign={logoAlign} /></>}
           footer={<Footer contact={globals.contact} brand={globals.brand} logoSize={logoSize} />}
           support={<SupportChat whatsappNumber={globals.contact?.phone || globals.brand?.whatsapp_number} siteName={globals.brand?.store_name || "Jack & Jill"} />}
         >

@@ -3,8 +3,9 @@ import Image from "next/image";
 import type { Product } from "@/lib/types";
 import { calcDiscountPct, formatINR } from "@/lib/utils";
 
+/** Product tile from the approved mockup: photo on cream, one badge, name, price. */
 export default function ProductCard({ product }: { product: Product }) {
-  const img = product.images?.[0]?.url || "https://images.unsplash.com/photo-1529776292731-c2246c65df5a?w=800";
+  const img = product.images?.[0]?.url;
   const price = product.base_price;
   const mrp = product.mrp;
   const discount = calcDiscountPct(mrp, price);
@@ -14,36 +15,35 @@ export default function ProductCard({ product }: { product: Product }) {
     <Link
       href={`/product/${product.slug}`}
       data-testid={`product-card-${product.slug}`}
-      className="group block bg-white rounded p-3 shadow-soft hover:shadow-premium transition-all duration-300 hover:-translate-y-1"
+      className="group flex flex-col h-full bg-white rounded-2xl overflow-hidden shadow-soft hover:shadow-premium transition-all duration-300 hover:-translate-y-0.5"
     >
-      <div className="relative aspect-[4/5] w-full overflow-hidden rounded-sm bg-cream">
-        <Image
-          src={img}
-          alt={product.alt_text || product.name}
-          fill
-          sizes="(min-width:1024px) 25vw, (min-width:640px) 33vw, 50vw"
-          className="object-cover transition-transform duration-500 group-hover:scale-105"
-        />
-        {product.is_new_arrival && (
-          <span className="absolute top-3 left-3 bg-success text-white text-[10px] font-bold px-2.5 py-1 rounded-full">NEW</span>
+      <div className="relative aspect-[4/5] w-full overflow-hidden bg-cream">
+        {img && (
+          <Image
+            src={img}
+            alt={product.alt_text || product.name}
+            fill
+            sizes="(min-width:1024px) 25vw, (min-width:768px) 33vw, 50vw"
+            className="object-cover transition-transform duration-500 group-hover:scale-105"
+          />
         )}
-        {discount > 0 && !outOfStock && (
-          <span className="absolute top-3 right-3 bg-brand-yellow text-ink text-[10px] font-extrabold px-2.5 py-1 rounded-full">
-            {discount}% OFF
-          </span>
-        )}
+        {/* One badge only: the offer wins over "New" */}
+        {discount > 0 && !outOfStock ? (
+          <span className="absolute top-2.5 left-2.5 bg-brand-yellow text-ink text-[11px] leading-[14px] font-extrabold px-2 py-1 rounded-full">{discount}% off</span>
+        ) : product.is_new_arrival && !outOfStock ? (
+          <span className="absolute top-2.5 left-2.5 bg-success text-white text-[11px] leading-[14px] font-extrabold px-2 py-1 rounded-full">New</span>
+        ) : null}
         {outOfStock && (
           <div className="absolute inset-0 bg-navy/40 flex items-center justify-center">
-            <span className="bg-white text-navy text-xs font-bold px-3 py-1.5 rounded-full">Out of stock</span>
+            <span className="bg-white text-navy text-xs font-extrabold px-3 py-1.5 rounded-full">Sold out</span>
           </div>
         )}
       </div>
-      <div className="pt-3 px-1">
-        <p className="text-xs text-muted uppercase tracking-wider">{product.brand ?? "Jack & Jill"}</p>
-        <h3 className="mt-0.5 text-sm font-medium text-navy line-clamp-2 min-h-[2.5rem]">{product.name}</h3>
-        <div className="mt-2 flex items-baseline gap-2">
-          <span className="font-display text-lg font-bold text-navy">{formatINR(price)}</span>
-          {mrp > price && <span className="text-xs text-muted line-through">{formatINR(mrp)}</span>}
+      <div className="flex flex-col gap-1 px-3 pt-2.5 pb-3.5">
+        <h3 className="text-sm leading-5 font-bold text-ink line-clamp-2">{product.name}</h3>
+        <div className="mt-auto flex items-baseline gap-1.5">
+          <span className="text-lg leading-6 font-extrabold text-ink">{formatINR(price)}</span>
+          {mrp > price && <span className="text-[13px] text-muted line-through">{formatINR(mrp)}</span>}
         </div>
       </div>
     </Link>

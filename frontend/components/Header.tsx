@@ -88,7 +88,7 @@ export default function Header({
         <span className="font-display text-2xl md:text-3xl font-bold text-navy">Jack</span>
         <span
           className="font-display text-2xl md:text-3xl font-bold"
-          style={{ background: "linear-gradient(135deg,#EA4137,#F38838,#FCD325)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}
+          style={{ color: "#8A6A22" }}
         >&amp;</span>
         <span className="font-display text-2xl md:text-3xl font-bold text-navy">Jill</span>
       </span>
@@ -105,7 +105,7 @@ export default function Header({
       >
         <Search className="w-5 h-5 text-navy" />
       </button>
-      <Link href="/account/wishlist" aria-label="Wishlist" data-testid="wishlist-link" className="p-2 rounded-full hover:bg-navy/5">
+      <Link href="/account" aria-label="Wishlist" data-testid="wishlist-link" className="p-2 rounded-full hover:bg-navy/5">
         <Heart className="w-5 h-5 text-navy" />
       </Link>
       <button
@@ -192,11 +192,8 @@ export default function Header({
         @media (min-width: 1024px) { .jj-logo-img { height: var(--logo-h-desktop); } }
       `}</style>
 
-      {/* Announcement bar */}
-      <div className="bg-navy text-white text-xs md:text-sm py-2 text-center px-4">
-        <span className="opacity-90">Free shipping on orders above ₹999 • Easy 7-day returns • Made with care in Kolhapur since 2003</span>
-      </div>
-
+      {/* The announcement bar now comes from layout.tsx (AnnouncementBar), built from
+          Admin › Settings so the free-delivery amount and exchange days stay accurate. */}
       <header
         data-testid="site-header"
         style={styleVars}
@@ -286,7 +283,7 @@ export default function Header({
                 ) : (
                   <span className="flex items-baseline gap-1">
                     <span className="font-display text-2xl font-bold text-navy">Jack</span>
-                    <span className="font-display text-2xl font-bold" style={{ background: "linear-gradient(135deg,#EA4137,#F38838,#FCD325)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>&amp;</span>
+                    <span className="font-display text-2xl font-bold" style={{ color: "#8A6A22" }}>&amp;</span>
                     <span className="font-display text-2xl font-bold text-navy">Jill</span>
                   </span>
                 )}

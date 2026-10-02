@@ -11,7 +11,10 @@ import TrustStrip from "@/components/TrustStrip";
 import MarqueeStrip from "@/components/MarqueeStrip";
 import PromoStrip from "@/components/PromoStrip";
 import Reveal from "@/components/Reveal";
-import type { HomepageSection, Product, Category, TrustBadge } from "@/lib/types";
+import AgeBubbles from "@/components/AgeBubbles";
+import VisitStore from "@/components/VisitStore";
+import ParentFaq from "@/components/ParentFaq";
+import type { HomepageSection, Product, Category, TrustBadge, AgeGroup } from "@/lib/types";
 
 export const metadata: Metadata = {
   title: { absolute: "Jack & Jill Kolhapur — Kids' Clothing, Footwear, Toys & Baby Essentials Since 2003" },
@@ -41,7 +44,7 @@ async function loadProducts(filter: string, limit = 8): Promise<Product[]> {
 
 export default async function HomePage() {
   const supabase = createPublicClient();
-  const [{ data: sections }, { data: cats }, { data: badges }] = await Promise.all([
+  const [{ data: sections }, { data: cats }, { data: badges }, { data: ages }, { data: faqRows }, { data: contactRow }, { data: brandRow }] = await Promise.all([
     supabase.from("homepage_sections").select("*").eq("is_active", true).order("sort_order"),
     supabase
       .from("categories")
@@ -51,7 +54,15 @@ export default async function HomePage() {
       .is("parent_id", null)
       .order("sort_order"),
     supabase.from("trust_badges").select("*").eq("is_active", true).order("sort_order"),
+    supabase.from("age_groups").select("*").order("sort_order"),
+    supabase.from("faqs").select("id, question, answer").eq("is_active", true).order("sort_order").limit(8),
+    supabase.from("settings").select("value").eq("key", "contact_info").maybeSingle(),
+    supabase.from("settings").select("value").eq("key", "brand").maybeSingle(),
   ]);
+  const ageGroups = (ages ?? []) as AgeGroup[];
+  const faqs = (faqRows ?? []) as { id: string; question: string; answer: string }[];
+  const contact = (contactRow?.value ?? {}) as { address?: string; phone?: string; hours?: string };
+  const brand = (brandRow?.value ?? {}) as { whatsapp_number?: string };
 
   const list = (sections ?? []) as HomepageSection[];
   const categories = (cats ?? []) as Category[];
@@ -120,6 +131,24 @@ export default async function HomePage() {
         return (
           <Reveal key={s.id}>
             <PromoStrip title={s.title} subtitle={s.subtitle} cards={s.config?.cards ?? []} />
+          </Reveal>
+        );
+      case "age_groups":
+        return (
+          <Reveal key={s.id}>
+            <AgeBubbles ageGroups={ageGroups} title={s.title} subtitle={s.subtitle} />
+          </Reveal>
+        );
+      case "visit_store":
+        return (
+          <Reveal key={s.id}>
+            <VisitStore title={s.title} subtitle={s.subtitle} image={s.config?.image} contact={contact} whatsapp={brand.whatsapp_number} />
+          </Reveal>
+        );
+      case "faq":
+        return (
+          <Reveal key={s.id}>
+            <ParentFaq faqs={faqs.slice(0, s.config?.limit ?? 4)} title={s.title} subtitle={s.subtitle} />
           </Reveal>
         );
       default:

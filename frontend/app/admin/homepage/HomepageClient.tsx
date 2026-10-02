@@ -74,6 +74,20 @@ export default function HomepageClient({ initial, products, promo }: { initial: 
             {r.section_type === "trust_badges" && <p className="text-xs text-neutral-400">Trust badges are managed under <a className="underline" href="/admin/cms">CMS &rarr; Trust badges</a>.</p>}
             {r.section_type === "marquee" && <MarqueeEditor config={r.config} onChange={(c) => update(r.id, { config: c })} />}
             {r.section_type === "promo_strip" && <PromoStripEditor config={r.config} onChange={(c) => update(r.id, { config: c })} />}
+            {r.section_type === "age_groups" && <p className="text-xs text-neutral-500">Shows one bubble per age group (0–12 months, 1–2 years…). Each opens the shop filtered to that age.</p>}
+            {r.section_type === "visit_store" && (
+              <div className="space-y-2">
+                <p className="text-xs text-neutral-500">Address, hours and WhatsApp come from <a className="underline" href="/admin/settings">Settings &rarr; Contact</a>. Add a store-front photo below.</p>
+                <ImageUploader value={r.config?.image || ""} folder="homepage" onChange={(url) => update(r.id, { config: { ...(r.config || {}), image: url } })} />
+              </div>
+            )}
+            {r.section_type === "faq" && (
+              <div className="flex items-center gap-2 text-xs text-neutral-500">
+                <span>Questions come from <a className="underline" href="/admin/cms">CMS &rarr; FAQs</a>. Show</span>
+                <input type="number" min={1} max={8} value={r.config?.limit ?? 4} onChange={(e) => update(r.id, { config: { ...(r.config || {}), limit: Math.max(1, Math.min(8, Number(e.target.value) || 4)) } })} className="w-14 border rounded px-2 py-1" />
+                <span>on the homepage.</span>
+              </div>
+            )}
           </div>
         ))}
       </div>
