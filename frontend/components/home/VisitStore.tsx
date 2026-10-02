@@ -18,7 +18,7 @@ export default function VisitStore({ title, subtitle, config, contact, tone }: {
           <p className="text-xs font-extrabold uppercase tracking-[0.14em] text-brand-yellow">{config?.eyebrow || "Visit us"}</p>
           <h2 className="font-display text-[28px] md:text-4xl leading-[1.1] text-balance">{title || "Come try it on in Shahupuri"}</h2>
           {subtitle && <p className="text-white/80 leading-relaxed">{subtitle}</p>}
-          <ul className="grid gap-3 text-[15px] text-white/85">
+          <ul className="stagger grid gap-3 text-[15px] text-white/85">
             {contact.address && (
               <li className="flex gap-3">
                 <MapPin className="w-5 h-5 shrink-0 text-gold-light" aria-hidden="true" />

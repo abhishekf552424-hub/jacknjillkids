@@ -68,9 +68,9 @@ export default function JoinClub({ title, subtitle, config, tone }: { title?: st
             </label>
           </form>
         ) : (
-          <div className="rounded-[20px] bg-white p-6 grid gap-3" role="status">
+          <div className="page-in rounded-[20px] bg-white p-6 grid gap-3" role="status">
             <p className="flex items-center gap-2 font-display text-xl text-navy">
-              <Check className="w-5 h-5 text-success" /> Welcome to the club!
+              <Check className="w-5 h-5 text-success pop" /> Welcome to the club!
             </p>
             {code ? (
               <>

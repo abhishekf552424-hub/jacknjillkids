@@ -35,14 +35,14 @@ export function SectionHeader({
   if (!eyebrow && !title) return null;
   return (
     <div className={`mb-7 md:mb-9 flex flex-wrap items-end gap-3 ${center ? "justify-center text-center" : "justify-between"}`}>
-      <div className={`grid gap-2 ${center ? "justify-items-center" : ""}`}>
+      <div className={`sh grid gap-2 ${center ? "justify-items-center" : ""}`}>
         {eyebrow && <p className="text-xs font-extrabold uppercase tracking-[0.14em] text-[#C2621B]">{eyebrow}</p>}
         {title && <h2 className="font-display text-[28px] md:text-4xl lg:text-[40px] leading-[1.1] text-navy text-balance">{title}</h2>}
         {subtitle && <p className="text-muted text-[15px] md:text-base max-w-2xl">{subtitle}</p>}
       </div>
       {href && !center && (
-        <Link href={href} className="inline-flex items-center gap-1.5 text-[15px] font-bold text-navy hover:text-action transition-colors">
-          {linkText} <ArrowRight className="w-4 h-4" aria-hidden="true" />
+        <Link href={href} className="group/link inline-flex items-center gap-1.5 text-[15px] font-bold text-navy hover:text-action transition-colors">
+          {linkText} <ArrowRight className="w-4 h-4 transition-transform duration-300 ease-premium group-hover/link:translate-x-1" aria-hidden="true" />
         </Link>
       )}
     </div>

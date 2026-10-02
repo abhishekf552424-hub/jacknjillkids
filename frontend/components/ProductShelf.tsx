@@ -1,5 +1,6 @@
 import type { Product } from "@/lib/types";
 import ProductCard from "./ProductCard";
+import Rail from "./Rail";
 import { HomeSection, SectionHeader, type Tone } from "./home/Section";
 
 export default function ProductShelf({
@@ -7,7 +8,6 @@ export default function ProductShelf({
   subtitle,
   products,
   viewAllHref,
-  tint,
   tone = "cream",
   eyebrow,
 }: {
@@ -22,20 +22,12 @@ export default function ProductShelf({
   if (!products.length) return null;
   return (
     <HomeSection tone={tone} testid={`shelf-${title.toLowerCase().replace(/\s+/g, "-")}`}>
-        <SectionHeader eyebrow={eyebrow || "Curated"} title={title} subtitle={subtitle} href={viewAllHref} />
-        {/* Mobile: horizontal scroll row. Desktop: grid. */}
-        <div className="md:hidden -mx-4 px-4 flex gap-4 overflow-x-auto no-scrollbar snap-x snap-mandatory pb-2">
-          {products.slice(0, 8).map((p) => (
-            <div key={p.id} className="min-w-[65%] xs:min-w-[55%] snap-start">
-              <ProductCard product={p} />
-            </div>
-          ))}
-        </div>
-        <div className="hidden md:grid grid-cols-3 lg:grid-cols-4 gap-6">
-          {products.slice(0, 8).map((p) => (
-            <ProductCard key={p.id} product={p} />
-          ))}
-        </div>
+      <SectionHeader eyebrow={eyebrow || "Curated"} title={title} subtitle={subtitle} href={viewAllHref} />
+      <Rail label={title} itemClassName="w-[66%] sm:w-[44%] md:w-[31.5%] lg:w-[23.6%]" gapClassName="gap-4 md:gap-6">
+        {products.slice(0, 12).map((p) => (
+          <ProductCard key={p.id} product={p} />
+        ))}
+      </Rail>
     </HomeSection>
   );
 }

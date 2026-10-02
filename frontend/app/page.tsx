@@ -105,6 +105,9 @@ async function loadLook(ids: unknown): Promise<LookProduct[]> {
     .sort((a, b) => (order.get(a.id) ?? 0) - (order.get(b.id) ?? 0));
 }
 
+// The top of the page is visible on load, so it is not faded in on scroll.
+const NO_REVEAL = new Set(["hero", "marquee"]);
+
 // Sections that sit outside the cream/white rhythm.
 const OWN_BACKGROUND = new Set(["hero", "marquee", "promo_strip", "sign_off", "trust_badges"]);
 
@@ -214,9 +217,12 @@ export default async function HomePage() {
   return (
     <>
       {rendered.map((node, i) =>
-        node ? (
+        !node ? null : NO_REVEAL.has(list[i].section_type) ? (
+          // The first screen shows straight away (fast first paint, better Google score).
+          <div key={list[i].id}>{node}</div>
+        ) : (
           <Reveal key={list[i].id}>{node}</Reveal>
-        ) : null,
+        ),
       )}
     </>
   );

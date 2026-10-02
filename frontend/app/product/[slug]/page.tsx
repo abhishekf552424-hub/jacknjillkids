@@ -4,6 +4,7 @@ import { SITE_URL } from "@/lib/site";
 import { getShippingSettings, getReturnsSettings } from "@/lib/settings";
 import PDPClient from "@/components/pdp/PDPClient";
 import ProductCard from "@/components/ProductCard";
+import Reveal from "@/components/Reveal";
 import type { Product } from "@/lib/types";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -158,12 +159,14 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
         <PDPClient product={product} reviews={reviews ?? []} whatsapp={whatsapp} freeShippingAbove={Number((shipping as any)?.free_above) || 999} />
 
         {relatedList.length > 0 && (
+          <Reveal>
           <div className="mt-20">
             <h2 className="font-display text-2xl md:text-3xl text-navy mb-6">You may also love</h2>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+            <div className="stagger grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
               {relatedList.map((p) => <ProductCard key={p.id} product={p} />)}
             </div>
           </div>
+          </Reveal>
         )}
       </div>
     </>

@@ -42,7 +42,7 @@ export default function PromoStrip({
     <section className="bg-cream py-8 md:py-12" data-testid="promo-strip">
       <div className="container">
       <SectionHeader title={title} subtitle={subtitle} />
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-5">
+      <div className="stagger grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-5">
         {list.map((c, i) => {
           const overlayOpacity = typeof c.overlay_opacity === "number" ? Math.max(0, Math.min(100, c.overlay_opacity)) : 55;
           const overlayColor = c.overlay_color || "#1F2650";

@@ -163,7 +163,7 @@ export default async function ShopView({ sp, basePath }: { sp: ShopParams; baseP
             </div>
           ) : (
             <>
-              <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
+              <div className="stagger-load grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
                 {products.map((p) => <ProductCard key={p.id} product={p} />)}
               </div>
               <Pagination current={page} total={total} perPage={perPage} basePath={basePath} searchParams={paginationParams} />

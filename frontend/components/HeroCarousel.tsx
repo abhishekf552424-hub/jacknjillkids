@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { getVimeoBackgroundUrl } from "@/lib/embeds";
 
@@ -69,6 +69,9 @@ function CtaButton({ style, text, link }: { style: string; text: string; link: s
 
 export default function HeroCarousel({ slides, title, subtitle }: { slides: Slide[]; title?: string | null; subtitle?: string | null }) {
   const [i, setI] = useState(0);
+  const [paused, setPaused] = useState(false);
+  const [calm, setCalm] = useState(true);
+  const touchX = useRef(0);
   // Defensive filter: a slide with neither an image nor a video configured
   // (e.g. an admin-added slide that was never finished) would otherwise
   // render as a blank navy box for its entire ~6s turn — not just during
@@ -84,8 +87,10 @@ export default function HeroCarousel({ slides, title, subtitle }: { slides: Slid
 
   useEffect(() => {
     if (list.length < 2) return;
-    const t = setInterval(() => setI((v) => (v + 1) % list.length), 6000);
-    return () => clearInterval(t);
+    // Autoplay is driven by the active dot's fill animation (see onAnimationEnd),
+    // so pausing on hover keeps the dot and the slide perfectly in step.
+    // People who ask for reduced motion get no autoplay at all.
+    setCalm(window.matchMedia("(prefers-reduced-motion: reduce)").matches);
   }, [list.length]);
 
   const s = list[i];
@@ -101,14 +106,23 @@ export default function HeroCarousel({ slides, title, subtitle }: { slides: Slid
   return (
     <section className="relative overflow-hidden bg-cream" data-testid="hero-carousel">
       <div className="relative container py-4 md:py-8">
-        <div className={`relative w-full aspect-[16/10] sm:aspect-[16/9] lg:aspect-[21/9] max-h-[720px] overflow-hidden bg-navy ${radiusCls}`}>
+        <div
+          onMouseEnter={() => setPaused(true)}
+          onMouseLeave={() => setPaused(false)}
+          onTouchStart={(e) => (touchX.current = e.touches[0].clientX)}
+          onTouchEnd={(e) => {
+            // Swipe left/right on phones.
+            const dx = e.changedTouches[0].clientX - touchX.current;
+            if (list.length > 1 && Math.abs(dx) > 45) setI((v) => (v + (dx < 0 ? 1 : -1) + list.length) % list.length);
+          }}
+          className={`group/hero relative w-full aspect-[16/10] sm:aspect-[16/9] lg:aspect-[21/9] max-h-[720px] overflow-hidden bg-navy ${radiusCls}`}>
           <AnimatePresence>
             <motion.div
               key={i}
               initial={{ opacity: 0, scale: 1.02 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+              transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
               className="absolute inset-0"
             >
               {bgVideo ? (
@@ -128,7 +142,7 @@ export default function HeroCarousel({ slides, title, subtitle }: { slides: Slid
                   fill
                   priority
                   sizes="100vw"
-                  className="object-cover"
+                  className="object-cover kenburns"
                 />
               ) : null}
               {/* Per-slide flat overlay — 0% opacity renders NO overlay at all */}
@@ -154,9 +168,9 @@ export default function HeroCarousel({ slides, title, subtitle }: { slides: Slid
               </motion.p>
               <motion.h1
                 key={`h-${i}`}
-                initial={{ opacity: 0, y: 16 }}
+                initial={{ opacity: 0, y: 28 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+                transition={{ delay: 0.25, duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
                 className={`font-display leading-[1.05] tracking-tight ${headingSizeCls}`}
                 style={{ color: headingColor }}
               >
@@ -167,7 +181,7 @@ export default function HeroCarousel({ slides, title, subtitle }: { slides: Slid
                   key={`c-${i}`}
                   initial={{ opacity: 0, y: 12 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.3, duration: 0.4 }}
+                  transition={{ delay: 0.4, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
                   className="mt-6 md:mt-8"
                 >
                   <CtaButton style={s.cta_style || "gradient"} text={s.cta_text!} link={s.cta_link!} />
@@ -180,7 +194,7 @@ export default function HeroCarousel({ slides, title, subtitle }: { slides: Slid
             <>
               <button
                 onClick={() => setI((v) => (v - 1 + list.length) % list.length)}
-                className="hidden md:flex absolute left-6 top-1/2 -translate-y-1/2 w-11 h-11 items-center justify-center rounded-full bg-white/80 hover:bg-white text-navy shadow-soft"
+                className="hidden md:flex absolute left-6 top-1/2 -translate-y-1/2 w-11 h-11 items-center justify-center rounded-full bg-white/85 hover:bg-white text-navy shadow-soft opacity-0 -translate-x-2 group-hover/hero:opacity-100 group-hover/hero:translate-x-0 focus-visible:opacity-100 transition-all duration-300 ease-premium"
                 aria-label="Previous slide"
                 data-testid="hero-prev"
               >
@@ -188,7 +202,7 @@ export default function HeroCarousel({ slides, title, subtitle }: { slides: Slid
               </button>
               <button
                 onClick={() => setI((v) => (v + 1) % list.length)}
-                className="hidden md:flex absolute right-6 top-1/2 -translate-y-1/2 w-11 h-11 items-center justify-center rounded-full bg-white/80 hover:bg-white text-navy shadow-soft"
+                className="hidden md:flex absolute right-6 top-1/2 -translate-y-1/2 w-11 h-11 items-center justify-center rounded-full bg-white/85 hover:bg-white text-navy shadow-soft opacity-0 translate-x-2 group-hover/hero:opacity-100 group-hover/hero:translate-x-0 focus-visible:opacity-100 transition-all duration-300 ease-premium"
                 aria-label="Next slide"
                 data-testid="hero-next"
               >
@@ -200,9 +214,20 @@ export default function HeroCarousel({ slides, title, subtitle }: { slides: Slid
                     key={idx}
                     onClick={() => setI(idx)}
                     aria-label={`Go to slide ${idx + 1}`}
-                    className={`h-1.5 rounded-full transition-all ${idx === i ? "w-8 bg-white" : "w-1.5 bg-white/50"}`}
+                    className={`relative h-1.5 overflow-hidden rounded-full transition-all duration-500 ease-premium ${idx === i ? "w-10 bg-white/40" : "w-1.5 bg-white/50 hover:bg-white/80"}`}
                     data-testid={`hero-dot-${idx}`}
-                  />
+                  >
+                    {idx === i &&
+                      (calm ? (
+                        <span className="absolute inset-0 rounded-full bg-white" />
+                      ) : (
+                        <span
+                          key={i}
+                          onAnimationEnd={() => setI((v) => (v + 1) % list.length)}
+                          className={`dot-fill absolute inset-0 rounded-full bg-white ${paused ? "[animation-play-state:paused]" : ""}`}
+                        />
+                      ))}
+                  </button>
                 ))}
               </div>
             </>
