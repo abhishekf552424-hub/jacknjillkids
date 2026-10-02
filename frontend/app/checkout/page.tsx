@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { track } from "@/lib/track";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Script from "next/script";
@@ -40,7 +41,14 @@ export default function CheckoutPage() {
   const [appliedCoupon, setAppliedCoupon] = useState<string | null>(null);
 
   useEffect(() => {
-    setLines(cart.get());
+    const l = cart.get();
+    setLines(l);
+    if (l.length) {
+      track(
+        "begin_checkout",
+        l.map((x) => ({ id: x.product_id, name: x.product_name, price: x.price, quantity: x.quantity, variant: x.variant_label })),
+      );
+    }
   }, []);
 
   useEffect(() => {

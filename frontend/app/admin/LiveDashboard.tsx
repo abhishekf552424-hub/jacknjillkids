@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import {
   ShoppingBag, IndianRupee, Receipt, UserPlus, PackageCheck, Truck, Inbox, LifeBuoy, RotateCcw, AlertTriangle,
-  MessageSquare, ArrowUpRight, ArrowDownRight, Minus, Boxes, Shirt, RefreshCw,
+  MessageSquare, PackageX, ArrowUpRight, ArrowDownRight, Minus, Boxes, Shirt, RefreshCw,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { AdminCard, StatusPill } from "@/components/admin/ui";
@@ -16,7 +16,7 @@ type Live = {
   range: RangeKey;
   showMoney: boolean;
   stats: DashboardStats;
-  actions: { newOrders: number; toPack: number; toShip: number; openQueries: number; returnRequests: number; lowStock: number; pendingReviews: number };
+  actions: { newOrders: number; toPack: number; toShip: number; openQueries: number; returnRequests: number; lowStock: number; pendingReviews: number; notBuyable?: number };
   newCustomers: number;
   feed: { id: string; order_number: string; total: number | null; status: string; payment_status: string; payment_method: string | null; created_at: string; customer: string | null; city: string | null }[];
   lowStock: { id: string; sku: string | null; size: string | null; stock: number; product: string }[];
@@ -184,7 +184,7 @@ export default function LiveDashboard({ name }: { name: string }) {
       {/* What needs doing */}
       <section aria-labelledby="todo-title">
         <h2 id="todo-title" className="text-sm font-bold text-navy mb-2">Needs your attention</h2>
-        <div className={`grid grid-cols-2 sm:grid-cols-3 gap-2.5 sm:gap-3 ${money ? "lg:grid-cols-4 2xl:grid-cols-7" : "xl:grid-cols-6"}`}>
+        <div className={`grid grid-cols-2 sm:grid-cols-3 gap-2.5 sm:gap-3 ${money ? "lg:grid-cols-4" : "xl:grid-cols-6"}`}>
           <ActionTile href="/admin/orders?status=placed" icon={Inbox} label="New orders" hint="Confirm them" n={a?.newOrders} urgent />
           <ActionTile href="/admin/orders?status=confirmed" icon={PackageCheck} label="To pack" hint="Confirmed" n={a?.toPack} />
           <ActionTile href="/admin/orders?status=packed" icon={Truck} label="Ready to ship" hint="Packed" n={a?.toShip} />
@@ -192,6 +192,7 @@ export default function LiveDashboard({ name }: { name: string }) {
           <ActionTile href="/admin/returns" icon={RotateCcw} label="Return requests" hint="Waiting" n={a?.returnRequests} />
           <ActionTile href="/admin/stock?filter=low" icon={AlertTriangle} label="Low stock" hint="5 or less" n={a?.lowStock} />
           {money && <ActionTile href="/admin/reviews" icon={MessageSquare} label="Reviews" hint="To approve" n={a?.pendingReviews} />}
+          {money && <ActionTile href="/admin/products" icon={PackageX} label="Can't be bought" hint="Add size / stock" n={a?.notBuyable} urgent />}
         </div>
       </section>
 

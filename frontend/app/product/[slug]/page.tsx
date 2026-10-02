@@ -78,7 +78,12 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
 
   const site = SITE_URL;
   // Structured-data facts come from real stock, prices and store settings.
-  const [shipping, returns] = await Promise.all([getShippingSettings(), getReturnsSettings()]);
+  const [shipping, returns, { data: contactRow }] = await Promise.all([
+    getShippingSettings(),
+    getReturnsSettings(),
+    supabase.from("settings").select("value").eq("key", "contact_info").maybeSingle(),
+  ]);
+  const whatsapp = ((contactRow?.value as any)?.phone as string | undefined) || undefined;
   const variants = (product.variants ?? []) as any[];
   const variantPrices = (variants.length ? variants.map((v) => Number(v.price_override ?? product.base_price)) : [Number(product.base_price)]).filter((n) => Number.isFinite(n));
   const inStock = product.status === "active" && (variants.length === 0 || variants.some((v) => Number(v.stock_qty) > 0));
@@ -150,7 +155,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
           <span>/</span><span className="text-navy line-clamp-1">{product.name}</span>
         </nav>
 
-        <PDPClient product={product} reviews={reviews ?? []} />
+        <PDPClient product={product} reviews={reviews ?? []} whatsapp={whatsapp} freeShippingAbove={Number((shipping as any)?.free_above) || 999} />
 
         {relatedList.length > 0 && (
           <div className="mt-20">

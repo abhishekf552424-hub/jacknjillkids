@@ -9,7 +9,7 @@ import { cart } from "@/lib/cart";
 import type { CartLine } from "@/lib/types";
 import { formatINR } from "@/lib/utils";
 
-export default function CartDrawer({ open, onClose }: { open: boolean; onClose: () => void }) {
+export default function CartDrawer({ open, onClose, freeShippingAbove = 999 }: { open: boolean; onClose: () => void; freeShippingAbove?: number }) {
   const [lines, setLines] = useState<CartLine[]>([]);
 
   useEffect(() => {
@@ -27,6 +27,8 @@ export default function CartDrawer({ open, onClose }: { open: boolean; onClose: 
   }, [open]);
 
   const subtotal = lines.reduce((s, l) => s + l.price * l.quantity, 0);
+  const left = Math.max(0, freeShippingAbove - subtotal);
+  const pct = freeShippingAbove > 0 ? Math.min(100, Math.round((subtotal / freeShippingAbove) * 100)) : 100;
 
   return (
     <AnimatePresence>
@@ -120,6 +122,18 @@ export default function CartDrawer({ open, onClose }: { open: boolean; onClose: 
 
             {lines.length > 0 && (
               <div className="border-t border-navy/10 p-6 bg-white">
+                <div className="mb-4" data-testid="free-shipping-bar">
+                  <p className="text-sm text-navy">
+                    {left > 0 ? (
+                      <>Add <b>{formatINR(left)}</b> more for <b>free delivery</b></>
+                    ) : (
+                      <b className="text-success">You&apos;ve unlocked free delivery 🎉</b>
+                    )}
+                  </p>
+                  <div className="mt-2 h-2 rounded-full bg-cream overflow-hidden" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={pct} aria-label="Progress to free delivery">
+                    <div className={`h-full rounded-full transition-all duration-500 ${left > 0 ? "bg-brand-orange" : "bg-success"}`} style={{ width: `${pct}%` }} />
+                  </div>
+                </div>
                 <div className="flex items-center justify-between mb-4">
                   <span className="text-sm text-muted">Subtotal</span>
                   <span data-testid="cart-subtotal" className="font-display text-xl text-navy">{formatINR(subtotal)}</span>

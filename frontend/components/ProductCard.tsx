@@ -2,6 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import type { Product } from "@/lib/types";
 import { calcDiscountPct, formatINR } from "@/lib/utils";
+import WishlistButton from "./WishlistButton";
 
 export default function ProductCard({ product }: { product: Product }) {
   const img = product.images?.[0]?.url || "https://images.unsplash.com/photo-1529776292731-c2246c65df5a?w=800";
@@ -11,10 +12,11 @@ export default function ProductCard({ product }: { product: Product }) {
   const outOfStock = product.status === "out_of_stock";
 
   return (
+    <div className="relative group transition-transform duration-300 hover:-translate-y-1">
     <Link
       href={`/product/${product.slug}`}
       data-testid={`product-card-${product.slug}`}
-      className="group block bg-white rounded p-3 shadow-soft hover:shadow-premium transition-all duration-300 hover:-translate-y-1"
+      className="group block bg-white rounded p-3 shadow-soft hover:shadow-premium transition-shadow duration-300"
     >
       <div className="relative aspect-[4/5] w-full overflow-hidden rounded-sm bg-cream">
         <Image
@@ -28,7 +30,7 @@ export default function ProductCard({ product }: { product: Product }) {
           <span className="absolute top-3 left-3 bg-success text-white text-[10px] font-bold px-2.5 py-1 rounded-full">NEW</span>
         )}
         {discount > 0 && !outOfStock && (
-          <span className="absolute top-3 right-3 bg-brand-yellow text-ink text-[10px] font-extrabold px-2.5 py-1 rounded-full">
+          <span className="absolute bottom-3 left-3 bg-brand-yellow text-ink text-[10px] font-extrabold px-2.5 py-1 rounded-full">
             {discount}% OFF
           </span>
         )}
@@ -47,5 +49,7 @@ export default function ProductCard({ product }: { product: Product }) {
         </div>
       </div>
     </Link>
+    <WishlistButton productId={product.id} name={product.name} price={price} className="absolute top-5 right-5 z-10 opacity-100 md:opacity-0 md:group-hover:opacity-100 md:focus:opacity-100 aria-pressed:opacity-100" />
+    </div>
   );
 }

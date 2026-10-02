@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { slugify } from "@/lib/utils";
 import { syncProductVariants } from "@/lib/product-variants";
+import { notifyBackInStock } from "@/lib/back-in-stock";
 
 async function requireAdmin() {
   return checkAdmin("products");
@@ -39,6 +40,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
   if (body.category_ids?.length) {
     await admin.from("product_categories").insert(body.category_ids.map((c: string) => ({ product_id: id, category_id: c })));
   }
+  void notifyBackInStock(admin, id);
   return NextResponse.json({ ok: true });
 }
 

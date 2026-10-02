@@ -21,7 +21,7 @@ export default function ReviewsClient({ initial }: { initial: any[] }) {
 
   return (
     <div>
-      <div className="mb-4"><p className="text-xs uppercase tracking-widest text-gold-text font-bold">Community</p><h1 className="font-display text-2xl md:text-3xl text-navy">Reviews</h1></div>
+      <div className="mb-4"><p className="text-xs uppercase tracking-wider text-gold-text font-bold">Marketing</p><h1 className="font-display text-2xl md:text-3xl text-navy">Reviews</h1><p className="text-sm text-muted mt-1">New reviews stay hidden until you press ✓. Press ✕ to hide one again.</p></div>
       <div className="space-y-3">
         {rows.length === 0 && <p className="text-sm text-neutral-400">No reviews yet.</p>}
         {rows.map((r) => (
@@ -29,9 +29,15 @@ export default function ReviewsClient({ initial }: { initial: any[] }) {
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
                 <div className="flex items-center gap-1 text-gold-text">{Array.from({ length: 5 }).map((_, i) => (<Star key={i} className={`w-3.5 h-3.5 ${i < (r.rating || 0) ? "fill-current" : "opacity-30"}`} />))}</div>
-                <p className="text-sm font-medium text-navy mt-1">{r.title || "(no title)"}</p>
-                <p className="text-xs text-neutral-500">{r.reviewer_name || r.email || "Anonymous"} • <a href={`/product/${r.product?.slug}`} className="underline">{r.product?.name}</a></p>
-                <p className="text-sm text-neutral-700 mt-2">{r.body}</p>
+                <p className="text-sm font-semibold text-navy mt-1 flex items-center gap-2 flex-wrap">
+                  {r.author_name || "Anonymous"}
+                  {r.is_verified && <span className="text-[11px] font-semibold text-success bg-success/10 rounded-full px-2 py-0.5">Verified buyer</span>}
+                  <span className={`text-[11px] font-semibold rounded-full px-2 py-0.5 ${r.is_approved ? "bg-success/10 text-success" : "bg-butter text-warning"}`}>{r.is_approved ? "Shown on site" : "Waiting for approval"}</span>
+                </p>
+                <p className="text-xs text-muted">
+                  <a href={`/product/${r.product?.slug}`} target="_blank" className="underline">{r.product?.name}</a> · {new Date(r.created_at).toLocaleDateString("en-IN")}
+                </p>
+                {r.comment && <p className="text-sm text-ink mt-2 whitespace-pre-line">{r.comment}</p>}
                 {r.images?.length > 0 && (
                   <div className="flex flex-wrap gap-2 mt-2">{r.images.map((im: any, i: number) => (
                     /* eslint-disable-next-line @next/next/no-img-element */

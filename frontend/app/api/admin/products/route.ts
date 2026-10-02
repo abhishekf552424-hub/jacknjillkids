@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { slugify } from "@/lib/utils";
 import { syncProductVariants } from "@/lib/product-variants";
+import { notifyBackInStock } from "@/lib/back-in-stock";
 
 async function requireAdmin() {
   return checkAdmin("products");
@@ -57,23 +58,8 @@ async function save(payload: any, productId?: string) {
     })));
   }
 
-  // Notify anyone waiting on now-in-stock variants (back-in-stock)
-  try {
-    const { data: nowInStock } = await admin.from("product_variants").select("id").eq("product_id", id!).gt("stock_qty", 0);
-    if (nowInStock?.length) {
-      const ids = nowInStock.map((v: any) => v.id);
-      const { data: waiting } = await admin.from("stock_notifications").select("id, email, product_variant_id").in("product_variant_id", ids).is("notified_at", null);
-      if (waiting?.length) {
-        // Fire-and-forget in the background
-        import("@/lib/resend").then(async ({ sendEmail }) => {
-          for (const row of waiting) {
-            await sendEmail({ to: row.email, subject: "Good news \u2014 it's back in stock!", html: `<p>The item you asked about is back in stock. <a href=\"${SITE_URL}/product/${(product?.slug || record.slug)}\">Shop now</a>.</p>` }).catch(() => {});
-          }
-          await admin.from("stock_notifications").update({ notified_at: new Date().toISOString() }).in("id", waiting.map((w: any) => w.id));
-        });
-      }
-    }
-  } catch {}
+  // Email anyone who asked to be told when it's back.
+  void notifyBackInStock(admin, id!);
 
   return { id };
 }

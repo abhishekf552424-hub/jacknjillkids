@@ -18,7 +18,16 @@ type Product = {
   is_new_arrival: boolean;
   category_id: string | null;
   created_at: string;
+  variants?: { stock_qty: number }[];
 };
+
+/** Why a shopper can't buy this product right now, or null if they can. */
+function buyProblem(p: Product): string | null {
+  const v = p.variants ?? [];
+  if (!v.length) return "No size added";
+  if (!v.some((x) => Number(x.stock_qty) > 0)) return "All sizes sold out";
+  return null;
+}
 type Category = { id: string; name: string };
 type SortKey = "name" | "base_price" | "created_at";
 
@@ -44,7 +53,9 @@ export default function ProductsListClient({ initialProducts, categories }: { in
   const filtered = useMemo(() => {
     let list = products.filter((p) => {
       if (search && !p.name.toLowerCase().includes(search.toLowerCase()) && !p.slug.toLowerCase().includes(search.toLowerCase())) return false;
-      if (statusFilter && p.status !== statusFilter) return false;
+      if (statusFilter === "not_buyable") {
+        if (!buyProblem(p)) return false;
+      } else if (statusFilter && p.status !== statusFilter) return false;
       if (categoryFilter && p.category_id !== categoryFilter) return false;
       return true;
     });
@@ -131,6 +142,7 @@ export default function ProductsListClient({ initialProducts, categories }: { in
           <option value="draft">Draft</option>
           <option value="out_of_stock">Out of stock</option>
           <option value="archived">Archived</option>
+          <option value="not_buyable">Can't be bought</option>
         </select>
         <select value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)} className="px-3 py-2 rounded-lg border border-navy/10 text-sm bg-white">
           <option value="">All categories</option>
@@ -182,7 +194,12 @@ export default function ProductsListClient({ initialProducts, categories }: { in
                   <p className="text-navy font-medium">{formatINR(p.base_price)}</p>
                   {p.mrp > p.base_price && <p className="text-xs text-muted line-through">{formatINR(p.mrp)}</p>}
                 </td>
-                <td className="px-4 py-3"><StatusPill label={p.status.replace("_", " ")} tone={STATUS_TONE[p.status] ?? "neutral"} /></td>
+                <td className="px-4 py-3">
+                  <StatusPill label={p.status.replace("_", " ")} tone={STATUS_TONE[p.status] ?? "neutral"} />
+                  {p.status === "active" && buyProblem(p) && (
+                    <p className="mt-1 text-[11px] font-semibold text-error" title="Shoppers see 'Coming soon' and can't add it to the bag">⚠ {buyProblem(p)}</p>
+                  )}
+                </td>
                 <td className="px-4 py-3 text-xs text-muted">
                   {p.is_featured && <span className="mr-2 text-gold-text">★ Featured</span>}
                   {p.is_new_arrival && <span className="text-success">NEW</span>}

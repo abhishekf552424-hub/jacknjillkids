@@ -6,6 +6,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { formatINR, ORDER_STAGES } from "@/lib/utils";
 import { PackageCheck, Truck, Home, Circle, CheckCircle2 } from "lucide-react";
+import PurchaseTracker from "@/components/PurchaseTracker";
 
 export const dynamic = "force-dynamic";
 
@@ -19,7 +20,7 @@ export default async function OrderPage({
   const { number } = await params;
   const { new: isNew, t } = await searchParams;
   const supabase = await createClient();
-  const select = "*, items:order_items(*), history:order_status_history(*)";
+  const select = "*, items:order_items(*, variant:product_variants(product_id)), history:order_status_history(*)";
   // Signed-in owners/admins can read via RLS. Guests (no account) need the
   // access token from their confirmation link.
   let { data: order } = await supabase.from("orders").select(select).eq("order_number", number).maybeSingle();
@@ -33,6 +34,22 @@ export default async function OrderPage({
 
   return (
     <div className="container py-10 md:py-16 max-w-4xl">
+      {isNew && ["paid", "cod"].includes(order.payment_status) && (
+        <PurchaseTracker
+          orderNumber={order.order_number}
+          value={Number(order.total)}
+          shipping={Number(order.shipping_fee) || 0}
+          tax={Number(order.tax) || 0}
+          coupon={order.coupon_code}
+          items={(order.items ?? []).map((it: any) => ({
+            id: it.variant?.product_id ?? it.variant_id ?? it.product_name,
+            name: it.product_name,
+            price: Number(it.price_at_purchase),
+            quantity: Number(it.quantity),
+            variant: it.variant_label || undefined,
+          }))}
+        />
+      )}
       {isNew && (
         <div className="bg-success/10 border border-success/30 rounded-lg p-4 mb-6 flex items-start gap-3">
           <div className="w-10 h-10 rounded-full bg-success text-white flex items-center justify-center shrink-0">
