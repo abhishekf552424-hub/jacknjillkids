@@ -52,8 +52,8 @@ const config: Config = {
         "grad-end": "#FCD325",
       },
       fontFamily: {
-        display: ["var(--font-display)", "Rockwell", "Georgia", "serif"], // Arvo — headings
-        hero: ["var(--font-hero)", "Rockwell", "Georgia", "serif"], // Alfa Slab One — hero lines only
+        display: ["var(--font-display)", "var(--font-deva)", "Arial Rounded MT Bold", "system-ui", "sans-serif"], // Fredoka — headings
+        hero: ["var(--font-display)", "var(--font-deva)", "Arial Rounded MT Bold", "system-ui", "sans-serif"], // Fredoka — hero lines
         body: ["var(--font-body)", "system-ui", "sans-serif"], // Nunito
         sans: ["var(--font-body)", "system-ui", "sans-serif"],
         hand: ["var(--font-hand)", "cursive"], // Patrick Hand — doodle notes

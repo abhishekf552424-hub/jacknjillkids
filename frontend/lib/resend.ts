@@ -60,7 +60,7 @@ export function orderConfirmationTemplate(order: {
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#FFF8EC;padding:24px 0">
       <tr><td align="center">
         <table role="presentation" width="560" cellpadding="0" cellspacing="0" style="background:#fff;border-radius:16px;padding:32px">
-          <tr><td style="font-family:Rockwell,Arvo,Georgia,serif;font-size:24px;color:#354275">Jack &amp; Jill</td></tr>
+          <tr><td style="font-family:Fredoka,'Arial Rounded MT Bold',Arial,sans-serif;font-size:24px;color:#354275">Jack &amp; Jill</td></tr>
           <tr><td style="padding-top:12px;font-size:20px;color:#354275">Thank you, ${order.customer_name || "there"}!</td></tr>
           <tr><td style="padding-top:8px;color:#5B6280">Your order <strong style="color:#354275">${order.order_number}</strong> is confirmed.</td></tr>
           <tr><td style="padding-top:20px"><hr style="border:none;border-top:1px solid #eee"/></td></tr>
@@ -85,7 +85,7 @@ export function orderStatusTemplate(order: {
   return `<!doctype html><html><body style="margin:0;background:#FFF8EC;font-family:Nunito,'Segoe UI',Arial,sans-serif;color:#1F2650">
     <table role="presentation" width="100%" style="padding:24px 0"><tr><td align="center">
       <table role="presentation" width="560" style="background:#fff;border-radius:16px;padding:32px">
-        <tr><td style="font-family:Rockwell,Arvo,Georgia,serif;font-size:24px;color:#354275">Jack &amp; Jill</td></tr>
+        <tr><td style="font-family:Fredoka,'Arial Rounded MT Bold',Arial,sans-serif;font-size:24px;color:#354275">Jack &amp; Jill</td></tr>
         <tr><td style="padding-top:12px;font-size:20px;color:#354275">Order Update</td></tr>
         <tr><td style="padding-top:8px;color:#5B6280">Your order <strong style="color:#354275">${order.order_number}</strong> is now <strong>${order.status_label}</strong>.</td></tr>
         <tr><td align="center" style="padding-top:24px"><a href="${order.tracking_url}" style="background:#354275;color:#fff;text-decoration:none;border-radius:12px;padding:12px 24px;display:inline-block">Track</a></td></tr>
