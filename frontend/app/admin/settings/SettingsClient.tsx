@@ -24,6 +24,8 @@ export default function SettingsClient({ initial, isDeveloper }: { initial: Reco
     logo_size_tablet: Number(initial.brand?.logo_size_tablet ?? initial.brand?.logo_size ?? 44),
     logo_size_desktop: Number(initial.brand?.logo_size_desktop ?? initial.brand?.logo_size ?? 52),
     logo_align: (initial.brand?.logo_align ?? "left") as "left" | "center",
+    instagram: initial.brand?.instagram ?? "",
+    facebook: initial.brand?.facebook ?? "",
   });
   const [shipping, setShipping] = useState({
     free_above: initial.shipping?.free_above ?? 999,
@@ -165,8 +167,14 @@ export default function SettingsClient({ initial, isDeveloper }: { initial: Reco
             <F label="GSTIN" value={brand.gstin} onChange={(v) => setBrand({ ...brand, gstin: v })} placeholder="27ABCDE1234F1Z5" />
             <div className="sm:col-span-2"><F label="Billing / registered address (for invoices)" value={brand.billing_address} onChange={(v) => setBrand({ ...brand, billing_address: v })} /></div>
             <F label="Billing state (for GST intra/inter)" value={brand.billing_state} onChange={(v) => setBrand({ ...brand, billing_state: v })} />
+            <F label="Instagram page link (shows in the footer)" value={brand.instagram} onChange={(v) => setBrand({ ...brand, instagram: v.trim() })} placeholder="https://www.instagram.com/..." />
+            <F label="Facebook page link (shows in the footer)" value={brand.facebook} onChange={(v) => setBrand({ ...brand, facebook: v.trim() })} placeholder="https://www.facebook.com/..." />
           </div>
-          <button onClick={() => save("brand", brand)} className="mt-4 bg-navy text-white rounded px-4 py-2 text-sm flex items-center gap-2"><Save className="w-4 h-4" /> Save branding</button>
+          <button onClick={() => {
+            const bad = [brand.instagram, brand.facebook].some((u) => u && !/^https:\/\/[^\s]+$/.test(u));
+            if (bad) return toast.error("Social links must start with https://");
+            save("brand", brand);
+          }} className="mt-4 bg-navy text-white rounded px-4 py-2 text-sm flex items-center gap-2"><Save className="w-4 h-4" /> Save branding</button>
         </div>
 
         {isDeveloper && (
