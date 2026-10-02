@@ -1,4 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { isValidOrderAccessToken } from "@/lib/order-access";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
@@ -12,16 +14,18 @@ export default async function OrderPage({
   searchParams,
 }: {
   params: Promise<{ number: string }>;
-  searchParams: Promise<{ new?: string }>;
+  searchParams: Promise<{ new?: string; t?: string }>;
 }) {
   const { number } = await params;
-  const { new: isNew } = await searchParams;
+  const { new: isNew, t } = await searchParams;
   const supabase = await createClient();
-  const { data: order } = await supabase
-    .from("orders")
-    .select("*, items:order_items(*), history:order_status_history(*)")
-    .eq("order_number", number)
-    .maybeSingle();
+  const select = "*, items:order_items(*), history:order_status_history(*)";
+  // Signed-in owners/admins can read via RLS. Guests (no account) need the
+  // access token from their confirmation link.
+  let { data: order } = await supabase.from("orders").select(select).eq("order_number", number).maybeSingle();
+  if (!order && isValidOrderAccessToken(number, t)) {
+    ({ data: order } = await createAdminClient().from("orders").select(select).eq("order_number", number).maybeSingle());
+  }
   if (!order) return notFound();
 
   const activeIdx = Math.max(0, ORDER_STAGES.findIndex((s) => s.key === order.status));

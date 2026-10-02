@@ -1,8 +1,10 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import SupportClient from "./SupportClient";
+import { requireAdminPage } from "@/lib/admin-auth";
 export const dynamic = "force-dynamic";
 
 export default async function AdminSupportPage() {
+  await requireAdminPage(["super_admin", "order_manager"]);
   const admin = createAdminClient();
   const { data: tickets } = await admin
     .from("support_tickets")

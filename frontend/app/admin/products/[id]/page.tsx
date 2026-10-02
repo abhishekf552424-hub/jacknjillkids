@@ -1,9 +1,11 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import ProductForm from "@/components/admin/ProductForm";
+import { requireAdminPage } from "@/lib/admin-auth";
 
 export const dynamic = "force-dynamic";
 
 export default async function NewOrEditProduct({ params }: { params: Promise<{ id: string }> }) {
+  await requireAdminPage(["super_admin", "content_manager"]);
   const { id } = await params;
   const isNew = id === "new";
   const admin = createAdminClient();

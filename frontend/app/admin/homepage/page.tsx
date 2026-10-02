@@ -1,9 +1,11 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import HomepageClient from "./HomepageClient";
+import { requireAdminPage } from "@/lib/admin-auth";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminHomepage() {
+  await requireAdminPage(["super_admin", "content_manager"]);
   const admin = createAdminClient();
   const [{ data: sections }, { data: prods }, { data: promoRow }] = await Promise.all([
     admin.from("homepage_sections").select("*").order("sort_order"),

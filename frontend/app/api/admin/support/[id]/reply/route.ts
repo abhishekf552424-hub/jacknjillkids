@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { checkAdmin } from "@/lib/admin-auth";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { sendEmail } from "@/lib/resend";
@@ -6,9 +7,8 @@ import { sendEmail } from "@/lib/resend";
 export const runtime = "nodejs";
 
 async function requireAdmin() {
-  const s = await createClient(); const { data: { user } } = await s.auth.getUser(); if (!user) return null;
-  const { data: p } = await s.from("profiles").select("role").eq("id", user.id).maybeSingle();
-  return p && p.role !== "customer" ? user : null;
+  const g = await checkAdmin(["super_admin", "order_manager", "content_manager"]);
+  return "error" in g ? null : g.user;
 }
 
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {

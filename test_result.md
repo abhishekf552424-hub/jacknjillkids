@@ -239,7 +239,7 @@ frontend:
     status_history:
       - agent: "testing"
         working: true
-        comment: "admin@jacknjillkids.com / AdminJJ@2026! signs in via Supabase. /admin renders full dashboard with sidebar (Dashboard/Orders/Products/Categories/Customers/Coupons/Homepage/CMS/Settings), SUPER ADMIN badge, stat cards."
+        comment: "admin@jacknjillkids.com / <redacted> signs in via Supabase. /admin renders full dashboard with sidebar (Dashboard/Orders/Products/Categories/Customers/Coupons/Homepage/CMS/Settings), SUPER ADMIN badge, stat cards."
 
   - task: "Admin Products list"
     implemented: true
@@ -294,7 +294,7 @@ agent_communication:
 #====================================================================================================
 
 user_problem_statement: |
-  Admin OTP login (samfonde0@gmail.com) does not receive OTP email. Fix and verify.
+  Admin OTP login (<admin email>) does not receive OTP email. Fix and verify.
 
 backend:
   - task: "Admin OTP email delivery via Resend"
@@ -330,7 +330,7 @@ backend:
              debugged. This is a testing safety net, NOT production behavior.
 
           Manual smoke test after fix (curl POST /api/admin/auth/request-otp with correct
-          creds): returns {"ok":true,"hint":"We sent a 6-digit code to samfonde0@gmail.com..."}.
+          creds): returns {"ok":true,"hint":"We sent a 6-digit code to <admin email>..."}.
           Direct Resend send with the corrected `from` returned data.id (message accepted).
           Requires testing_agent verification per protocol.
 
@@ -394,9 +394,9 @@ agent_communication:
 
       Please test (backend only, no UI needed):
       1. POST /api/admin/auth/request-otp with body
-         {"email":"samfonde0@gmail.com","password":"#Sam@508050"} — expect 200
+         {"email":"<admin email>","password":"<redacted>"} — expect 200
          with `{ok:true, hint:...}`.
-      2. Verify a row exists in Supabase public.admin_otp_codes for the samfonde0
+      2. Verify a row exists in Supabase public.admin_otp_codes for the admin
          user with purpose='admin_login', consumed=false, expires_at ~5min ahead.
          Supabase project ref: wtbgdxjupdctncopwvek. Service-role key is in
          /app/frontend/.env as SUPABASE_SERVICE_ROLE_KEY.

@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import PincodeClient from "./PincodeClient";
+import { requireAdminPage } from "@/lib/admin-auth";
 
 export const metadata = { title: "Pincode Management - Admin" };
 
@@ -14,6 +15,7 @@ async function requireAdmin() {
 }
 
 export default async function PincodesPage() {
+  await requireAdminPage(["super_admin", "content_manager"]);
   await requireAdmin();
   const supabase = await createClient();
   const { data: pincodes } = await supabase.from("pincodes").select("*").order("pincode");
