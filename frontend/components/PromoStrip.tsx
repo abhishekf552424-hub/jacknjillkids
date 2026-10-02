@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
+import { SectionHeader } from "./home/Section";
 
 type Card = {
   image?: string;
@@ -38,13 +39,9 @@ export default function PromoStrip({
   const list = ((cards ?? []).length ? cards : DEFAULTS)!.slice(0, 3);
 
   return (
-    <section className="container py-12 md:py-16" data-testid="promo-strip">
-      {(title || subtitle) && (
-        <div className="mb-6">
-          {title && <h2 className="font-display text-2xl md:text-3xl text-navy tracking-tight">{title}</h2>}
-          {subtitle && <p className="mt-1 text-muted">{subtitle}</p>}
-        </div>
-      )}
+    <section className="bg-cream py-8 md:py-12" data-testid="promo-strip">
+      <div className="container">
+      <SectionHeader title={title} subtitle={subtitle} />
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-5">
         {list.map((c, i) => {
           const overlayOpacity = typeof c.overlay_opacity === "number" ? Math.max(0, Math.min(100, c.overlay_opacity)) : 55;
@@ -81,6 +78,7 @@ export default function PromoStrip({
             <div key={i} data-testid={`promo-card-${i}`}>{inner}</div>
           );
         })}
+      </div>
       </div>
     </section>
   );

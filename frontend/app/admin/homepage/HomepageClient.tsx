@@ -17,7 +17,27 @@ type Section = {
 
 type PickProduct = { id: string; name: string; slug: string };
 
-export default function HomepageClient({ initial, products, promo }: { initial: Section[]; products: PickProduct[]; promo: any }) {
+const SECTION_INFO: Record<string, { name: string; help: string }> = {
+  marquee: { name: "Moving message strip", help: "Short messages that scroll across the top of the page." },
+  hero: { name: "Hero banner", help: "The big slides at the top. Upload 1–5 pictures or videos." },
+  age_groups: { name: "Shop by age", help: "Round age buttons. Ages come from the product age groups." },
+  categories: { name: "Shop by category", help: "Category circles. Pictures are set on each category." },
+  promo_strip: { name: "Offer cards", help: "Up to 3 picture cards with a link." },
+  product_shelf: { name: "Product row", help: "A row of products: picked by hand, most loved, newest or best sellers." },
+  occasions: { name: "Occasions", help: "3 big picture tiles, e.g. Festive, Party, School." },
+  gift_corner: { name: "Gift corner", help: "Gift ideas by budget, with a link to gift hampers." },
+  shop_the_look: { name: "Shop the look", help: "One styled photo and 2–4 products. Shoppers add the whole outfit in one tap." },
+  brand_story: { name: "Our story", help: "Photo or video with the store's story." },
+  parents_reviews: { name: "Parent video reviews", help: "Short video reviews from parents." },
+  instagram_reels: { name: "Instagram", help: "Your Instagram reels (Vimeo links)." },
+  visit_store: { name: "Visit our store", help: "Store photo. Address, hours and phone come from Settings → Contact info." },
+  faq: { name: "Parents ask (FAQ)", help: "Questions come from Pages & FAQs. Also helps Google show your answers." },
+  join_club: { name: "Join the club", help: "Collects WhatsApp numbers. Shows the first-order code you pick below." },
+  sign_off: { name: "Closing line", help: "The big quiet line at the very end of the page. Keep it short." },
+  trust_badges: { name: "Trust badges (old)", help: "Replaced by the promises in the footer. Keep it hidden." },
+};
+
+export default function HomepageClient({ initial, products, promo, ages = [], coupons = [] }: { initial: Section[]; products: PickProduct[]; promo: any; ages?: { label: string; slug: string }[]; coupons?: string[] }) {
   const [rows, setRows] = useState<Section[]>(initial);
   const [popup, setPopup] = useState<any>(promo || { enabled: false, image_url: "", link: "", headline: "", subtext: "", frequency: "session", delay_seconds: 3, start_date: "", end_date: "" });
 
@@ -51,18 +71,31 @@ export default function HomepageClient({ initial, products, promo }: { initial: 
           <div key={r.id} className="bg-white rounded-lg p-4 md:p-5 shadow-soft">
             <div className="flex items-center gap-2 mb-3">
               <div className="flex gap-0.5"><button onClick={() => move(i, -1)} disabled={i === 0} className="p-1.5 hover:bg-neutral-100 rounded disabled:opacity-30"><ArrowUp className="w-4 h-4" /></button><button onClick={() => move(i, 1)} disabled={i === rows.length - 1} className="p-1.5 hover:bg-neutral-100 rounded disabled:opacity-30"><ArrowDown className="w-4 h-4" /></button></div>
-              <div className="flex-1"><p className="text-[10px] uppercase tracking-widest text-gold-text font-bold">{r.section_type.replace(/_/g, " ")}</p></div>
+              <div className="flex-1 min-w-0">
+                <p className="font-display text-lg text-navy leading-tight">{SECTION_INFO[r.section_type]?.name ?? r.section_type.replace(/_/g, " ")}</p>
+                {SECTION_INFO[r.section_type]?.help && <p className="text-xs text-muted">{SECTION_INFO[r.section_type].help}</p>}
+              </div>
               <button onClick={() => { update(r.id, { is_active: !r.is_active }); }} className={`px-2 py-1 rounded text-[10px] flex items-center gap-1 ${r.is_active ? "bg-green-50 text-green-700" : "bg-neutral-100 text-neutral-500"}`}>{r.is_active ? <><Eye className="w-3 h-3" /> Visible</> : <><EyeOff className="w-3 h-3" /> Hidden</>}</button>
               <button onClick={() => save(r)} className="bg-navy text-white rounded px-3 py-1.5 text-xs flex items-center gap-1"><Save className="w-3 h-3" /> Save</button>
             </div>
 
             <div className="grid sm:grid-cols-2 gap-3 mb-3">
-              <input value={r.title ?? ""} onChange={(e) => update(r.id, { title: e.target.value })} placeholder="Section title" className="bg-neutral-50 rounded px-3 py-2 text-sm border border-neutral-200 outline-none focus:border-gold" />
-              <input value={r.subtitle ?? ""} onChange={(e) => update(r.id, { subtitle: e.target.value })} placeholder="Subtitle" className="bg-neutral-50 rounded px-3 py-2 text-sm border border-neutral-200 outline-none focus:border-gold" />
+              <label className="text-xs text-muted">{r.section_type === "sign_off" ? "Closing line" : "Title"}
+                <input value={r.title ?? ""} onChange={(e) => update(r.id, { title: e.target.value })} placeholder={r.section_type === "sign_off" ? "Made with love in Kolhapur." : "Section title"} maxLength={120} className="mt-1 w-full bg-neutral-50 rounded px-3 py-2 text-sm text-ink border border-neutral-200 outline-none focus:border-gold" />
+              </label>
+              <label className="text-xs text-muted">{r.section_type === "sign_off" ? "Small line under it" : "Short text under the title (optional)"}
+                <input value={r.subtitle ?? ""} onChange={(e) => update(r.id, { subtitle: e.target.value })} placeholder="Optional" maxLength={240} className="mt-1 w-full bg-neutral-50 rounded px-3 py-2 text-sm text-ink border border-neutral-200 outline-none focus:border-gold" />
+              </label>
             </div>
 
             {r.section_type === "hero" && <HeroEditor config={r.config} onChange={(c) => update(r.id, { config: c })} />}
             {r.section_type === "instagram_reels" && <InstagramEditor config={r.config} onChange={(c) => update(r.id, { config: c })} />}
+            {r.section_type === "instagram_reels" && (
+              <div className="grid sm:grid-cols-2 gap-3 mt-3">
+                <Field label="Instagram handle shown" value={r.config?.handle || ""} placeholder="@jacknjill_kolhapur" onChange={(v) => update(r.id, { config: { ...(r.config || {}), handle: v } })} />
+                <Field label="Instagram profile link" value={r.config?.profile_url || ""} placeholder="https://instagram.com/…" onChange={(v) => update(r.id, { config: { ...(r.config || {}), profile_url: v } })} />
+              </div>
+            )}
             {r.section_type === "product_shelf" && <ShelfEditor config={r.config} products={products} onChange={(c) => update(r.id, { config: c })} />}
             {r.section_type === "categories" && (
               <label className="text-xs flex items-center gap-2">Shape:
@@ -74,6 +107,13 @@ export default function HomepageClient({ initial, products, promo }: { initial: 
             {r.section_type === "trust_badges" && <p className="text-xs text-neutral-400">Trust badges are managed under <a className="underline" href="/admin/cms">CMS &rarr; Trust badges</a>.</p>}
             {r.section_type === "marquee" && <MarqueeEditor config={r.config} onChange={(c) => update(r.id, { config: c })} />}
             {r.section_type === "promo_strip" && <PromoStripEditor config={r.config} onChange={(c) => update(r.id, { config: c })} />}
+            {r.section_type === "age_groups" && <AgeEditor config={r.config} ages={ages} onChange={(c) => update(r.id, { config: c })} />}
+            {r.section_type === "occasions" && <OccasionsEditor config={r.config} onChange={(c) => update(r.id, { config: c })} />}
+            {r.section_type === "gift_corner" && <GiftEditor config={r.config} onChange={(c) => update(r.id, { config: c })} />}
+            {r.section_type === "shop_the_look" && <LookEditor config={r.config} products={products} onChange={(c) => update(r.id, { config: c })} />}
+            {r.section_type === "visit_store" && <VisitEditor config={r.config} onChange={(c) => update(r.id, { config: c })} />}
+            {r.section_type === "faq" && <FaqEditor config={r.config} onChange={(c) => update(r.id, { config: c })} />}
+            {r.section_type === "join_club" && <ClubEditor config={r.config} coupons={coupons} onChange={(c) => update(r.id, { config: c })} />}
           </div>
         ))}
       </div>
@@ -386,3 +426,155 @@ function PromoStripEditor({ config, onChange }: { config: any; onChange: (c: any
   );
 }
 
+/* ---------------- Homepage v2 editors ---------------- */
+
+function Field({ label, value, onChange, placeholder, type = "text", max }: { label: string; value: string | number; onChange: (v: string) => void; placeholder?: string; type?: string; max?: number }) {
+  return (
+    <label className="block text-xs text-muted">
+      {label}
+      <input type={type} value={value} maxLength={max ?? 160} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} className="mt-1 w-full border border-neutral-200 rounded px-3 py-2 text-sm text-ink outline-none focus:border-gold" />
+    </label>
+  );
+}
+
+function AgeEditor({ config, ages, onChange }: { config: any; ages: { label: string; slug: string }[]; onChange: (c: any) => void }) {
+  const set = (p: any) => onChange({ ...(config || {}), ...p });
+  const hints = (config?.hints || {}) as Record<string, string>;
+  return (
+    <div className="space-y-3">
+      <div className="grid sm:grid-cols-3 gap-3">
+        <Field label="Small label above title" value={config?.eyebrow || ""} placeholder="Find the right fit" onChange={(v) => set({ eyebrow: v })} />
+        <Field label="Link text (right side)" value={config?.link_text || ""} placeholder="Size help" onChange={(v) => set({ link_text: v })} />
+        <Field label="Link goes to" value={config?.link || ""} placeholder="/faq" onChange={(v) => set({ link: v })} />
+      </div>
+      <p className="text-[11px] text-neutral-500">Small line under each age (optional). Ages themselves are edited with the products.</p>
+      <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-2">
+        {ages.map((a) => (
+          <Field key={a.slug} label={a.label} value={hints[a.slug] || ""} max={30} placeholder="e.g. Toddler" onChange={(v) => set({ hints: { ...hints, [a.slug]: v } })} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function OccasionsEditor({ config, onChange }: { config: any; onChange: (c: any) => void }) {
+  const cards: any[] = config?.cards || [];
+  const setCards = (arr: any[]) => onChange({ ...(config || {}), cards: arr });
+  const patch = (i: number, p: any) => setCards(cards.map((c, j) => (j === i ? { ...c, ...p } : c)));
+  return (
+    <div className="space-y-3">
+      <Field label="Small label above title" value={config?.eyebrow || ""} placeholder="Collections" onChange={(v) => onChange({ ...(config || {}), eyebrow: v })} />
+      {cards.map((c, i) => (
+        <div key={i} className="border border-neutral-200 rounded-lg p-3 grid md:grid-cols-[200px_1fr_auto] gap-3 items-start">
+          <ImageUploader value={c.image || ""} folder="occasions" onChange={(url) => patch(i, { image: url })} showUrlField />
+          <div className="grid gap-2">
+            <Field label="Name" value={c.title || ""} placeholder="Festive" max={40} onChange={(v) => patch(i, { title: v })} />
+            <Field label="One line about it" value={c.subtitle || ""} placeholder="Kurtas, lehengas and festival sets" max={80} onChange={(v) => patch(i, { subtitle: v })} />
+            <Field label="Link (page on this site)" value={c.link || ""} placeholder="/category/clothing" onChange={(v) => patch(i, { link: v })} />
+          </div>
+          <button onClick={() => setCards(cards.filter((_, j) => j !== i))} className="p-1.5 text-error hover:bg-red-50 rounded" aria-label="Remove card"><Trash2 className="w-3.5 h-3.5" /></button>
+        </div>
+      ))}
+      {cards.length < 3 && <button onClick={() => setCards([...cards, { title: "", subtitle: "", image: "", link: "/shop" }])} className="text-sm text-gold-text flex items-center gap-1"><Plus className="w-4 h-4" /> Add tile</button>}
+      <p className="text-[11px] text-neutral-500">Best pictures: tall (portrait), at least 900 px wide.</p>
+    </div>
+  );
+}
+
+function GiftEditor({ config, onChange }: { config: any; onChange: (c: any) => void }) {
+  const set = (p: any) => onChange({ ...(config || {}), ...p });
+  const budgets: any[] = config?.budgets || [];
+  const patch = (i: number, p: any) => set({ budgets: budgets.map((b, j) => (j === i ? { ...b, ...p } : b)) });
+  return (
+    <div className="space-y-3">
+      <div className="grid sm:grid-cols-3 gap-3">
+        <Field label="Small label" value={config?.eyebrow || ""} placeholder="Gift corner" onChange={(v) => set({ eyebrow: v })} />
+        <Field label="Button text" value={config?.cta_text || ""} placeholder="See gift hampers" onChange={(v) => set({ cta_text: v })} />
+        <Field label="Button link" value={config?.cta_link || ""} placeholder="/category/gift-hampers" onChange={(v) => set({ cta_link: v })} />
+      </div>
+      <p className="text-[11px] text-neutral-500">Budget tiles open the shop filtered to that price.</p>
+      {budgets.map((b, i) => (
+        <div key={i} className="grid grid-cols-[120px_1fr_auto] gap-2 items-end">
+          <Field label="Under ₹" type="number" value={b.amount ?? ""} onChange={(v) => patch(i, { amount: Math.max(0, Math.round(Number(v) || 0)) })} />
+          <Field label="Small line" value={b.hint || ""} placeholder="Most gifted" max={30} onChange={(v) => patch(i, { hint: v })} />
+          <button onClick={() => set({ budgets: budgets.filter((_, j) => j !== i) })} className="p-2 text-error hover:bg-red-50 rounded" aria-label="Remove budget"><Trash2 className="w-3.5 h-3.5" /></button>
+        </div>
+      ))}
+      {budgets.length < 4 && <button onClick={() => set({ budgets: [...budgets, { amount: 2999, hint: "" }] })} className="text-sm text-gold-text flex items-center gap-1"><Plus className="w-4 h-4" /> Add budget</button>}
+    </div>
+  );
+}
+
+function LookEditor({ config, products, onChange }: { config: any; products: PickProduct[]; onChange: (c: any) => void }) {
+  const set = (p: any) => onChange({ ...(config || {}), ...p });
+  const ids: string[] = config?.product_ids || [];
+  const [q, setQ] = useState("");
+  const filtered = products.filter((p) => !q || p.name.toLowerCase().includes(q.toLowerCase())).slice(0, 30);
+  const toggle = (id: string) => {
+    if (ids.includes(id)) set({ product_ids: ids.filter((x) => x !== id) });
+    else if (ids.length < 4) set({ product_ids: [...ids, id] });
+    else toast.error("Up to 4 products");
+  };
+  return (
+    <div className="grid md:grid-cols-[220px_1fr] gap-3">
+      <div>
+        <p className="text-xs text-muted mb-1">Styled photo of the whole outfit</p>
+        <ImageUploader value={config?.image || ""} folder="shop-the-look" onChange={(url) => set({ image: url })} showUrlField />
+      </div>
+      <div>
+        <Field label="Small label" value={config?.eyebrow || ""} placeholder="Complete outfits" onChange={(v) => set({ eyebrow: v })} />
+        <p className="text-xs text-muted mt-3 mb-1">Pick 2 to 4 products in the photo ({ids.length} picked). The section hides itself until 2 in-stock products are picked.</p>
+        <div className="flex items-center gap-2 bg-neutral-50 rounded px-2 py-1.5"><Search className="w-3.5 h-3.5 text-neutral-400" /><input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search products" className="flex-1 bg-transparent text-sm outline-none" /></div>
+        <div className="max-h-52 overflow-y-auto border rounded mt-2">
+          {filtered.map((p) => (
+            <label key={p.id} className="flex items-center gap-2 px-3 py-1.5 text-xs border-b border-neutral-100 cursor-pointer hover:bg-cream/40">
+              <input type="checkbox" checked={ids.includes(p.id)} onChange={() => toggle(p.id)} />
+              <span className="flex-1">{p.name}</span>
+            </label>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function VisitEditor({ config, onChange }: { config: any; onChange: (c: any) => void }) {
+  return (
+    <div className="grid md:grid-cols-[220px_1fr] gap-3 items-start">
+      <ImageUploader value={config?.image || ""} folder="store" onChange={(url) => onChange({ ...(config || {}), image: url })} showUrlField />
+      <div className="space-y-2">
+        <Field label="Small label" value={config?.eyebrow || ""} placeholder="Visit us" onChange={(v) => onChange({ ...(config || {}), eyebrow: v })} />
+        <p className="text-[11px] text-neutral-500">Address, hours and phone come from <a href="/admin/settings" className="underline">Settings → Contact info</a>, so they are always the same everywhere.</p>
+      </div>
+    </div>
+  );
+}
+
+function FaqEditor({ config, onChange }: { config: any; onChange: (c: any) => void }) {
+  return (
+    <div className="grid sm:grid-cols-[1fr_160px] gap-3 items-end">
+      <p className="text-[11px] text-neutral-500">Questions and answers are edited in <a href="/admin/cms" className="underline">Pages &amp; FAQs</a>. Their order there is the order here.</p>
+      <Field label="How many to show" type="number" value={config?.limit ?? 6} onChange={(v) => onChange({ ...(config || {}), limit: Math.min(12, Math.max(1, Math.round(Number(v) || 6))) })} />
+    </div>
+  );
+}
+
+function ClubEditor({ config, coupons, onChange }: { config: any; coupons: string[]; onChange: (c: any) => void }) {
+  const set = (p: any) => onChange({ ...(config || {}), ...p });
+  return (
+    <div className="grid sm:grid-cols-3 gap-3 items-end">
+      <Field label="Small label" value={config?.eyebrow || ""} placeholder="Jack & Jill club" onChange={(v) => set({ eyebrow: v })} />
+      <Field label="Button text" value={config?.button_text || ""} placeholder="Join the club" onChange={(v) => set({ button_text: v })} />
+      <label className="block text-xs text-muted">
+        Code shown after joining
+        <select value={config?.coupon_code || ""} onChange={(e) => set({ coupon_code: e.target.value })} className="mt-1 w-full border border-neutral-200 rounded px-3 py-2 text-sm bg-white text-ink">
+          <option value="">No code</option>
+          {coupons.map((c) => (
+            <option key={c} value={c}>{c}</option>
+          ))}
+        </select>
+      </label>
+      <p className="sm:col-span-3 text-[11px] text-neutral-500">Numbers collected here are listed in Customers → Club members. Only active coupons can be shown.</p>
+    </div>
+  );
+}

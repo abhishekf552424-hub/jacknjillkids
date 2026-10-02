@@ -1,27 +1,24 @@
 import Image from "next/image";
 import Link from "next/link";
 import type { Category } from "@/lib/types";
+import { HomeSection, SectionHeader, type Tone } from "./home/Section";
 
 export default function CategoryShelf({
   categories,
   shape = "circle",
   title,
   subtitle,
+  tone = "cream",
 }: {
+  tone?: Tone;
   categories: Category[];
   shape?: "circle" | "square";
   title?: string | null;
   subtitle?: string | null;
 }) {
   return (
-    <section className="container py-16 md:py-20" data-testid="category-shelf">
-      <div className="flex items-end justify-between mb-8">
-        <div>
-          <p className="text-xs uppercase tracking-[0.3em] text-gold-text font-bold mb-2">Explore</p>
-          <h2 className="font-display text-3xl md:text-4xl lg:text-5xl text-navy tracking-tight">{title ?? "Shop by Category"}</h2>
-          {subtitle && <p className="mt-2 text-muted">{subtitle}</p>}
-        </div>
-      </div>
+    <HomeSection tone={tone} testid="category-shelf">
+      <SectionHeader eyebrow="Explore" title={title || "Shop by category"} subtitle={subtitle} href="/shop" linkText="Shop all" />
       <div className="flex gap-4 md:gap-6 overflow-x-auto no-scrollbar pb-2 -mx-4 px-4">
         {categories.map((c) => (
           <Link
@@ -51,6 +48,6 @@ export default function CategoryShelf({
           </Link>
         ))}
       </div>
-    </section>
+    </HomeSection>
   );
 }
