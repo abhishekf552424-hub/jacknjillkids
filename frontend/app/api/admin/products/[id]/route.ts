@@ -6,7 +6,7 @@ import { slugify } from "@/lib/utils";
 import { syncProductVariants } from "@/lib/product-variants";
 
 async function requireAdmin() {
-  return checkAdmin(["super_admin", "content_manager"]);
+  return checkAdmin("products");
 }
 
 export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {

@@ -1,20 +1,23 @@
 import { ReactNode } from "react";
 
-/** Consistent page header: eyebrow label + title + optional right-aligned action. */
+/** Consistent page header: eyebrow label + title + plain-words subtitle + optional action. */
 export function AdminPageHeader({
   eyebrow,
   title,
+  subtitle,
   action,
 }: {
   eyebrow: string;
   title: string;
+  subtitle?: string;
   action?: ReactNode;
 }) {
   return (
-    <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
-      <div>
-        <p className="text-xs uppercase tracking-widest text-gold-text font-bold">{eyebrow}</p>
-        <h1 className="font-display text-3xl text-navy tracking-tight">{title}</h1>
+    <div className="flex items-end justify-between mb-5 sm:mb-6 flex-wrap gap-3">
+      <div className="min-w-0">
+        <p className="text-xs uppercase tracking-wider text-gold-text font-bold">{eyebrow}</p>
+        <h1 className="font-display text-2xl sm:text-3xl text-navy tracking-tight">{title}</h1>
+        {subtitle && <p className="text-sm text-muted mt-1 max-w-2xl">{subtitle}</p>}
       </div>
       {action}
     </div>
@@ -23,12 +26,26 @@ export function AdminPageHeader({
 
 /** Consistent content card wrapper used for tables, forms, and grouped content. */
 export function AdminCard({ children, className = "" }: { children: ReactNode; className?: string }) {
-  return <div className={`bg-white rounded-lg shadow-soft ${className}`}>{children}</div>;
+  return <div className={`bg-white rounded-xl border border-line shadow-soft ${className}`}>{children}</div>;
+}
+
+/** Friendly "nothing here" box. */
+export function EmptyState({ icon: Icon, title, text, action }: { icon: any; title: string; text?: string; action?: ReactNode }) {
+  return (
+    <div className="bg-white rounded-xl border border-dashed border-line-strong/40 p-10 text-center">
+      <span className="mx-auto mb-3 w-12 h-12 rounded-full bg-cream flex items-center justify-center">
+        <Icon className="w-6 h-6 text-doodle" />
+      </span>
+      <p className="font-display text-lg text-navy">{title}</p>
+      {text && <p className="text-sm text-muted mt-1">{text}</p>}
+      {action && <div className="mt-4">{action}</div>}
+    </div>
+  );
 }
 
 const PILL_TONES: Record<string, string> = {
   success: "bg-success/10 text-success",
-  warn: "bg-amber-500/10 text-amber-600",
+  warn: "bg-amber-500/10 text-warning",
   danger: "bg-error/10 text-error",
   neutral: "bg-navy/10 text-navy",
   gold: "bg-gold/10 text-gold-text",

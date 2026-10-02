@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { CreditCard, Truck, Info, Save, Users, ArrowRight, Palette, Percent, RotateCcw } from "lucide-react";
 import ImageUploader from "@/components/admin/ImageUploader";
 
-export default function SettingsClient({ initial }: { initial: Record<string, any> }) {
+export default function SettingsClient({ initial, isDeveloper }: { initial: Record<string, any>; isDeveloper: boolean }) {
   const [rzp, setRzp] = useState({
     key_id: initial.razorpay?.key_id ?? "",
     key_secret: initial.razorpay?.key_secret ?? "",
@@ -50,21 +50,25 @@ export default function SettingsClient({ initial }: { initial: Record<string, an
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ key, value }),
     });
-    if (!r.ok) return toast.error("Save failed");
+    if (!r.ok) {
+      const j = await r.json().catch(() => ({}));
+      return toast.error(j.error || "Save failed");
+    }
     toast.success("Saved");
   };
 
   return (
     <div>
-      <p className="text-xs uppercase tracking-widest text-gold-text font-bold">Configuration</p>
+      <p className="text-xs uppercase tracking-widest text-gold-text font-bold">Shop setup</p>
       <h1 className="font-display text-3xl text-navy tracking-tight">Settings</h1>
+      <p className="text-sm text-muted mt-1">Store details, delivery charges, COD and contact info. Each box has its own Save button.</p>
 
-      <Link href="/admin/settings/users" className="mt-6 mb-2 flex items-center justify-between bg-white rounded-lg p-4 shadow-soft border-l-4 border-gold hover:shadow-md transition-shadow">
+      <Link href="/admin/team" className="mt-6 mb-2 flex items-center justify-between bg-white rounded-lg p-4 shadow-soft border-l-4 border-gold hover:shadow-md transition-shadow">
         <div className="flex items-center gap-3">
           <Users className="w-5 h-5 text-gold-text" />
           <div>
-            <div className="font-medium text-navy">Admin users</div>
-            <div className="text-xs text-neutral-500">Invite, roles, deactivate, reset password</div>
+            <div className="font-medium text-navy">Team &amp; access</div>
+            <div className="text-xs text-neutral-500">Add staff, change roles, switch off access, reset password</div>
           </div>
         </div>
         <ArrowRight className="w-4 h-4 text-neutral-400" />
@@ -165,6 +169,7 @@ export default function SettingsClient({ initial }: { initial: Record<string, an
           <button onClick={() => save("brand", brand)} className="mt-4 bg-navy text-white rounded px-4 py-2 text-sm flex items-center gap-2"><Save className="w-4 h-4" /> Save branding</button>
         </div>
 
+        {isDeveloper && (
         <div className="bg-white rounded-lg p-6 shadow-soft">
           <div className="flex items-center gap-2 mb-4">
             <CreditCard className="w-4 h-4 text-gold-text" />
@@ -180,6 +185,7 @@ export default function SettingsClient({ initial }: { initial: Record<string, an
           <p className="text-xs text-muted mt-2">Webhook URL: <code>{process.env.NEXT_PUBLIC_SITE_URL || "https://your-site"}/api/razorpay/webhook</code></p>
           <button onClick={() => save("razorpay", rzp)} data-testid="save-rzp-btn" className="mt-4 bg-navy text-white rounded px-4 py-2 text-sm flex items-center gap-2"><Save className="w-4 h-4" /> Save Razorpay settings</button>
         </div>
+        )}
 
         <div className="bg-white rounded-lg p-6 shadow-soft">
           <div className="flex items-center gap-2 mb-4">
@@ -201,6 +207,7 @@ export default function SettingsClient({ initial }: { initial: Record<string, an
           </div>
         </div>
 
+        {isDeveloper && (
         <div className="bg-white rounded-lg p-6 shadow-soft">
           <div className="flex items-center gap-2 mb-4">
             <Percent className="w-4 h-4 text-gold-text" />
@@ -213,6 +220,7 @@ export default function SettingsClient({ initial }: { initial: Record<string, an
           <p className="text-xs text-neutral-400 mt-2">Google Shopping feed: <code>{process.env.NEXT_PUBLIC_SITE_URL || ""}/feeds/google-shopping.xml</code></p>
           <button onClick={() => save("tracking", tracking)} className="mt-4 bg-navy text-white rounded px-4 py-2 text-sm">Save marketing</button>
         </div>
+        )}
 
         <div className="bg-white rounded-lg p-6 shadow-soft">
           <div className="flex items-center gap-2 mb-4">

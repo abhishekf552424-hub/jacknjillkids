@@ -1,4 +1,4 @@
-export type UserRole = "customer" | "super_admin" | "order_manager" | "content_manager";
+export type UserRole = "customer" | "super_admin" | "owner" | "staff";
 
 export type Profile = {
   id: string;

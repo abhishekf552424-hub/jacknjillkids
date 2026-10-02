@@ -1,13 +1,14 @@
 # Deploy guide — October 2026 release
 
-This release = security fixes (already in `main`) + order engine/stock + SEO + logo colours and fonts.
-**The page layout is unchanged.**
+This release = security fixes (already in `main`) + order engine/stock + SEO + logo colours and fonts
++ new admin panel (live dashboard, Owner/Staff roles, Stock page) + pincode checker removed.
+**The shop page layout is unchanged.**
 
 ## 1. Supabase (do this FIRST)
 
 1. Supabase Dashboard → **SQL Editor** → **New query**
 2. Open `supabase/RUN_BEFORE_DEPLOY_2026-10.sql`, copy the whole file, paste, click **Run**
-3. The last table must show **ok** on all 4 rows. If any row says `MISSING`, stop and send a screenshot.
+3. The last table must show **ok** on all 7 rows. If any row says `MISSING`, stop and send a screenshot.
 4. Also run this once and check the list — only your real admins should be there:
 
    ```sql
@@ -38,6 +39,8 @@ Pages are now pre-built, so the Supabase variables must be available at **build 
 1. Merge PR #3 on GitHub (after step 1 shows all ok)
 2. Hostinger → redeploy / rebuild from `main`
 3. All admins log in again (old login cookies are no longer valid — expected)
+4. Developer (super admin) logs in → **Team & access** → set the client's account to **Owner**.
+   Old "order manager" / "content manager" accounts are now **Staff**.
 
 ## 4. Manual test checklist
 
@@ -49,6 +52,8 @@ Use small amounts. Cancel test orders from the admin afterwards (stock comes bac
 - [ ] Filter by age on a category: count and products look right, pagination works
 
 **Checkout**
+- [ ] Product page has no "Delivery estimate / pincode check" box any more
+- [ ] Checkout still asks for a 6-digit pincode; any valid Indian pincode is accepted
 - [ ] Guest order with COD → order page opens (no "not found") and email arrives
 - [ ] Coupon (e.g. WELCOME10, if active) → discount shows in the summary and on the order
 - [ ] Online payment (Razorpay test or ₹1 product) → order becomes Paid/Confirmed; confirmation email arrives only after payment
@@ -57,6 +62,12 @@ Use small amounts. Cancel test orders from the admin afterwards (stock comes bac
 
 **Admin**
 - [ ] Login needs password + email code
+- [ ] Dashboard: Today / 7 / 30 / 90 days switch; place a test order → it appears within seconds (toast "New order …")
+- [ ] Staff login: sees Orders, Returns, Queries, Stock only — no ₹ sales figures, no Products/Settings in the menu
+- [ ] Owner: Team & access → add a staff person, switch login off/on, remove; cannot edit the developer account
+- [ ] Owner: Settings has no Razorpay keys / tracking box (developer only)
+- [ ] Stock page: change a number → Save → product page shows the new stock
+- [ ] Orders: status tabs (New, To pack, …) and search by order no. / name / phone work
 - [ ] Cancel an order → product stock goes back up
 - [ ] Edit a product and Save → a shopper's bag item for that product still works
 - [ ] Approve a size exchange → old size +1, new size −1, only once

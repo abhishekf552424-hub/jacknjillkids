@@ -34,7 +34,6 @@ export default function CheckoutPage() {
     state: "",
     pincode: "",
   });
-  const [pincodeInfo, setPincodeInfo] = useState<any>(null);
   const [payment, setPayment] = useState<"razorpay" | "cod">("razorpay");
   const [totals, setTotals] = useState({ subtotal: 0, shipping: 0, tax: 0, discount: 0, total: 0 });
   const [couponInput, setCouponInput] = useState("");
@@ -51,7 +50,7 @@ export default function CheckoutPage() {
       const r = await fetch("/api/checkout/quote", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ subtotal, pincode: addr.pincode, coupon_code: appliedCoupon || undefined, email: addr.email || undefined }),
+        body: JSON.stringify({ subtotal, coupon_code: appliedCoupon || undefined, email: addr.email || undefined }),
       });
       const j = await r.json();
       if (appliedCoupon && j.coupon_error) {
@@ -61,7 +60,7 @@ export default function CheckoutPage() {
       }
       setTotals({ subtotal, shipping: j.shipping, tax: j.tax, discount: j.discount ?? 0, total: j.total });
     })();
-  }, [lines, addr.pincode, appliedCoupon]);
+  }, [lines, appliedCoupon]);
 
   const applyCoupon = async () => {
     const code = couponInput.trim().toUpperCase();
@@ -81,24 +80,13 @@ export default function CheckoutPage() {
     toast.success(`Coupon ${j.coupon.code} applied — you save ${formatINR(j.discount)}`);
   };
 
-  const checkPincode = async () => {
-    if (!/^\d{6}$/.test(addr.pincode)) return;
-    const r = await fetch(`/api/pincode?code=${addr.pincode}`);
-    const j = await r.json();
-    setPincodeInfo(j);
-    if (j.serviceable) {
-      setAddr((a) => ({ ...a, city: a.city || j.city, state: a.state || j.state }));
-    }
-  };
-
   const validate1 = () => {
     if (!addr.full_name || !addr.phone || !addr.email || !addr.line1 || !addr.city || !addr.state || !addr.pincode) {
       toast.error("Please complete all address fields");
       return false;
     }
     if (!/^\d{10}$/.test(addr.phone)) return toast.error("Phone must be 10 digits") && false;
-    if (!/^\d{6}$/.test(addr.pincode)) return toast.error("Pincode must be 6 digits") && false;
-    if (pincodeInfo && !pincodeInfo.serviceable) return toast.error("We don't ship here yet") && false;
+    if (!/^[1-9]\d{5}$/.test(addr.pincode)) return toast.error("Please enter your 6-digit pincode") && false;
     return true;
   };
 
@@ -212,15 +200,10 @@ export default function CheckoutPage() {
                 <Field label="Address line 1" value={addr.line1} onChange={(v) => setAddr({ ...addr, line1: v })} testid="addr-line1" />
                 <Field label="Address line 2 (optional)" value={addr.line2} onChange={(v) => setAddr({ ...addr, line2: v })} testid="addr-line2" />
                 <div className="grid sm:grid-cols-3 gap-4">
-                  <Field label="Pincode" value={addr.pincode} onChange={(v) => setAddr({ ...addr, pincode: v.replace(/\D/g, "").slice(0, 6) })} onBlur={checkPincode} testid="addr-pincode" />
+                  <Field label="Pincode" value={addr.pincode} onChange={(v) => setAddr({ ...addr, pincode: v.replace(/\D/g, "").slice(0, 6) })} testid="addr-pincode" />
                   <Field label="City" value={addr.city} onChange={(v) => setAddr({ ...addr, city: v })} testid="addr-city" />
                   <Field label="State" value={addr.state} onChange={(v) => setAddr({ ...addr, state: v })} testid="addr-state" />
                 </div>
-                {pincodeInfo && (
-                  <p className={`text-xs ${pincodeInfo.serviceable ? "text-success" : "text-error"}`}>
-                    {pincodeInfo.serviceable ? `Delivery in ~${pincodeInfo.est_delivery_days} days${pincodeInfo.cod_available ? "  •  COD available" : ""}` : "Sorry, we don't ship to this pincode."}
-                  </p>
-                )}
                 <button data-testid="to-payment-btn" onClick={() => validate1() && setStep(2)} className="bg-navy text-white rounded px-6 py-3 font-medium">Continue to Payment</button>
               </div>
             )}
@@ -237,16 +220,14 @@ export default function CheckoutPage() {
                       <p className="text-xs text-muted">Secure payment via Razorpay</p>
                     </div>
                   </label>
-                  {pincodeInfo?.cod_available !== false && (
-                    <label className={`flex items-center gap-3 p-4 border rounded-lg cursor-pointer ${payment === "cod" ? "border-gold bg-cream" : "border-navy/10"}`}>
-                      <input type="radio" name="pay" checked={payment === "cod"} onChange={() => setPayment("cod")} className="accent-navy" data-testid="pay-cod" />
-                      <Wallet className="w-5 h-5 text-navy" />
-                      <div>
-                        <p className="font-medium text-navy">Cash on Delivery</p>
-                        <p className="text-xs text-muted">Pay when your order arrives</p>
-                      </div>
-                    </label>
-                  )}
+                  <label className={`flex items-center gap-3 p-4 border rounded-lg cursor-pointer ${payment === "cod" ? "border-gold bg-cream" : "border-navy/10"}`}>
+                    <input type="radio" name="pay" checked={payment === "cod"} onChange={() => setPayment("cod")} className="accent-navy" data-testid="pay-cod" />
+                    <Wallet className="w-5 h-5 text-navy" />
+                    <div>
+                      <p className="font-medium text-navy">Cash on Delivery</p>
+                      <p className="text-xs text-muted">Pay when your order arrives</p>
+                    </div>
+                  </label>
                 </div>
                 <div className="mt-6 flex gap-3">
                   <button onClick={() => setStep(1)} className="border border-navy/10 rounded px-6 py-3 text-sm">Back</button>

@@ -7,7 +7,7 @@ import { slugify } from "@/lib/utils";
 import { syncProductVariants } from "@/lib/product-variants";
 
 async function requireAdmin() {
-  return checkAdmin(["super_admin", "content_manager"]);
+  return checkAdmin("products");
 }
 
 async function save(payload: any, productId?: string) {
