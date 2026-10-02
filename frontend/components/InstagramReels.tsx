@@ -40,7 +40,7 @@ export default function InstagramReels({
     <section className="container py-16 md:py-20" data-testid="instagram-reels">
       <div className="flex items-end justify-between mb-6 gap-4">
         <div>
-          <p className="text-xs uppercase tracking-[0.3em] text-gold font-bold mb-2">Video Gallery</p>
+          <p className="text-xs uppercase tracking-[0.3em] text-gold-text font-bold mb-2">Video Gallery</p>
           <h2 className="font-display text-3xl md:text-4xl text-navy tracking-tight">{title ?? "From Our Feed"}</h2>
           {subtitle && <p className="mt-2 text-muted">{subtitle}</p>}
         </div>
@@ -48,7 +48,7 @@ export default function InstagramReels({
           href="https://instagram.com/jacknjill_kolhapur"
           target="_blank"
           rel="noreferrer"
-          className="hidden sm:inline-flex items-center gap-2 text-sm font-medium text-navy hover:text-gold transition-colors"
+          className="hidden sm:inline-flex items-center gap-2 text-sm font-medium text-navy hover:text-gold-text transition-colors"
           data-testid="instagram-profile-link"
         >
           <Instagram className="w-4 h-4" /> @jacknjill_kolhapur

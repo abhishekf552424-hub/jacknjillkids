@@ -41,7 +41,7 @@ export default async function OrderPage({
         </div>
       )}
 
-      <p className="text-xs uppercase tracking-widest text-gold font-bold">Order</p>
+      <p className="text-xs uppercase tracking-widest text-gold-text font-bold">Order</p>
       <div className="flex items-baseline justify-between flex-wrap gap-3 mt-1">
         <h1 className="font-display text-3xl md:text-4xl text-navy tracking-tight">{order.order_number}</h1>
         <span className="text-sm text-muted">Placed on {new Date(order.created_at).toLocaleDateString("en-IN")}</span>
@@ -57,7 +57,7 @@ export default async function OrderPage({
               const done = i <= activeIdx && order.status !== "cancelled";
               return (
                 <div key={s.key} className="flex flex-col items-center gap-2 min-w-0" style={{ flex: 1 }}>
-                  <div className={`w-6 h-6 rounded-full flex items-center justify-center ${done ? "bg-brand-gradient text-white shadow-soft" : "bg-navy/10 text-navy/40"}`}>
+                  <div className={`w-6 h-6 rounded-full flex items-center justify-center ${done ? "bg-navy text-white shadow-soft" : "bg-navy/10 text-navy/40"}`}>
                     {done ? <CheckCircle2 className="w-3.5 h-3.5" /> : <Circle className="w-3 h-3" />}
                   </div>
                   <span className={`text-[10px] md:text-xs text-center leading-tight ${done ? "text-navy font-bold" : "text-muted"}`}>{s.label}</span>
@@ -128,7 +128,7 @@ export default async function OrderPage({
       )}
 
       <div className="mt-8 text-center">
-        <Link href="/shop" className="inline-flex items-center border-2 border-gold text-gold rounded px-6 py-3 text-sm font-medium hover:bg-gold hover:text-white transition-all">
+        <Link href="/shop" className="inline-flex items-center border-2 border-gold text-gold-text rounded px-6 py-3 text-sm font-medium hover:bg-gold-text hover:border-gold-text hover:text-white transition-all">
           Continue shopping
         </Link>
       </div>

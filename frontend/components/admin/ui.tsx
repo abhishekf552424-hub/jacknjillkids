@@ -13,7 +13,7 @@ export function AdminPageHeader({
   return (
     <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
       <div>
-        <p className="text-xs uppercase tracking-widest text-gold font-bold">{eyebrow}</p>
+        <p className="text-xs uppercase tracking-widest text-gold-text font-bold">{eyebrow}</p>
         <h1 className="font-display text-3xl text-navy tracking-tight">{title}</h1>
       </div>
       {action}
@@ -31,7 +31,7 @@ const PILL_TONES: Record<string, string> = {
   warn: "bg-amber-500/10 text-amber-600",
   danger: "bg-error/10 text-error",
   neutral: "bg-navy/10 text-navy",
-  gold: "bg-gold/10 text-gold",
+  gold: "bg-gold/10 text-gold-text",
 };
 
 /** One consistent status/tag pill, used everywhere a status is shown (orders, products, coupons, etc). */

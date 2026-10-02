@@ -175,7 +175,7 @@ export default function CategoriesClient({ initial }: { initial: C[] }) {
                   <td className="px-3 py-2"><input type="number" value={c.sort_order} onChange={(e) => update(i, { sort_order: Number(e.target.value) })} className="w-14 bg-cream rounded px-2 py-1 border border-navy/10 outline-none" /></td>
                   <td className="px-3 py-2 text-center"><input type="checkbox" checked={c.is_active} onChange={(e) => update(i, { is_active: e.target.checked })} /></td>
                   <td className="px-3 py-2 text-right">
-                    <button onClick={() => save(c, i)} disabled={saving === (c.id ?? "new")} className="text-xs text-gold hover:text-navy px-2"><Save className="w-4 h-4 inline" /></button>
+                    <button onClick={() => save(c, i)} disabled={saving === (c.id ?? "new")} className="text-xs text-gold-text hover:text-navy px-2"><Save className="w-4 h-4 inline" /></button>
                     <button onClick={() => remove(i, c)} className="text-xs text-error px-2"><Trash2 className="w-4 h-4 inline" /></button>
                   </td>
                 </tr>

@@ -45,7 +45,7 @@ export default function Pagination({
         className={`inline-flex items-center gap-1 rounded-md px-3 py-2 text-sm border transition-colors ${
           current <= 1
             ? "pointer-events-none opacity-40 border-navy/10 text-muted"
-            : "border-navy/10 text-navy hover:border-gold hover:text-gold"
+            : "border-navy/10 text-navy hover:border-gold hover:text-gold-text"
         }`}
         data-testid="pagination-prev"
       >
@@ -62,7 +62,7 @@ export default function Pagination({
               className={`min-w-9 h-9 inline-flex items-center justify-center rounded-md text-sm font-bold border transition-colors ${
                 p === current
                   ? "bg-navy text-white border-navy"
-                  : "border-navy/10 text-navy hover:border-gold hover:text-gold"
+                  : "border-navy/10 text-navy hover:border-gold hover:text-gold-text"
               }`}
               data-testid={`pagination-page-${p}`}
             >
@@ -77,7 +77,7 @@ export default function Pagination({
         className={`inline-flex items-center gap-1 rounded-md px-3 py-2 text-sm border transition-colors ${
           current >= pages
             ? "pointer-events-none opacity-40 border-navy/10 text-muted"
-            : "border-navy/10 text-navy hover:border-gold hover:text-gold"
+            : "border-navy/10 text-navy hover:border-gold hover:text-gold-text"
         }`}
         data-testid="pagination-next"
       >

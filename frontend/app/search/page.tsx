@@ -25,7 +25,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
 
   return (
     <div className="container py-12 md:py-16">
-      <p className="text-xs uppercase tracking-widest text-gold font-bold">Search</p>
+      <p className="text-xs uppercase tracking-widest text-gold-text font-bold">Search</p>
       <h1 className="font-display text-3xl md:text-4xl text-navy tracking-tight mt-1">
         {query ? <>Results for “{query}”</> : "What are you looking for?"}
       </h1>

@@ -20,7 +20,7 @@ export default async function LegalPage({ params }: { params: Promise<{ slug: st
 
   return (
     <div className="container max-w-3xl py-12 md:py-20">
-      <p className="text-xs uppercase tracking-widest text-gold font-bold mb-2">Legal</p>
+      <p className="text-xs uppercase tracking-widest text-gold-text font-bold mb-2">Legal</p>
       <h1 className="font-display text-3xl md:text-5xl text-navy tracking-tight mb-6">{data.title}</h1>
       <article className="prose-jj text-ink">
         {(data.content ?? "").split(/\n\n+/).map((p: string, i: number) => (

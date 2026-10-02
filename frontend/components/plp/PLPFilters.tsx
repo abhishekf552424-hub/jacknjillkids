@@ -91,7 +91,7 @@ export default function PLPFilters({
               className={`text-xs px-3 py-1.5 rounded-full border transition-all ${
                 current.age === a.slug
                   ? "bg-navy text-white border-navy shadow-soft"
-                  : "bg-white text-navy border-navy/10 hover:border-gold hover:text-gold"
+                  : "bg-white text-navy border-navy/10 hover:border-gold hover:text-gold-text"
               }`}
             >
               {a.label}

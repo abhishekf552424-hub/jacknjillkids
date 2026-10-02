@@ -54,10 +54,10 @@ export default async function AboutPage() {
       {/* Hero band */}
       <section className="bg-gradient-to-br from-cream to-white border-b border-navy/5">
         <div className="container py-16 md:py-24 text-center">
-          <p className="text-xs uppercase tracking-widest text-gold font-bold">Est. 17 August 2003 · Shahupuri, Kolhapur</p>
+          <p className="text-xs uppercase tracking-widest text-gold-text font-bold">Est. 17 August 2003 · Shahupuri, Kolhapur</p>
           <h1 className="mt-3 font-display text-4xl sm:text-5xl lg:text-6xl text-navy tracking-tight leading-[1.05]">
             22 Years of Dressing<br />
-            Kolhapur&apos;s Children <em className="not-italic text-gold">with Love</em>
+            Kolhapur&apos;s Children <em className="not-italic text-gold-text">with Love</em>
           </h1>
           <p className="mt-5 max-w-2xl mx-auto text-lg text-muted leading-relaxed">
             One trusted store, one clear promise — style that fits little bodies and lives that lasts through play, siblings and monsoons.
@@ -88,9 +88,9 @@ export default async function AboutPage() {
             />
           </div>
           <div>
-            <p className="text-xs uppercase tracking-widest text-gold font-bold">Our Story</p>
+            <p className="text-xs uppercase tracking-widest text-gold-text font-bold">Our Story</p>
             <h2 className="mt-2 font-display text-3xl md:text-4xl text-navy tracking-tight leading-tight">
-              It started with one question: <em className="not-italic text-gold">why is it so hard to dress a child well?</em>
+              It started with one question: <em className="not-italic text-gold-text">why is it so hard to dress a child well?</em>
             </h2>
             <p className="mt-5 text-muted leading-relaxed">
               {cms?.content?.split("\n").slice(0, 2).join(" ") ??
@@ -104,7 +104,7 @@ export default async function AboutPage() {
               <p className="font-display italic text-navy text-lg leading-snug">
                 &ldquo;If a piece isn&apos;t good enough for my own daughter, it doesn&apos;t go on our shelf. That&apos;s the whole rulebook.&rdquo;
               </p>
-              <p className="mt-3 text-xs uppercase tracking-widest text-gold font-bold">— Ajit Mehta, Founder</p>
+              <p className="mt-3 text-xs uppercase tracking-widest text-gold-text font-bold">— Ajit Mehta, Founder</p>
             </div>
           </div>
         </div>
@@ -114,7 +114,7 @@ export default async function AboutPage() {
       <section className="bg-white/60">
         <div className="container py-16 md:py-24">
           <div className="text-center mb-12">
-            <p className="text-xs uppercase tracking-widest text-gold font-bold">Our Journey</p>
+            <p className="text-xs uppercase tracking-widest text-gold-text font-bold">Our Journey</p>
             <h2 className="mt-2 font-display text-3xl md:text-4xl text-navy tracking-tight">Milestones in trust</h2>
           </div>
           <div className="relative max-w-3xl mx-auto">
@@ -123,10 +123,10 @@ export default async function AboutPage() {
               {timeline.map((t, i) => (
                 <div key={t.year} className={`relative pl-12 md:pl-0 md:grid md:grid-cols-2 md:gap-8 ${i % 2 === 1 ? "md:[&>*:first-child]:order-2" : ""}`}>
                   <div className={`md:text-right ${i % 2 === 1 ? "md:text-left" : ""}`}>
-                    <div className="absolute left-0 md:left-1/2 -md:translate-x-1/2 top-1 w-8 h-8 rounded-full bg-brand-gradient text-white flex items-center justify-center text-[10px] font-bold shadow-soft md:-translate-x-1/2">
+                    <div className="absolute left-0 md:left-1/2 -md:translate-x-1/2 top-1 w-8 h-8 rounded-full bg-navy text-white flex items-center justify-center text-[10px] font-bold shadow-soft md:-translate-x-1/2">
                       {t.year.slice(-2)}
                     </div>
-                    <p className="text-sm text-gold font-bold">{t.year}</p>
+                    <p className="text-sm text-gold-text font-bold">{t.year}</p>
                     <h3 className="font-display text-xl text-navy mt-1">{t.title}</h3>
                   </div>
                   <div>
@@ -143,12 +143,12 @@ export default async function AboutPage() {
       <section className="container py-16 md:py-20">
         <div className="grid md:grid-cols-2 gap-5 md:gap-8">
           <div className="bg-white rounded-lg p-8 shadow-soft border-l-4 border-gold">
-            <p className="text-xs uppercase tracking-widest text-gold font-bold">Mission</p>
+            <p className="text-xs uppercase tracking-widest text-gold-text font-bold">Mission</p>
             <h3 className="mt-2 font-display text-2xl md:text-3xl text-navy tracking-tight">Make dressing a child the easiest part of a parent&apos;s day.</h3>
             <p className="mt-4 text-muted leading-relaxed">By curating a single, trusted range — thoughtful sizing, safe fabrics, honest prices — so every parent can walk in and walk out sure they&apos;ve chosen well.</p>
           </div>
           <div className="bg-navy text-white rounded-lg p-8 shadow-premium">
-            <p className="text-xs uppercase tracking-widest text-gold font-bold">Vision</p>
+            <p className="text-xs uppercase tracking-widest text-gold-text font-bold">Vision</p>
             <h3 className="mt-2 font-display text-2xl md:text-3xl tracking-tight">Be India&apos;s most-loved kids brand — one family at a time.</h3>
             <p className="mt-4 opacity-90 leading-relaxed">Not the biggest. The one families come back to when the second child arrives, and recommend to the third neighbour.</p>
           </div>
@@ -159,13 +159,13 @@ export default async function AboutPage() {
       <section className="bg-cream/40 border-y border-navy/5">
         <div className="container py-16 md:py-24">
           <div className="text-center mb-12 max-w-2xl mx-auto">
-            <p className="text-xs uppercase tracking-widest text-gold font-bold">The Jack &amp; Jill Promise</p>
+            <p className="text-xs uppercase tracking-widest text-gold-text font-bold">The Jack &amp; Jill Promise</p>
             <h2 className="mt-2 font-display text-3xl md:text-4xl text-navy tracking-tight">Five commitments, twenty-two years, zero shortcuts.</h2>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 md:gap-5">
             {promises.map((p) => (
               <div key={p.title} className="bg-white rounded-lg p-6 shadow-soft border border-navy/5 hover:shadow-premium transition-shadow">
-                <div className="w-11 h-11 rounded-full bg-brand-gradient text-white flex items-center justify-center mb-4">
+                <div className="w-11 h-11 rounded-full bg-sky text-doodle flex items-center justify-center mb-4">
                   <p.icon className="w-5 h-5" />
                 </div>
                 <h3 className="font-display text-lg text-navy">{p.title}</h3>
@@ -186,11 +186,11 @@ export default async function AboutPage() {
       {/* Shop Our Collection CTA */}
       <section className="bg-gradient-to-br from-navy to-navy/95 text-white">
         <div className="container py-16 md:py-20 text-center">
-          <p className="text-xs uppercase tracking-widest text-gold font-bold">Ready when you are</p>
+          <p className="text-xs uppercase tracking-widest text-gold-text font-bold">Ready when you are</p>
           <h2 className="mt-2 font-display text-3xl md:text-5xl tracking-tight">Shop the collection that families come back for.</h2>
           <p className="mt-4 max-w-xl mx-auto opacity-90">Frocks, footwear, school essentials, gift hampers and toys — everything a growing family needs, in one trusted place.</p>
           <div className="mt-8 flex items-center justify-center gap-3 flex-wrap">
-            <Link href="/shop" className="inline-flex items-center gap-2 bg-brand-gradient text-white font-bold rounded-full px-8 py-4 shadow-premium hover:-translate-y-0.5 transition-transform">
+            <Link href="/shop" className="inline-flex items-center gap-2 bg-action hover:bg-action-hover text-white font-bold rounded-full px-8 py-4 shadow-premium hover:-translate-y-0.5 transition-transform">
               Shop all <ArrowRight className="w-4 h-4" />
             </Link>
             <Link href="/shop?sort=newest" className="inline-flex items-center gap-2 border-2 border-white text-white font-bold rounded-full px-8 py-4 hover:bg-white hover:text-navy transition-colors">

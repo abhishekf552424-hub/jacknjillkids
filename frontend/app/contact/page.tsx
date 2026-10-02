@@ -34,7 +34,7 @@ export default function ContactPage() {
 
   return (
     <div className="container py-12 md:py-20 max-w-5xl">
-      <p className="text-xs uppercase tracking-widest text-gold font-bold mb-2">Get in Touch</p>
+      <p className="text-xs uppercase tracking-widest text-gold-text font-bold mb-2">Get in Touch</p>
       <h1 className="font-display text-4xl md:text-5xl text-navy tracking-tight">We'd love to hear from you</h1>
       <p className="mt-3 text-muted">Questions, feedback, gifting requests — reach out. We reply within a day.</p>
 
@@ -65,24 +65,24 @@ export default function ContactPage() {
 
         <div className="space-y-6">
           <div className="bg-white rounded-lg p-6 shadow-soft flex gap-4">
-            <div className="w-11 h-11 rounded-full bg-brand-gradient text-white flex items-center justify-center shrink-0"><MapPin className="w-5 h-5" /></div>
+            <div className="w-11 h-11 rounded-full bg-sky text-doodle flex items-center justify-center shrink-0"><MapPin className="w-5 h-5" /></div>
             <div>
-              <p className="text-xs uppercase tracking-widest text-gold font-bold">Store</p>
+              <p className="text-xs uppercase tracking-widest text-gold-text font-bold">Store</p>
               <p className="text-navy mt-1">Opp. Shahji Law College, E Ward,<br />Shahupuri, Kolhapur, Maharashtra 416001</p>
               <p className="text-xs text-muted mt-2">Mon–Sun, 10 AM – 9 PM</p>
             </div>
           </div>
           <div className="bg-white rounded-lg p-6 shadow-soft flex gap-4">
-            <div className="w-11 h-11 rounded-full bg-brand-gradient text-white flex items-center justify-center shrink-0"><Phone className="w-5 h-5" /></div>
+            <div className="w-11 h-11 rounded-full bg-sky text-doodle flex items-center justify-center shrink-0"><Phone className="w-5 h-5" /></div>
             <div>
-              <p className="text-xs uppercase tracking-widest text-gold font-bold">Call us</p>
+              <p className="text-xs uppercase tracking-widest text-gold-text font-bold">Call us</p>
               <a href="tel:+918329984160" className="text-navy mt-1 block">+91 83299 84160</a>
             </div>
           </div>
           <div className="bg-white rounded-lg p-6 shadow-soft flex gap-4">
-            <div className="w-11 h-11 rounded-full bg-brand-gradient text-white flex items-center justify-center shrink-0"><Mail className="w-5 h-5" /></div>
+            <div className="w-11 h-11 rounded-full bg-sky text-doodle flex items-center justify-center shrink-0"><Mail className="w-5 h-5" /></div>
             <div>
-              <p className="text-xs uppercase tracking-widest text-gold font-bold">Email</p>
+              <p className="text-xs uppercase tracking-widest text-gold-text font-bold">Email</p>
               <a href="mailto:hello@jacknjillkids.com" className="text-navy mt-1 block">hello@jacknjillkids.com</a>
             </div>
           </div>

@@ -23,7 +23,7 @@ export default function TrustStrip({ badges }: { badges: TrustBadge[] }) {
           const Icon = (Icons as any)[b.icon || "Award"] ?? Icons.Award;
           return (
             <div key={b.id} className="flex items-start gap-3 bg-white rounded p-4 shadow-soft border border-navy/5">
-              <div className="w-10 h-10 rounded-full bg-brand-gradient text-white flex items-center justify-center shrink-0">
+              <div className="w-10 h-10 rounded-full bg-sky text-doodle flex items-center justify-center shrink-0">
                 <Icon className="w-5 h-5" />
               </div>
               <div>

@@ -116,7 +116,7 @@ export default function PDPClient({ product, reviews }: { product: Product; revi
             style={zoom.on ? { transform: "scale(1.75)", transformOrigin: `${zoom.x}% ${zoom.y}%` } : undefined}
           />
           {discount > 0 && (
-            <span className="absolute top-4 left-4 bg-brand-gradient text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-soft">{discount}% OFF</span>
+            <span className="absolute top-4 left-4 bg-brand-yellow text-ink text-xs font-extrabold px-3 py-1.5 rounded-full shadow-soft">{discount}% OFF</span>
           )}
           {images.length > 1 && (
             <div className="sm:hidden absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-1.5 bg-black/30 backdrop-blur-sm rounded-full px-2.5 py-1.5">
@@ -142,12 +142,12 @@ export default function PDPClient({ product, reviews }: { product: Product; revi
 
       {/* Info */}
       <div>
-        <p className="text-xs uppercase tracking-widest text-gold font-bold">{product.brand ?? "Jack & Jill"}</p>
+        <p className="text-xs uppercase tracking-widest text-gold-text font-bold">{product.brand ?? "Jack & Jill"}</p>
         <h1 className="font-display text-3xl md:text-4xl text-navy tracking-tight mt-2">{product.name}</h1>
 
         {reviews.length > 0 && (
           <div className="mt-3 flex items-center gap-2">
-            <div className="flex text-gold">
+            <div className="flex text-gold-text">
               {[1, 2, 3, 4, 5].map((n) => (
                 <Star key={n} className="w-4 h-4" fill={avgRating >= n ? "currentColor" : "none"} />
               ))}
@@ -189,7 +189,7 @@ export default function PDPClient({ product, reviews }: { product: Product; revi
           <div className="mt-6">
             <div className="flex items-center justify-between mb-2">
               <p className="text-sm font-bold text-navy">Size: <span className="text-muted font-normal">{size}</span></p>
-              {product.size_chart_url && <a href={product.size_chart_url} target="_blank" rel="noreferrer" className="text-xs underline text-gold">Size chart</a>}
+              {product.size_chart_url && <a href={product.size_chart_url} target="_blank" rel="noreferrer" className="text-xs underline text-gold-text">Size chart</a>}
             </div>
             <div className="flex flex-wrap gap-2">
               {sizes.map((s) => {
@@ -216,14 +216,14 @@ export default function PDPClient({ product, reviews }: { product: Product; revi
         {/* Coupon chips */}
         {coupons && coupons.length > 0 && (
           <div className="mt-6 rounded-lg border border-gold/30 bg-gold/5 p-4" data-testid="pdp-coupons">
-            <p className="text-sm font-bold text-navy mb-2 flex items-center gap-2"><Ticket className="w-4 h-4 text-gold" /> Available offers on this product</p>
+            <p className="text-sm font-bold text-navy mb-2 flex items-center gap-2"><Ticket className="w-4 h-4 text-gold-text" /> Available offers on this product</p>
             <div className="flex flex-wrap gap-2">
               {coupons.map((code) => (
                 <button
                   key={code}
                   onClick={() => copyCode(code)}
                   data-testid={`pdp-coupon-${code}`}
-                  className="inline-flex items-center gap-1.5 bg-white border border-dashed border-gold rounded-full pl-3 pr-2 py-1 text-xs font-bold text-navy hover:bg-gold hover:text-white transition-colors"
+                  className="inline-flex items-center gap-1.5 bg-white border border-dashed border-gold rounded-full pl-3 pr-2 py-1 text-xs font-bold text-navy hover:bg-gold-text hover:border-gold-text hover:text-white transition-colors"
                 >
                   {code}
                   {copiedCode === code ? <Check className="w-3.5 h-3.5" /> : <span className="text-[10px] font-medium opacity-70">Tap to copy</span>}
@@ -244,18 +244,18 @@ export default function PDPClient({ product, reviews }: { product: Product; revi
             data-testid="add-to-cart-btn"
             disabled={oos}
             onClick={addToCart}
-            className="flex-1 bg-navy text-white rounded-md px-6 py-3 font-bold hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2 transition-opacity"
+            className="flex-1 bg-action hover:bg-action-hover text-white rounded-md px-6 py-3 font-bold disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2 transition-opacity"
           >
             <ShoppingBag className="w-4 h-4" /> {oos ? "Out of stock" : "Add to Bag"}
           </button>
-          <button aria-label="Wishlist" className="w-12 border-2 border-gold text-gold rounded-md flex items-center justify-center hover:bg-gold hover:text-white transition-colors">
+          <button aria-label="Wishlist" className="w-12 border-2 border-gold text-gold-text rounded-md flex items-center justify-center hover:bg-gold-text hover:border-gold-text hover:text-white transition-colors">
             <Heart className="w-4 h-4" />
           </button>
         </div>
 
         {/* Pincode check */}
         <div className="mt-6 bg-white rounded-lg p-4 border border-navy/10">
-          <p className="text-sm font-bold text-navy mb-2 flex items-center gap-2"><Truck className="w-4 h-4 text-gold" /> Delivery estimate</p>
+          <p className="text-sm font-bold text-navy mb-2 flex items-center gap-2"><Truck className="w-4 h-4 text-gold-text" /> Delivery estimate</p>
           <div className="flex gap-2">
             <input
               value={pincode}
@@ -277,7 +277,7 @@ export default function PDPClient({ product, reviews }: { product: Product; revi
             { icon: Truck, l: "Free above ₹999" },
           ].map((b, i) => (
             <div key={i} className="bg-cream rounded-lg p-3">
-              <b.icon className="w-5 h-5 text-gold mx-auto mb-1" />
+              <b.icon className="w-5 h-5 text-gold-text mx-auto mb-1" />
               <span className="text-xs text-navy font-bold">{b.l}</span>
             </div>
           ))}
@@ -309,7 +309,7 @@ export default function PDPClient({ product, reviews }: { product: Product; revi
                 <div key={r.id} className="bg-white rounded-lg p-4 border border-navy/5" data-testid={`review-${r.id}`}>
                   <div className="flex items-center gap-2">
                     <span className="font-bold text-navy">{r.author_name || "Anonymous"}</span>
-                    <div className="flex text-gold">
+                    <div className="flex text-gold-text">
                       {[1, 2, 3, 4, 5].map((n) => <Star key={n} className="w-3.5 h-3.5" fill={r.rating >= n ? "currentColor" : "none"} />)}
                     </div>
                   </div>

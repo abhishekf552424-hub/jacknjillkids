@@ -28,7 +28,7 @@ export default function ProductCard({ product }: { product: Product }) {
           <span className="absolute top-3 left-3 bg-success text-white text-[10px] font-bold px-2.5 py-1 rounded-full">NEW</span>
         )}
         {discount > 0 && !outOfStock && (
-          <span className="absolute top-3 right-3 bg-brand-gradient text-white text-[10px] font-bold px-2.5 py-1 rounded-full">
+          <span className="absolute top-3 right-3 bg-brand-yellow text-ink text-[10px] font-extrabold px-2.5 py-1 rounded-full">
             {discount}% OFF
           </span>
         )}

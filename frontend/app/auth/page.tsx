@@ -63,7 +63,7 @@ export default function AuthPage() {
   return (
     <div className="container py-16 min-h-[70vh] flex items-center justify-center">
       <div className="w-full max-w-md bg-white rounded-lg shadow-premium p-8 border border-navy/5">
-        <p className="text-xs uppercase tracking-widest text-gold font-bold text-center">Welcome</p>
+        <p className="text-xs uppercase tracking-widest text-gold-text font-bold text-center">Welcome</p>
         <h1 className="mt-2 font-display text-3xl text-navy text-center tracking-tight">
           {mode === "login" ? "Sign in to Jack & Jill" : "Create your account"}
         </h1>
@@ -137,7 +137,7 @@ export default function AuthPage() {
           <button
             data-testid="auth-toggle"
             onClick={() => setMode(mode === "login" ? "register" : "login")}
-            className="text-gold underline font-bold"
+            className="text-gold-text underline font-bold"
           >
             {mode === "login" ? "Create account" : "Sign in"}
           </button>

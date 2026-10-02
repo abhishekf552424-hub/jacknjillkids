@@ -123,7 +123,7 @@ export default function ImageUploader({
           />
           {uploading ? (
             <div className="space-y-2">
-              <Loader2 className="w-5 h-5 animate-spin text-gold mx-auto" />
+              <Loader2 className="w-5 h-5 animate-spin text-gold-text mx-auto" />
               <div className="text-xs text-neutral-500">Uploading… {progress}%</div>
               <div className="h-1 bg-neutral-200 rounded overflow-hidden">
                 <div className="h-full bg-gold transition-all" style={{ width: `${progress}%` }} />

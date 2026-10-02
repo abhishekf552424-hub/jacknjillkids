@@ -86,7 +86,7 @@ export default function NotificationBell() {
                 return (
                   <li key={n.id}>
                     <Link href={n.href} className="flex items-start gap-3 px-4 py-3 hover:bg-cream/60 transition-colors" onClick={() => setOpen(false)}>
-                      <Icon className="w-4 h-4 mt-0.5 text-gold flex-shrink-0" />
+                      <Icon className="w-4 h-4 mt-0.5 text-gold-text flex-shrink-0" />
                       <div className="min-w-0">
                         <p className="text-sm text-navy truncate">{n.message}</p>
                         <p className="text-[11px] text-muted">{new Date(n.created_at).toLocaleString("en-IN", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}</p>

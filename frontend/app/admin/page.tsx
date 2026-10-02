@@ -44,7 +44,7 @@ export default async function AdminDashboard() {
         <AdminCard className="lg:col-span-2 p-4 md:p-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="font-display text-xl text-navy">Recent orders</h2>
-            <Link href="/admin/orders" className="text-xs text-gold underline">View all</Link>
+            <Link href="/admin/orders" className="text-xs text-gold-text underline">View all</Link>
           </div>
           <div className="divide-y divide-navy/5">
             {(recentOrders ?? []).map((o: any) => (
@@ -89,7 +89,7 @@ function Stat({ label, value, icon: Icon, tone }: { label: string; value: any; i
       <div className="flex items-center justify-between">
         <p className="text-[10px] md:text-xs uppercase tracking-widest text-neutral-500 font-bold">{label}</p>
         <span className={`w-8 h-8 rounded-full flex items-center justify-center ${tone === "warn" ? "bg-error/10" : "bg-gold/10"}`}>
-          <Icon className={`w-4 h-4 ${tone === "warn" ? "text-error" : "text-gold"}`} />
+          <Icon className={`w-4 h-4 ${tone === "warn" ? "text-error" : "text-gold-text"}`} />
         </span>
       </div>
       <p className="mt-2 font-display text-xl md:text-3xl text-navy">{value}</p>

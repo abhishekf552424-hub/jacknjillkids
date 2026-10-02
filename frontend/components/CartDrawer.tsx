@@ -77,7 +77,7 @@ export default function CartDrawer({ open, onClose }: { open: boolean; onClose: 
                         {l.image && <Image src={l.image} alt={l.product_name} fill sizes="80px" className="object-cover" />}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <Link href={`/product/${l.slug}`} onClick={onClose} className="text-sm font-bold text-navy line-clamp-2 hover:text-gold transition-colors">
+                        <Link href={`/product/${l.slug}`} onClick={onClose} className="text-sm font-bold text-navy line-clamp-2 hover:text-gold-text transition-colors">
                           {l.product_name}
                         </Link>
                         <p className="text-xs text-muted mt-0.5">{l.variant_label}</p>

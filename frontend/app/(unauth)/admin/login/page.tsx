@@ -89,10 +89,10 @@ export default function AdminLoginPage() {
         <div className="text-center mb-6">
           <div className="inline-flex items-center gap-1 mb-3">
             <span className="font-display text-3xl font-bold text-navy">Jack</span>
-            <span className="font-display text-3xl font-bold text-gold">&amp;</span>
+            <span className="font-display text-3xl font-bold text-gold-text">&amp;</span>
             <span className="font-display text-3xl font-bold text-navy">Jill</span>
           </div>
-          <p className="text-xs uppercase tracking-widest text-gold font-bold">Admin</p>
+          <p className="text-xs uppercase tracking-widest text-gold-text font-bold">Admin</p>
           <div className="mt-4 flex items-center justify-center gap-2 text-xs text-neutral-500">
             <Shield className="w-3.5 h-3.5" /> Two-factor secured
           </div>

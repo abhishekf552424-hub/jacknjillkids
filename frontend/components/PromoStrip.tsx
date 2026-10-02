@@ -8,7 +8,7 @@ type Card = {
   link?: string;
   // Phase O — per-card style controls
   overlay_opacity?: number;      // 0-100 %, default 55
-  overlay_color?: string;        // any CSS color, default "#0a1e3f" (navy)
+  overlay_color?: string;        // any CSS color, default "#1F2650" (navy)
   heading_color?: string;        // any CSS color, default "#ffffff"
   border_radius?: "none" | "soft" | "rounded" | "pill"; // default "soft" (matches existing rounded-lg)
 };
@@ -48,7 +48,7 @@ export default function PromoStrip({
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-5">
         {list.map((c, i) => {
           const overlayOpacity = typeof c.overlay_opacity === "number" ? Math.max(0, Math.min(100, c.overlay_opacity)) : 55;
-          const overlayColor = c.overlay_color || "#0a1e3f";
+          const overlayColor = c.overlay_color || "#1F2650";
           const headingColor = c.heading_color || "#ffffff";
           const radiusCls = RADIUS_CLASSES[c.border_radius || "soft"];
           const inner = (
@@ -67,7 +67,7 @@ export default function PromoStrip({
               <div className="absolute inset-0 p-5 md:p-6 flex flex-col justify-end" style={{ color: headingColor }}>
                 {c.headline && <p className="font-display text-xl md:text-2xl leading-tight" style={{ color: headingColor }}>{c.headline}</p>}
                 {c.subtext && <p className="mt-1 text-sm opacity-90" style={{ color: headingColor }}>{c.subtext}</p>}
-                <span className="mt-3 inline-flex items-center gap-1 text-xs uppercase tracking-widest text-gold font-bold opacity-90">
+                <span className="mt-3 inline-flex items-center gap-1 text-xs uppercase tracking-widest text-gold-light font-bold opacity-90">
                   Explore →
                 </span>
               </div>

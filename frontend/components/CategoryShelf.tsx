@@ -17,7 +17,7 @@ export default function CategoryShelf({
     <section className="container py-16 md:py-20" data-testid="category-shelf">
       <div className="flex items-end justify-between mb-8">
         <div>
-          <p className="text-xs uppercase tracking-[0.3em] text-gold font-bold mb-2">Explore</p>
+          <p className="text-xs uppercase tracking-[0.3em] text-gold-text font-bold mb-2">Explore</p>
           <h2 className="font-display text-3xl md:text-4xl lg:text-5xl text-navy tracking-tight">{title ?? "Shop by Category"}</h2>
           {subtitle && <p className="mt-2 text-muted">{subtitle}</p>}
         </div>

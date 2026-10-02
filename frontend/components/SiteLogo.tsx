@@ -22,7 +22,7 @@ export default async function SiteLogo({ variant = "navy", size = "md", href = "
       ) : (
         <span className="flex items-baseline gap-1">
           <span className={textCls}>Jack</span>
-          <span className={textCls + " text-gold"}>&amp;</span>
+          <span className={textCls + " text-gold-text"}>&amp;</span>
           <span className={textCls}>Jill</span>
         </span>
       )}

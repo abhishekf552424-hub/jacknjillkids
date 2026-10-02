@@ -26,13 +26,13 @@ export default async function AccountPage() {
     <div className="container py-12 md:py-20 max-w-4xl">
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
-          <p className="text-xs uppercase tracking-widest text-gold font-bold">Account</p>
+          <p className="text-xs uppercase tracking-widest text-gold-text font-bold">Account</p>
           <h1 className="font-display text-3xl md:text-4xl text-navy">Hi {profile?.full_name || user.email?.split("@")[0]},</h1>
           <p className="text-muted mt-1">Manage your orders, wishlist and addresses.</p>
         </div>
         <div className="flex gap-3">
           {profile?.role && profile.role !== "customer" && (
-            <Link href="/admin" data-testid="admin-link" className="border-2 border-gold text-gold rounded px-4 py-2 text-sm font-medium hover:bg-gold hover:text-white transition-colors">Admin Panel</Link>
+            <Link href="/admin" data-testid="admin-link" className="border-2 border-gold text-gold-text rounded px-4 py-2 text-sm font-medium hover:bg-gold-text hover:border-gold-text hover:text-white transition-colors">Admin Panel</Link>
           )}
           <SignOutBtn />
         </div>
@@ -40,17 +40,17 @@ export default async function AccountPage() {
 
       <div className="mt-10 grid md:grid-cols-3 gap-4">
         <Link href="/account" className="bg-white rounded-lg p-5 shadow-soft hover:shadow-premium transition-shadow">
-          <p className="text-xs uppercase tracking-widest text-gold font-bold">Orders</p>
+          <p className="text-xs uppercase tracking-widest text-gold-text font-bold">Orders</p>
           <p className="mt-2 font-display text-2xl text-navy">{list.length}</p>
           <p className="text-sm text-muted mt-1">Total placed</p>
         </Link>
         <Link href="/track" className="bg-white rounded-lg p-5 shadow-soft hover:shadow-premium transition-shadow">
-          <p className="text-xs uppercase tracking-widest text-gold font-bold">Track</p>
+          <p className="text-xs uppercase tracking-widest text-gold-text font-bold">Track</p>
           <p className="mt-2 font-display text-2xl text-navy">Live</p>
           <p className="text-sm text-muted mt-1">Track an order</p>
         </Link>
         <Link href="/shop" className="bg-white rounded-lg p-5 shadow-soft hover:shadow-premium transition-shadow">
-          <p className="text-xs uppercase tracking-widest text-gold font-bold">Continue</p>
+          <p className="text-xs uppercase tracking-widest text-gold-text font-bold">Continue</p>
           <p className="mt-2 font-display text-2xl text-navy">Shop</p>
           <p className="text-sm text-muted mt-1">Browse the store</p>
         </Link>

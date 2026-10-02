@@ -62,7 +62,7 @@ export default function AdminShell({ role, name, logoUrl, logoSize = 40, childre
     ) : (
       <span className="flex items-baseline gap-1">
         <span className="font-display text-2xl font-bold text-white">Jack</span>
-        <span className="font-display text-2xl font-bold text-gold">&amp;</span>
+        <span className="font-display text-2xl font-bold text-gold-light">&amp;</span>
         <span className="font-display text-2xl font-bold text-white">Jill</span>
       </span>
     );
@@ -79,7 +79,7 @@ export default function AdminShell({ role, name, logoUrl, logoSize = 40, childre
           </Link>
           <button onClick={() => setOpen(false)} className="md:hidden text-white/70 p-1" aria-label="Close menu"><X className="w-5 h-5" /></button>
         </div>
-        <p className="text-[10px] uppercase tracking-widest text-gold font-bold px-2 mb-3">Admin panel</p>
+        <p className="text-[10px] uppercase tracking-widest text-gold-light font-bold px-2 mb-3">Admin panel</p>
         <nav className="flex flex-col gap-0.5 flex-1 overflow-y-auto no-scrollbar">
           {(() => {
             let lastGroup: string | null = null;
@@ -97,7 +97,7 @@ export default function AdminShell({ role, name, logoUrl, logoSize = 40, childre
                     onClick={() => setOpen(false)}
                     className={`flex items-center gap-3 px-3 py-2.5 rounded text-sm transition-colors ${active ? "bg-white/10 text-white border-l-2 border-gold -ml-0.5 pl-[11px]" : "text-white/80 hover:bg-white/5"}`}
                   >
-                    <n.icon className={`w-4 h-4 ${active ? "text-gold" : "text-white/60"}`} /> {n.label}
+                    <n.icon className={`w-4 h-4 ${active ? "text-gold-light" : "text-white/60"}`} /> {n.label}
                   </Link>
                 </div>
               );
@@ -106,7 +106,7 @@ export default function AdminShell({ role, name, logoUrl, logoSize = 40, childre
         </nav>
         <div className="mt-3 border-t border-white/10 pt-3 px-2">
           <p className="text-xs text-white/80 truncate">{name}</p>
-          <p className="text-[10px] text-gold uppercase tracking-widest">{role.replace(/_/g, " ")}</p>
+          <p className="text-[10px] text-gold-light uppercase tracking-widest">{role.replace(/_/g, " ")}</p>
           <div className="mt-3 flex flex-col gap-1">
             <Link href="/" className="flex items-center gap-2 text-xs text-white/60 hover:text-white"><ArrowLeft className="w-3.5 h-3.5" /> Back to store</Link>
             <button onClick={signOut} className="flex items-center gap-2 text-xs text-white/60 hover:text-white"><LogOut className="w-3.5 h-3.5" /> Sign out</button>
@@ -122,7 +122,7 @@ export default function AdminShell({ role, name, logoUrl, logoSize = 40, childre
           <button onClick={() => setOpen(true)} aria-label="Menu" className="p-1.5 rounded hover:bg-neutral-100"><Menu className="w-5 h-5 text-navy" /></button>
           <div className="flex items-baseline gap-1">
             <span className="font-display text-lg font-bold text-navy">Jack</span>
-            <span className="font-display text-lg font-bold text-gold">&amp;</span>
+            <span className="font-display text-lg font-bold text-gold-text">&amp;</span>
             <span className="font-display text-lg font-bold text-navy">Jill</span>
           </div>
           <NotificationBell />

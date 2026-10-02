@@ -190,7 +190,7 @@ export default function ProductForm({ categories, ageGroups, product, images, va
     <div className="max-w-6xl">
       <div className="flex items-start justify-between gap-3 mb-2">
         <div>
-          <p className="text-xs uppercase tracking-widest text-gold font-bold">Catalogue</p>
+          <p className="text-xs uppercase tracking-widest text-gold-text font-bold">Catalogue</p>
           <h1 className="font-display text-2xl md:text-3xl text-navy tracking-tight">{product ? "Edit product" : "New product"}</h1>
         </div>
         <button disabled={saving} onClick={save} data-testid="save-product-btn" className="bg-navy text-white rounded-lg px-4 py-2.5 text-sm font-medium shadow-sm disabled:opacity-60">
@@ -273,7 +273,7 @@ export default function ProductForm({ categories, ageGroups, product, images, va
                         <span key={s} className="inline-flex items-center gap-1 bg-cream text-navy rounded-full px-3 py-1 text-xs border border-gold/30">{s}<button onClick={() => removeSize(s)}><Trash2 className="w-3 h-3 text-error" /></button></span>
                       ))}
                       <input value={newSize} onChange={(e) => setNewSize(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addSize(); } }} placeholder="Add size (e.g. 4-5Y)" className="text-xs bg-white border border-neutral-200 rounded-full px-3 py-1 outline-none focus:border-gold w-32" />
-                      <button onClick={addSize} className="text-xs text-gold font-medium">Add</button>
+                      <button onClick={addSize} className="text-xs text-gold-text font-medium">Add</button>
                     </div>
                   </div>
                   <div>
@@ -286,7 +286,7 @@ export default function ProductForm({ categories, ageGroups, product, images, va
                         </span>
                       ))}
                       <input value={newColor} onChange={(e) => setNewColor(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addColor(); } }} placeholder="Add color (e.g. Navy)" className="text-xs bg-white border border-neutral-200 rounded-full px-3 py-1 outline-none focus:border-gold w-32" />
-                      <button onClick={addColor} className="text-xs text-gold font-medium">Add</button>
+                      <button onClick={addColor} className="text-xs text-gold-text font-medium">Add</button>
                     </div>
                   </div>
 
@@ -360,7 +360,7 @@ export default function ProductForm({ categories, ageGroups, product, images, va
                         <GripVertical className="w-3 h-3" /> {i === 0 ? "Cover" : `#${i + 1}`}
                       </span>
                       {i !== 0 && im.url && (
-                        <button type="button" onClick={() => makeCover(i)} className="flex items-center gap-0.5 text-[10px] text-navy/60 hover:text-gold">
+                        <button type="button" onClick={() => makeCover(i)} className="flex items-center gap-0.5 text-[10px] text-navy/60 hover:text-gold-text">
                           <Star className="w-3 h-3" /> Make cover
                         </button>
                       )}
@@ -437,14 +437,14 @@ export default function ProductForm({ categories, ageGroups, product, images, va
 
         <aside className="space-y-4">
           <div className="bg-white rounded-lg p-4 shadow-soft">
-            <p className="text-xs uppercase tracking-widest text-gold font-bold mb-3">Publish</p>
+            <p className="text-xs uppercase tracking-widest text-gold-text font-bold mb-3">Publish</p>
             <Select label="Status" value={p.status} onChange={(v) => setP({ ...p, status: v })} options={[["active","Active"],["draft","Draft"],["out_of_stock","Out of stock"],["archived","Archived"]]} />
             <label className="flex items-center gap-2 text-sm text-navy mt-3"><input type="checkbox" checked={p.is_featured} onChange={(e) => setP({ ...p, is_featured: e.target.checked })} /> Most Loved shelf</label>
             <label className="flex items-center gap-2 text-sm text-navy mt-2"><input type="checkbox" checked={p.is_new_arrival} onChange={(e) => setP({ ...p, is_new_arrival: e.target.checked })} /> New Arrival shelf</label>
           </div>
 
           <div className="bg-white rounded-lg p-4 shadow-soft">
-            <p className="text-xs uppercase tracking-widest text-gold font-bold mb-1">Categories</p>
+            <p className="text-xs uppercase tracking-widest text-gold-text font-bold mb-1">Categories</p>
             <p className="text-xs text-neutral-500 mb-3">Select all categories this product should appear in — the first one selected is used as the primary category.</p>
             <div className="flex flex-wrap gap-1.5">
               {categories.map((c) => (
@@ -460,7 +460,7 @@ export default function ProductForm({ categories, ageGroups, product, images, va
           </div>
 
           <div className="bg-white rounded-lg p-4 shadow-soft">
-            <p className="text-xs uppercase tracking-widest text-gold font-bold mb-3">Age groups</p>
+            <p className="text-xs uppercase tracking-widest text-gold-text font-bold mb-3">Age groups</p>
             <div className="flex flex-wrap gap-1.5">
               {ageGroups.map((a) => (
                 <button
@@ -474,7 +474,7 @@ export default function ProductForm({ categories, ageGroups, product, images, va
             </div>
           </div>
 
-          <button disabled={saving} onClick={save} className="w-full bg-brand-gradient text-white rounded-lg py-3 font-bold shadow-premium disabled:opacity-60">
+          <button disabled={saving} onClick={save} className="w-full bg-action hover:bg-action-hover text-white rounded-lg py-3 font-bold shadow-premium disabled:opacity-60">
             {saving ? "Saving..." : product ? "Save changes" : "Create product"}
           </button>
         </aside>

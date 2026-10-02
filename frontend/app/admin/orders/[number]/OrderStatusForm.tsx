@@ -37,7 +37,7 @@ export default function OrderStatusForm({ orderId, orderNumber, customerEmail, c
 
   return (
     <div className="bg-white rounded-lg p-5 shadow-soft">
-      <p className="text-xs uppercase tracking-widest text-gold font-bold mb-2">Update status</p>
+      <p className="text-xs uppercase tracking-widest text-gold-text font-bold mb-2">Update status</p>
       <select value={status} onChange={(e) => setStatus(e.target.value)} className="w-full bg-cream border border-navy/10 rounded px-3 py-2 text-sm outline-none focus:border-gold">
         {ALL.map((s) => <option key={s} value={s}>{s.replace(/_/g, " ")}</option>)}
       </select>

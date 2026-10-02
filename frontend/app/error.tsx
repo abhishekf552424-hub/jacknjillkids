@@ -6,10 +6,10 @@ import { RefreshCw, Home } from "lucide-react";
 export default function GlobalError({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {
   return (
     <div className="container py-16 md:py-24 min-h-[70vh] flex flex-col items-center justify-center text-center">
-      <div className="w-24 h-24 rounded-full bg-brand-gradient text-white flex items-center justify-center shadow-premium mb-6">
+      <div className="w-24 h-24 rounded-full bg-sky text-doodle flex items-center justify-center shadow-premium mb-6">
         <span className="font-display text-4xl font-bold">!</span>
       </div>
-      <p className="text-xs uppercase tracking-widest text-gold font-bold">Something broke</p>
+      <p className="text-xs uppercase tracking-widest text-gold-text font-bold">Something broke</p>
       <h1 className="mt-2 font-display text-4xl md:text-6xl text-navy tracking-tight leading-none">Oops — a little hiccup</h1>
       <p className="mt-4 text-muted max-w-md">
         Something didn&apos;t quite go as planned. Give it another try, or head back home while we look into it.
@@ -27,7 +27,7 @@ export default function GlobalError({ error, reset }: { error: Error & { digest?
         </button>
         <Link
           href="/"
-          className="inline-flex items-center justify-center gap-2 border-2 border-gold text-gold rounded-md px-6 py-3 font-bold hover:bg-gold hover:text-white transition-all"
+          className="inline-flex items-center justify-center gap-2 border-2 border-gold text-gold-text rounded-md px-6 py-3 font-bold hover:bg-gold-text hover:border-gold-text hover:text-white transition-all"
           data-testid="error-home"
         >
           <Home className="w-4 h-4" /> Go home
