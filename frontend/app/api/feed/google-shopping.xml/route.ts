@@ -1,3 +1,4 @@
+import { SITE_URL } from "@/lib/site";
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -15,7 +16,7 @@ export async function GET() {
     .eq("status", "active")
     .limit(1000);
 
-  const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || "").replace(/\/$/, "");
+  const siteUrl = SITE_URL;
   const items = (products || []).map((p: any) => {
     const img = (p.images || []).sort((a: any, b: any) => a.sort_order - b.sort_order)[0]?.url || "";
     const inStock = (p.variants || []).some((v: any) => (v.stock_qty || 0) > 0);

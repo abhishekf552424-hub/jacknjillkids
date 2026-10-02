@@ -50,7 +50,7 @@ export default function BrandStory({
           )}
         </div>
         <div>
-          <p className="text-xs uppercase tracking-[0.3em] text-gold font-bold mb-3">Our Story</p>
+          <p className="text-xs uppercase tracking-[0.3em] text-gold-text font-bold mb-3">Our Story</p>
           <h2 className="font-display text-3xl md:text-4xl lg:text-5xl text-navy leading-tight tracking-tight">
             {title ?? "The Jack & Jill Story"}
           </h2>
@@ -64,7 +64,7 @@ export default function BrandStory({
             <Link href="/about" className="inline-flex items-center bg-navy text-white rounded px-6 py-3 text-sm font-medium hover:opacity-90 transition-opacity">
               Read the full story
             </Link>
-            <Link href="/shop" className="inline-flex items-center border-2 border-gold text-gold rounded px-6 py-3 text-sm font-medium hover:bg-gold hover:text-white transition-all">
+            <Link href="/shop" className="inline-flex items-center border-2 border-gold text-gold-text rounded px-6 py-3 text-sm font-medium hover:bg-gold-text hover:border-gold-text hover:text-white transition-all">
               Explore the store
             </Link>
           </div>

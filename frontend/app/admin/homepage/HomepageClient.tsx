@@ -42,7 +42,7 @@ export default function HomepageClient({ initial, products, promo }: { initial: 
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
-        <div><p className="text-xs uppercase tracking-widest text-gold font-bold">Homepage</p><h1 className="font-display text-2xl md:text-3xl text-navy tracking-tight">Sections</h1></div>
+        <div><p className="text-xs uppercase tracking-widest text-gold-text font-bold">Homepage</p><h1 className="font-display text-2xl md:text-3xl text-navy tracking-tight">Sections</h1></div>
         <button onClick={saveAllOrder} className="bg-navy text-white rounded-lg px-4 py-2 text-sm">Save order</button>
       </div>
 
@@ -51,7 +51,7 @@ export default function HomepageClient({ initial, products, promo }: { initial: 
           <div key={r.id} className="bg-white rounded-lg p-4 md:p-5 shadow-soft">
             <div className="flex items-center gap-2 mb-3">
               <div className="flex gap-0.5"><button onClick={() => move(i, -1)} disabled={i === 0} className="p-1.5 hover:bg-neutral-100 rounded disabled:opacity-30"><ArrowUp className="w-4 h-4" /></button><button onClick={() => move(i, 1)} disabled={i === rows.length - 1} className="p-1.5 hover:bg-neutral-100 rounded disabled:opacity-30"><ArrowDown className="w-4 h-4" /></button></div>
-              <div className="flex-1"><p className="text-[10px] uppercase tracking-widest text-gold font-bold">{r.section_type.replace(/_/g, " ")}</p></div>
+              <div className="flex-1"><p className="text-[10px] uppercase tracking-widest text-gold-text font-bold">{r.section_type.replace(/_/g, " ")}</p></div>
               <button onClick={() => { update(r.id, { is_active: !r.is_active }); }} className={`px-2 py-1 rounded text-[10px] flex items-center gap-1 ${r.is_active ? "bg-green-50 text-green-700" : "bg-neutral-100 text-neutral-500"}`}>{r.is_active ? <><Eye className="w-3 h-3" /> Visible</> : <><EyeOff className="w-3 h-3" /> Hidden</>}</button>
               <button onClick={() => save(r)} className="bg-navy text-white rounded px-3 py-1.5 text-xs flex items-center gap-1"><Save className="w-3 h-3" /> Save</button>
             </div>
@@ -81,7 +81,7 @@ export default function HomepageClient({ initial, products, promo }: { initial: 
       {/* Promo popup */}
       <div className="mt-8 bg-white rounded-lg p-4 md:p-5 shadow-soft border-l-4 border-gold">
         <div className="flex items-center gap-2 mb-3">
-          <Sparkles className="w-4 h-4 text-gold" />
+          <Sparkles className="w-4 h-4 text-gold-text" />
           <h2 className="font-display text-xl text-navy">Site-wide promo popup</h2>
         </div>
         <div className="grid md:grid-cols-2 gap-4">
@@ -121,7 +121,7 @@ function HeroEditor({ config, onChange }: { config: any; onChange: (c: any) => v
       {slides.map((sl, i) => {
         const mode: "image" | "video" = sl.video_url ? "video" : "image";
         const overlayOpacity = typeof sl.overlay_opacity === "number" ? sl.overlay_opacity : 20;
-        const overlayColor = sl.overlay_color || "#0a1e3f";
+        const overlayColor = sl.overlay_color || "#1F2650";
         const headingColor = sl.heading_color || "#ffffff";
         const headingSize = sl.heading_size || "lg";
         const ctaStyle = sl.cta_style || "gradient";
@@ -205,7 +205,7 @@ function HeroEditor({ config, onChange }: { config: any; onChange: (c: any) => v
           </div>
         );
       })}
-      <button onClick={() => setSlides([...slides, { image: "", video_url: "", heading: "", subheading: "", cta_text: "", cta_link: "", overlay_opacity: 20, overlay_color: "#0a1e3f", heading_color: "#ffffff", heading_size: "lg", cta_style: "gradient", content_position: "left", border_radius: "soft" }])} className="text-sm text-gold flex items-center gap-1"><Plus className="w-4 h-4" /> Add slide</button>
+      <button onClick={() => setSlides([...slides, { image: "", video_url: "", heading: "", subheading: "", cta_text: "", cta_link: "", overlay_opacity: 20, overlay_color: "#1F2650", heading_color: "#ffffff", heading_size: "lg", cta_style: "gradient", content_position: "left", border_radius: "soft" }])} className="text-sm text-gold-text flex items-center gap-1"><Plus className="w-4 h-4" /> Add slide</button>
     </div>
   );
 }
@@ -231,7 +231,7 @@ function InstagramEditor({ config, onChange }: { config: any; onChange: (c: any)
           </div>
         </div>
       ))}
-      <button onClick={() => setVideos([...videos, { url: "", autoplay_muted: true }])} className="text-sm text-gold flex items-center gap-1"><Plus className="w-4 h-4" /> Add video</button>
+      <button onClick={() => setVideos([...videos, { url: "", autoplay_muted: true }])} className="text-sm text-gold-text flex items-center gap-1"><Plus className="w-4 h-4" /> Add video</button>
     </div>
   );
 }
@@ -300,7 +300,7 @@ function ParentsReviewsEditor({ config, onChange }: { config: any; onChange: (c:
           <input value={v.caption || ""} onChange={(e) => setVideos(videos.map((x, j) => j === i ? { ...x, caption: e.target.value } : x))} placeholder="Short caption (optional)" className="md:col-span-4 border rounded px-2 py-1.5 text-xs" />
         </div>
       ))}
-      <button onClick={() => setVideos([...videos, { url: "", name: "", caption: "", autoplay_muted: true }])} className="text-sm text-gold flex items-center gap-1"><Plus className="w-4 h-4" /> Add video review</button>
+      <button onClick={() => setVideos([...videos, { url: "", name: "", caption: "", autoplay_muted: true }])} className="text-sm text-gold-text flex items-center gap-1"><Plus className="w-4 h-4" /> Add video review</button>
     </div>
   );
 }
@@ -320,7 +320,7 @@ function MarqueeEditor({ config, onChange }: { config: any; onChange: (c: any) =
         </div>
       ))}
       <div className="flex items-center gap-3 flex-wrap">
-        <button onClick={() => set([...items, ""])} className="text-sm text-gold flex items-center gap-1"><Plus className="w-4 h-4" /> Add message</button>
+        <button onClick={() => set([...items, ""])} className="text-sm text-gold-text flex items-center gap-1"><Plus className="w-4 h-4" /> Add message</button>
         <label className="text-xs text-neutral-500 flex items-center gap-2">Speed (sec)
           <input type="number" min={15} max={120} value={config?.speed_sec || 30} onChange={(e) => onChange({ ...(config || {}), speed_sec: Number(e.target.value) })} className="w-20 border rounded px-2 py-1 text-xs" />
         </label>
@@ -338,7 +338,7 @@ function PromoStripEditor({ config, onChange }: { config: any; onChange: (c: any
       <p className="text-[11px] text-neutral-500">3 clickable image-backed cards. Stacks on mobile, side-by-side on desktop.</p>
       {cards.map((c, i) => {
         const overlayOpacity = typeof c.overlay_opacity === "number" ? c.overlay_opacity : 55;
-        const overlayColor = c.overlay_color || "#0a1e3f";
+        const overlayColor = c.overlay_color || "#1F2650";
         const headingColor = c.heading_color || "#ffffff";
         const radius = c.border_radius || "soft";
         return (
@@ -380,7 +380,7 @@ function PromoStripEditor({ config, onChange }: { config: any; onChange: (c: any
         );
       })}
       {cards.length < 3 && (
-        <button onClick={() => set([...cards, { image: "", headline: "", subtext: "", link: "", overlay_opacity: 55, overlay_color: "#0a1e3f", heading_color: "#ffffff", border_radius: "soft" }])} className="text-sm text-gold flex items-center gap-1"><Plus className="w-4 h-4" /> Add card</button>
+        <button onClick={() => set([...cards, { image: "", headline: "", subtext: "", link: "", overlay_opacity: 55, overlay_color: "#1F2650", heading_color: "#ffffff", border_radius: "soft" }])} className="text-sm text-gold-text flex items-center gap-1"><Plus className="w-4 h-4" /> Add card</button>
       )}
     </div>
   );

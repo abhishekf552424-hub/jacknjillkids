@@ -16,7 +16,7 @@ type Slide = {
   cta_link?: string;
   // Phase O — per-slide style controls
   overlay_opacity?: number;      // 0-100 (%), default 20
-  overlay_color?: string;        // any CSS color, default "#0a1e3f" (navy)
+  overlay_color?: string;        // any CSS color, default "#1F2650" (navy)
   heading_color?: string;        // any CSS color, default "#ffffff"
   heading_size?: "sm" | "md" | "lg"; // preset scale, default "lg"
   cta_style?: "gradient" | "outline" | "navy"; // default "gradient"
@@ -61,7 +61,7 @@ function CtaButton({ style, text, link }: { style: string; text: string; link: s
     );
   }
   return (
-    <Link href={link} data-testid="hero-cta" className={`${base} bg-brand-gradient text-white shadow-premium`}>
+    <Link href={link} data-testid="hero-cta" className={`${base} bg-action hover:bg-action-hover text-white shadow-premium`}>
       {text} <ChevronRight className="w-4 h-4" />
     </Link>
   );
@@ -92,7 +92,7 @@ export default function HeroCarousel({ slides, title, subtitle }: { slides: Slid
   const bgVideo = s.video_url ? getVimeoBackgroundUrl(s.video_url) : null;
   const hasCta = Boolean(s.cta_text && s.cta_link && s.cta_text.trim() && s.cta_link.trim());
   const overlayOpacity = typeof s.overlay_opacity === "number" ? Math.max(0, Math.min(100, s.overlay_opacity)) : 20;
-  const overlayColor = s.overlay_color || "#0a1e3f";
+  const overlayColor = s.overlay_color || "#1F2650";
   const headingColor = s.heading_color || "#ffffff";
   const headingSizeCls = HEADING_SIZE_CLASSES[s.heading_size || "lg"];
   const posCls = CONTENT_POS_CLASSES[s.content_position || "left"];
@@ -148,7 +148,7 @@ export default function HeroCarousel({ slides, title, subtitle }: { slides: Slid
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.15, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-                className="uppercase tracking-[0.3em] text-gold text-[10px] sm:text-xs font-bold mb-3"
+                className="uppercase tracking-[0.3em] text-gold-light text-[10px] sm:text-xs font-bold mb-3"
               >
                 {s.subheading ?? "Since 2003 • Kolhapur"}
               </motion.p>

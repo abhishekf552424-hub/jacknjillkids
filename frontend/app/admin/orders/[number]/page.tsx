@@ -10,7 +10,7 @@ import { requireAdminPage } from "@/lib/admin-auth";
 export const dynamic = "force-dynamic";
 
 export default async function AdminOrderDetail({ params }: { params: Promise<{ number: string }> }) {
-  await requireAdminPage(["super_admin", "order_manager"]);
+  await requireAdminPage("orders");
   const { number } = await params;
   const admin = createAdminClient();
   const { data: order } = await admin
@@ -22,7 +22,7 @@ export default async function AdminOrderDetail({ params }: { params: Promise<{ n
 
   return (
     <div>
-      <Link href="/admin/orders" className="text-xs text-gold underline">← All orders</Link>
+      <Link href="/admin/orders" className="text-xs text-gold-text underline">← All orders</Link>
       <h1 className="font-display text-3xl text-navy mt-1">{order.order_number}</h1>
       <p className="text-xs text-muted mt-1">Placed on {new Date(order.created_at).toLocaleString("en-IN")}</p>
 
@@ -75,7 +75,7 @@ export default async function AdminOrderDetail({ params }: { params: Promise<{ n
         <aside className="space-y-6">
           <OrderStatusForm orderId={order.id} orderNumber={order.order_number} customerEmail={order.shipping_address?.email} currentStatus={order.status} />
           <div className="bg-white rounded-lg p-5 shadow-soft text-sm">
-            <p className="text-xs uppercase tracking-widest text-gold font-bold mb-2">Payment</p>
+            <p className="text-xs uppercase tracking-widest text-gold-text font-bold mb-2">Payment</p>
             <p className="text-navy">Method: <strong>{order.payment_method}</strong></p>
             <p className="text-navy">Status: <strong className="uppercase">{order.payment_status}</strong></p>
             {order.razorpay_payment_id && <p className="text-xs text-muted mt-1">RZP: {order.razorpay_payment_id}</p>}

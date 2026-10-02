@@ -7,7 +7,7 @@ import { requireAdminPage } from "@/lib/admin-auth";
 export const dynamic = "force-dynamic";
 
 export default async function AdminReturnsPage() {
-  await requireAdminPage(["super_admin", "order_manager"]);
+  await requireAdminPage("returns");
   const admin = createAdminClient();
   const { data: returns } = await admin
     .from("returns")
@@ -18,7 +18,7 @@ export default async function AdminReturnsPage() {
   return (
     <div>
       <div className="mb-4">
-        <p className="text-xs uppercase tracking-widest text-gold font-bold">Post-purchase</p>
+        <p className="text-xs uppercase tracking-widest text-gold-text font-bold">Post-purchase</p>
         <h1 className="font-display text-2xl md:text-3xl text-navy tracking-tight">Returns &amp; exchanges</h1>
       </div>
 

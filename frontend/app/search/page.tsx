@@ -1,13 +1,15 @@
-import { createClient } from "@/lib/supabase/server";
+import { createPublicClient } from "@/lib/supabase/public";
 import ProductCard from "@/components/ProductCard";
 import type { Product } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
+export const metadata = { title: "Search", robots: { index: false, follow: true } };
+
 export default async function SearchPage({ searchParams }: { searchParams: Promise<{ q?: string }> }) {
   const { q } = await searchParams;
   const query = (q ?? "").trim();
-  const supabase = await createClient();
+  const supabase = createPublicClient();
 
   let results: Product[] = [];
   if (query) {
@@ -25,7 +27,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
 
   return (
     <div className="container py-12 md:py-16">
-      <p className="text-xs uppercase tracking-widest text-gold font-bold">Search</p>
+      <p className="text-xs uppercase tracking-widest text-gold-text font-bold">Search</p>
       <h1 className="font-display text-3xl md:text-4xl text-navy tracking-tight mt-1">
         {query ? <>Results for “{query}”</> : "What are you looking for?"}
       </h1>

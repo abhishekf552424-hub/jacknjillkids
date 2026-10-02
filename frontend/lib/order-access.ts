@@ -1,4 +1,5 @@
 import crypto from "crypto";
+import { SITE_URL } from "@/lib/site";
 
 /**
  * Order access tokens let guests (no account) open their own order page and
@@ -23,6 +24,6 @@ export function isValidOrderAccessToken(orderNumber: string, token: string | nul
 }
 
 /** Customer-facing order URL that works for guests too. */
-export function orderUrl(orderNumber: string, siteUrl = process.env.NEXT_PUBLIC_SITE_URL || ""): string {
+export function orderUrl(orderNumber: string, siteUrl = SITE_URL): string {
   return `${siteUrl}/orders/${orderNumber}?t=${makeOrderAccessToken(orderNumber)}`;
 }

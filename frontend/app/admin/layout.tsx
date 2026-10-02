@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import AdminShell from "./AdminShell";
 import { TWO_FA_COOKIE, isTwoFaCookieValid } from "@/lib/admin-auth";
 import { getBrandSettings } from "@/lib/settings";
+import { isAdminRole } from "@/lib/admin-roles";
 
 export const dynamic = "force-dynamic";
 
@@ -16,7 +17,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     .select("role, full_name, is_active")
     .eq("id", user.id)
     .maybeSingle();
-  if (!profile || profile.role === "customer") redirect("/account");
+  if (!profile || !isAdminRole(profile.role)) redirect("/account");
   if (profile.is_active === false) {
     // Sign out and bounce to login
     await supabase.auth.signOut();

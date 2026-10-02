@@ -4,7 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 async function requireAdmin() {
-  return checkAdmin(["super_admin", "content_manager"]);
+  return checkAdmin("categories");
 }
 
 export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {

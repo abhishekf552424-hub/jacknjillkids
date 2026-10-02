@@ -95,7 +95,7 @@ export default function SupportChat({
         aria-label="Support chat"
         data-testid="support-launcher"
         onClick={() => setOpen((v) => !v)}
-        className="fixed bottom-5 right-5 z-[70] w-14 h-14 rounded-full bg-brand-gradient text-white shadow-premium flex items-center justify-center hover:scale-105 transition-transform"
+        className="fixed bottom-5 right-5 z-[70] w-14 h-14 rounded-full bg-navy text-white shadow-premium flex items-center justify-center hover:scale-105 transition-transform"
       >
         {open ? <X className="w-6 h-6" /> : <MessageCircle className="w-6 h-6" />}
       </button>

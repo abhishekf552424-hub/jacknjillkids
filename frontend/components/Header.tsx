@@ -88,7 +88,7 @@ export default function Header({
         <span className="font-display text-2xl md:text-3xl font-bold text-navy">Jack</span>
         <span
           className="font-display text-2xl md:text-3xl font-bold"
-          style={{ background: "linear-gradient(135deg,#E63946,#F4A63E,#F7D34C)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}
+          style={{ background: "linear-gradient(135deg,#EA4137,#F38838,#FCD325)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}
         >&amp;</span>
         <span className="font-display text-2xl md:text-3xl font-bold text-navy">Jill</span>
       </span>
@@ -116,7 +116,7 @@ export default function Header({
       >
         <ShoppingBag className="w-5 h-5 text-navy" />
         {count > 0 && (
-          <span data-testid="cart-count" className="absolute -top-0.5 -right-0.5 bg-brand-gradient text-white text-[10px] rounded-full w-5 h-5 flex items-center justify-center font-bold">
+          <span data-testid="cart-count" className="absolute -top-0.5 -right-0.5 bg-action text-white text-[10px] rounded-full w-5 h-5 flex items-center justify-center font-bold">
             {count}
           </span>
         )}
@@ -148,9 +148,9 @@ export default function Header({
           onMouseLeave={() => setHoverCat(null)}
         >
           <Link
-            href={`/shop?category=${c.slug}`}
+            href={`/category/${c.slug}`}
             data-testid={`nav-${c.slug}`}
-            className="px-3 py-2 text-base font-semibold text-navy hover:text-gold transition-colors whitespace-nowrap"
+            className="px-3 py-2 text-base font-semibold text-navy hover:text-gold-text transition-colors whitespace-nowrap"
           >
             {c.name}
           </Link>
@@ -167,7 +167,7 @@ export default function Header({
                   {c.children!.map((s) => (
                     <Link
                       key={s.id}
-                      href={`/shop?category=${s.slug}`}
+                      href={`/category/${s.slug}`}
                       className="flex items-center justify-between px-3 py-2 rounded-sm text-sm text-navy hover:bg-cream"
                     >
                       {s.name}
@@ -286,7 +286,7 @@ export default function Header({
                 ) : (
                   <span className="flex items-baseline gap-1">
                     <span className="font-display text-2xl font-bold text-navy">Jack</span>
-                    <span className="font-display text-2xl font-bold" style={{ background: "linear-gradient(135deg,#E63946,#F4A63E,#F7D34C)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>&amp;</span>
+                    <span className="font-display text-2xl font-bold" style={{ background: "linear-gradient(135deg,#EA4137,#F38838,#FCD325)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>&amp;</span>
                     <span className="font-display text-2xl font-bold text-navy">Jill</span>
                   </span>
                 )}
@@ -301,7 +301,7 @@ export default function Header({
                   {categoriesTree.map((c) => (
                     <Link
                       key={c.id}
-                      href={`/shop?category=${c.slug}`}
+                      href={`/category/${c.slug}`}
                       onClick={() => setMenuOpen(false)}
                       className="flex flex-col items-center gap-2 min-w-[72px]"
                       data-testid={`ham-cat-${c.slug}`}
@@ -328,7 +328,7 @@ export default function Header({
                       key={a.id}
                       href={`/shop?age=${a.slug}`}
                       onClick={() => setMenuOpen(false)}
-                      className="px-3.5 py-2 rounded-full bg-white border border-navy/10 text-sm font-semibold text-navy hover:border-gold hover:text-gold transition-colors"
+                      className="px-3.5 py-2 rounded-full bg-white border border-navy/10 text-sm font-semibold text-navy hover:border-gold hover:text-gold-text transition-colors"
                     >
                       {a.label}
                     </Link>

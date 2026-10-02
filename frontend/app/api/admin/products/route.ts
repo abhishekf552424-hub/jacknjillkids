@@ -1,11 +1,13 @@
 import { NextResponse } from "next/server";
+import { SITE_URL } from "@/lib/site";
 import { checkAdmin } from "@/lib/admin-auth";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { slugify } from "@/lib/utils";
+import { syncProductVariants } from "@/lib/product-variants";
 
 async function requireAdmin() {
-  return checkAdmin(["super_admin", "content_manager"]);
+  return checkAdmin("products");
 }
 
 async function save(payload: any, productId?: string) {
@@ -34,18 +36,8 @@ async function save(payload: any, productId?: string) {
   if (images?.length) {
     await admin.from("product_images").insert(images.map((im: any, i: number) => ({ product_id: id, url: im.url, alt_text: im.alt_text, sort_order: i })));
   }
-  await admin.from("product_variants").delete().eq("product_id", id!);
-  if (variants?.length) {
-    await admin.from("product_variants").insert(variants.filter((v: any) => v.sku || v.size || v.color).map((v: any) => ({
-      product_id: id,
-      size: v.size || null,
-      color: v.color || null,
-      color_hex: v.color_hex || null,
-      sku: v.sku || null,
-      stock_qty: Number(v.stock_qty) || 0,
-      price_override: v.price_override ? Number(v.price_override) : null,
-    })));
-  }
+  const vs = await syncProductVariants(admin, id!, variants);
+  if (vs.error) return { error: vs.error };
   await admin.from("product_age_groups").delete().eq("product_id", id!);
   if (age_group_ids?.length) {
     await admin.from("product_age_groups").insert(age_group_ids.map((a: string) => ({ product_id: id, age_group_id: a })));
@@ -75,7 +67,7 @@ async function save(payload: any, productId?: string) {
         // Fire-and-forget in the background
         import("@/lib/resend").then(async ({ sendEmail }) => {
           for (const row of waiting) {
-            await sendEmail({ to: row.email, subject: "Good news \u2014 it's back in stock!", html: `<p>The item you asked about is back in stock. <a href=\"${process.env.NEXT_PUBLIC_SITE_URL}/product/${(product?.slug || record.slug)}\">Shop now</a>.</p>` }).catch(() => {});
+            await sendEmail({ to: row.email, subject: "Good news \u2014 it's back in stock!", html: `<p>The item you asked about is back in stock. <a href=\"${SITE_URL}/product/${(product?.slug || record.slug)}\">Shop now</a>.</p>` }).catch(() => {});
           }
           await admin.from("stock_notifications").update({ notified_at: new Date().toISOString() }).in("id", waiting.map((w: any) => w.id));
         });

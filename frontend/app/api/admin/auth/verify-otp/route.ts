@@ -1,3 +1,4 @@
+import { isAdminRole } from "@/lib/admin-roles";
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -26,7 +27,7 @@ export async function POST(req: Request) {
     const { data: target } = await admin.from("profiles").select("role, is_active").eq("id", parsed.uid).maybeSingle();
     const { data: authUser } = await admin.auth.admin.getUserById(parsed.uid);
     const email = authUser?.user?.email;
-    if (!email || !target || target.role === "customer" || target.is_active === false) {
+    if (!email || !target || !isAdminRole(target.role) || target.is_active === false) {
       jar.delete(CHALLENGE_COOKIE);
       return NextResponse.json({ error: "Not an admin account" }, { status: 403 });
     }

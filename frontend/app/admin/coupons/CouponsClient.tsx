@@ -84,7 +84,7 @@ export default function CouponsClient({ initial }: { initial: C[] }) {
                   <td className="px-3 py-2"><input type="date" value={c.valid_to?.slice(0,10) ?? ""} onChange={(e) => update(i, { valid_to: e.target.value || null })} className="bg-cream rounded px-2 py-1 border border-navy/10 outline-none text-xs" /></td>
                   <td className="px-3 py-2 text-center"><input type="checkbox" checked={c.is_active} onChange={(e) => update(i, { is_active: e.target.checked })} /></td>
                   <td className="px-3 py-2 text-right">
-                    <button onClick={() => save(c, i)} className="text-xs text-gold px-2"><Save className="w-4 h-4 inline" /></button>
+                    <button onClick={() => save(c, i)} className="text-xs text-gold-text px-2"><Save className="w-4 h-4 inline" /></button>
                     <button onClick={() => remove(i, c)} className="text-xs text-error px-2"><Trash2 className="w-4 h-4 inline" /></button>
                   </td>
                 </tr>

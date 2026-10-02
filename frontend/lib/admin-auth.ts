@@ -17,8 +17,8 @@ import { createClient } from "@/lib/supabase/server";
  * SUPABASE_SERVICE_ROLE_KEY so existing deployments keep working).
  */
 
-export type AdminRole = "super_admin" | "order_manager" | "content_manager";
-export const ALL_ADMIN_ROLES: AdminRole[] = ["super_admin", "order_manager", "content_manager"];
+import { ALL_ADMIN_ROLES, SECTION_ROLES, type AdminRole, type AdminSection } from "@/lib/admin-roles";
+export { ALL_ADMIN_ROLES, type AdminRole };
 
 export const TWO_FA_COOKIE = "admin_2fa_ok";
 export const CHALLENGE_COOKIE = "admin_otp_challenge";
@@ -95,7 +95,8 @@ export type AdminGuardResult =
  *   const g = await checkAdmin(["super_admin", "content_manager"]);
  *   if ("error" in g) return NextResponse.json({ error: g.error }, { status: g.status });
  */
-export async function checkAdmin(allowed: AdminRole[] = ALL_ADMIN_ROLES): Promise<AdminGuardResult> {
+export async function checkAdmin(allowed: AdminRole[] | AdminSection = ALL_ADMIN_ROLES): Promise<AdminGuardResult> {
+  if (typeof allowed === "string") allowed = SECTION_ROLES[allowed] as AdminRole[];
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { ok: false, error: "Not signed in", status: 401 };
@@ -115,7 +116,8 @@ export async function checkAdmin(allowed: AdminRole[] = ALL_ADMIN_ROLES): Promis
  * navigation, so every page that reads data with the service-role client must
  * check access itself — never rely on app/admin/layout.tsx alone.
  */
-export async function requireAdminPage(allowed: AdminRole[] = ALL_ADMIN_ROLES) {
+export async function requireAdminPage(section: AdminRole[] | AdminSection = ALL_ADMIN_ROLES) {
+  const allowed = typeof section === "string" ? (SECTION_ROLES[section] as AdminRole[]) : section;
   const g = await checkAdmin(allowed);
   if ("error" in g) {
     const { redirect } = await import("next/navigation");

@@ -8,7 +8,7 @@ import { sendEmail, orderStatusTemplate } from "@/lib/resend";
 const VALID_STATUSES = ["placed", "confirmed", "packed", "shipped", "out_for_delivery", "delivered", "cancelled"];
 
 async function requireAdmin() {
-  return checkAdmin(["super_admin", "order_manager"]);
+  return checkAdmin("orders");
 }
 
 export async function POST(req: Request) {
@@ -24,13 +24,19 @@ export async function POST(req: Request) {
   }
 
   const admin = createAdminClient();
-  const { data: orders } = await admin.from("orders").select("id, order_number, shipping_address").in("id", ids);
+  const { data: orders } = await admin.from("orders").select("id, order_number, shipping_address, status").in("id", ids);
+  if (status !== "cancelled" && (orders ?? []).some((o: any) => o.status === "cancelled")) {
+    return NextResponse.json({ ok: false, error: "Reopen cancelled orders one at a time, so stock can be checked." }, { status: 400 });
+  }
 
   const { error } = await admin.from("orders").update({ status, updated_at: new Date().toISOString() }).in("id", ids);
   if (error) return NextResponse.json({ ok: false, error: error.message }, { status: 400 });
 
   const historyRows = ids.map((id: string) => ({ order_id: id, status, note: "Bulk update", changed_by: g.user.id }));
   await admin.from("order_status_history").insert(historyRows);
+  if (status === "cancelled") {
+    for (const id of ids) await admin.rpc("release_order_stock", { p_order_id: id });
+  }
 
   // Best-effort notification emails — never let a delivery failure block the bulk update itself.
   for (const o of orders ?? []) {

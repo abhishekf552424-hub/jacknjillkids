@@ -1,3 +1,4 @@
+import { isAdminRole } from "@/lib/admin-roles";
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -27,7 +28,7 @@ export async function POST(req: Request) {
     // 2) Confirm the user is actually an admin (not a customer)
     const admin = createAdminClient();
     const { data: profile } = await admin.from("profiles").select("role,is_active,full_name").eq("id", userId).maybeSingle();
-    if (!profile || profile.role === "customer") return NextResponse.json({ error: "Not an admin account" }, { status: 403 });
+    if (!profile || !isAdminRole(profile.role)) return NextResponse.json({ error: "Not an admin account" }, { status: 403 });
     if (profile.is_active === false) return NextResponse.json({ error: "This admin account is deactivated" }, { status: 403 });
 
     // 3) Rate-limit: 3 OTP requests per 10 minutes per user

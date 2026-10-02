@@ -10,7 +10,7 @@ export const dynamic = "force-dynamic";
 // Admin-only signed upload URL for the 'media' public bucket.
 // The client PUTs the file to the returned signedUrl and we return the final public URL.
 export async function POST(req: Request) {
-  const g = await checkAdmin();
+  const g = await checkAdmin("products");
   if ("error" in g) return NextResponse.json({ error: g.error }, { status: g.status });
 
   const { filename, folder = "uploads", contentType } = await req.json();

@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { plpHref } from "@/lib/plp-url";
+import { useRouter } from "next/navigation";
 import { X } from "lucide-react";
 import type { Category, AgeGroup } from "@/lib/types";
 
@@ -17,7 +18,6 @@ export default function AppliedFilters({
   ageGroups: AgeGroup[];
 }) {
   const router = useRouter();
-  const params = useSearchParams();
 
   const chips: Chip[] = [];
   if (current.category) {
@@ -37,10 +37,7 @@ export default function AppliedFilters({
   if (chips.length === 0) return null;
 
   const remove = (key: string) => {
-    const q = new URLSearchParams(params.toString());
-    q.delete(key);
-    q.delete("page");
-    router.push(`/shop?${q.toString()}`);
+    router.push(plpHref(current, { [key]: null }));
   };
 
   return (
@@ -50,7 +47,7 @@ export default function AppliedFilters({
         <button
           key={c.key}
           onClick={() => remove(c.key)}
-          className="inline-flex items-center gap-1.5 bg-white border border-navy/10 rounded-full pl-3 pr-2 py-1 text-xs font-medium text-navy hover:border-gold hover:text-gold transition-colors group"
+          className="inline-flex items-center gap-1.5 bg-white border border-navy/10 rounded-full pl-3 pr-2 py-1 text-xs font-medium text-navy hover:border-gold hover:text-gold-text transition-colors group"
           data-testid={`applied-chip-${c.key}`}
         >
           {c.label}

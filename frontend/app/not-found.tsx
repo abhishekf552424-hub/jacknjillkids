@@ -10,10 +10,10 @@ export const metadata = {
 export default function NotFound() {
   return (
     <div className="container py-16 md:py-24 min-h-[70vh] flex flex-col items-center justify-center text-center">
-      <div className="w-24 h-24 rounded-full bg-brand-gradient text-white flex items-center justify-center shadow-premium mb-6">
+      <div className="w-24 h-24 rounded-full bg-sky text-doodle flex items-center justify-center shadow-premium mb-6">
         <ShoppingBag className="w-11 h-11" />
       </div>
-      <p className="text-xs uppercase tracking-widest text-gold font-bold">404</p>
+      <p className="text-xs uppercase tracking-widest text-gold-text font-bold">404</p>
       <h1 className="mt-2 font-display text-4xl md:text-6xl text-navy tracking-tight leading-none">This little page wandered off</h1>
       <p className="mt-4 text-muted max-w-md">
         Looks like the page you&apos;re looking for tip-toed away. Let&apos;s get you back to something delightful.
@@ -28,7 +28,7 @@ export default function NotFound() {
         </Link>
         <Link
           href="/shop"
-          className="inline-flex items-center justify-center gap-2 border-2 border-gold text-gold rounded-md px-6 py-3 font-bold hover:bg-gold hover:text-white transition-all"
+          className="inline-flex items-center justify-center gap-2 border-2 border-gold text-gold-text rounded-md px-6 py-3 font-bold hover:bg-gold-text hover:border-gold-text hover:text-white transition-all"
           data-testid="notfound-shop"
         >
           <Search className="w-4 h-4" /> Browse shop

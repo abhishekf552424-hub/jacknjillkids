@@ -7,7 +7,7 @@ import { sendEmail } from "@/lib/resend";
 export const runtime = "nodejs";
 
 async function requireAdmin() {
-  const g = await checkAdmin(["super_admin", "order_manager", "content_manager"]);
+  const g = await checkAdmin("support");
   return "error" in g ? null : g.user;
 }
 
