@@ -25,6 +25,8 @@ export type Category = {
   is_featured_in_menu: boolean;
   sort_order: number;
   is_active: boolean;
+  meta_title?: string | null;
+  meta_description?: string | null;
   children?: Category[];
 };
 

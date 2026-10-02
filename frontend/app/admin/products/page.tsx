@@ -1,9 +1,11 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import ProductsListClient from "./ProductsListClient";
+import { requireAdminPage } from "@/lib/admin-auth";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminProducts() {
+  await requireAdminPage(["super_admin", "content_manager"]);
   const admin = createAdminClient();
   const [{ data: products }, { data: categories }] = await Promise.all([
     admin

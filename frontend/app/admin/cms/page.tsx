@@ -1,10 +1,12 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import Link from "next/link";
 import CmsList from "./CmsList";
+import { requireAdminPage } from "@/lib/admin-auth";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminCMS() {
+  await requireAdminPage(["super_admin", "content_manager"]);
   const admin = createAdminClient();
   const [{ data: pages }, { data: faqs }, { data: badges }] = await Promise.all([
     admin.from("cms_pages").select("*").order("title"),

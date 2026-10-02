@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { hashOtp } from "@/lib/otp";
+import { CHALLENGE_COOKIE, TWO_FA_COOKIE, TWO_FA_TTL_SECONDS, cookieOptions, makeTwoFaCookie, readChallengeCookie } from "@/lib/admin-auth";
 
 export const runtime = "nodejs";
 
@@ -15,11 +16,21 @@ export async function POST(req: Request) {
     if (!code || !/^\d{6}$/.test(code)) return NextResponse.json({ error: "Enter the 6-digit code" }, { status: 400 });
 
     const jar = await cookies();
-    const ch = jar.get("admin_otp_challenge")?.value;
-    if (!ch) return NextResponse.json({ error: "Challenge expired — please log in again" }, { status: 400 });
-    const challenge = JSON.parse(ch) as { uid: string; email: string; ts: number };
+    const parsed = readChallengeCookie(jar.get(CHALLENGE_COOKIE)?.value);
+    if (!parsed) return NextResponse.json({ error: "Challenge expired — please log in again" }, { status: 400 });
 
     const admin = createAdminClient();
+    // Resolve the email from the user id server-side. The old cookie carried the
+    // email in plain JSON, so an admin could pass their own OTP and receive a
+    // session for a different (e.g. super_admin) account.
+    const { data: target } = await admin.from("profiles").select("role, is_active").eq("id", parsed.uid).maybeSingle();
+    const { data: authUser } = await admin.auth.admin.getUserById(parsed.uid);
+    const email = authUser?.user?.email;
+    if (!email || !target || target.role === "customer" || target.is_active === false) {
+      jar.delete(CHALLENGE_COOKIE);
+      return NextResponse.json({ error: "Not an admin account" }, { status: 403 });
+    }
+    const challenge = { uid: parsed.uid, email };
     // fetch most recent unused OTP for this user + purpose
     const { data: rows } = await admin
       .from("admin_otp_codes")
@@ -59,8 +70,8 @@ export async function POST(req: Request) {
 
     // Set challenge cookie invalid and 2fa_ok cookie for 12h; the client will then hit
     // /auth/verify to consume the token_hash and set the sb cookies.
-    jar.delete("admin_otp_challenge");
-    jar.set("admin_2fa_ok", "1", { httpOnly: true, secure: true, sameSite: "lax", path: "/", maxAge: 12 * 60 * 60 });
+    jar.delete(CHALLENGE_COOKIE);
+    jar.set(TWO_FA_COOKIE, makeTwoFaCookie(challenge.uid), cookieOptions(TWO_FA_TTL_SECONDS));
 
     return NextResponse.json({
       ok: true,
@@ -68,6 +79,7 @@ export async function POST(req: Request) {
       email: challenge.email,
     });
   } catch (e: any) {
-    return NextResponse.json({ error: e?.message || "Server error" }, { status: 500 });
+    console.error("[admin/verify-otp]", e?.message);
+    return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }

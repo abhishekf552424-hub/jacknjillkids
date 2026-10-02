@@ -1,4 +1,5 @@
-import { createClient } from "@/lib/supabase/server";
+import { createPublicClient } from "@/lib/supabase/public";
+import { abs } from "@/lib/site";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 
@@ -6,15 +7,19 @@ export const revalidate = 300;
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
-  const supabase = await createClient();
+  const supabase = createPublicClient();
   const { data } = await supabase.from("cms_pages").select("*").eq("slug", slug).maybeSingle();
-  if (!data) return { title: "Not found" };
-  return { title: data.meta_title || data.title, description: data.meta_description ?? undefined };
+  if (!data) return { title: "Not found", robots: { index: false } };
+  return {
+    title: data.meta_title || data.title,
+    description: data.meta_description ?? undefined,
+    alternates: { canonical: abs(`/legal/${data.slug}`) },
+  };
 }
 
 export default async function LegalPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const supabase = await createClient();
+  const supabase = createPublicClient();
   const { data } = await supabase.from("cms_pages").select("*").eq("slug", slug).maybeSingle();
   if (!data) return notFound();
 

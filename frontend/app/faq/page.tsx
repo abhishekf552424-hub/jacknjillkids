@@ -1,15 +1,17 @@
-import { createClient } from "@/lib/supabase/server";
+import { createPublicClient } from "@/lib/supabase/public";
+import { abs } from "@/lib/site";
 import type { Faq } from "@/lib/types";
 
 export const metadata = {
-  title: "FAQ — Jack & Jill",
+  alternates: { canonical: abs("/faq") },
+  title: "Parent FAQs — sizes, delivery, COD & exchanges",
   description: "Frequently asked questions about shipping, returns, sizing and more at Jack & Jill.",
 };
 
 export const revalidate = 300;
 
 export default async function FaqPage() {
-  const supabase = await createClient();
+  const supabase = createPublicClient();
   const { data } = await supabase.from("faqs").select("*").eq("is_active", true).order("sort_order");
   const faqs = (data ?? []) as Faq[];
 

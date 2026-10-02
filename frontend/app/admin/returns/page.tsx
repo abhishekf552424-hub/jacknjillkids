@@ -2,10 +2,12 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { formatINR } from "@/lib/utils";
 import Link from "next/link";
 import ReturnRow from "./ReturnRow";
+import { requireAdminPage } from "@/lib/admin-auth";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminReturnsPage() {
+  await requireAdminPage(["super_admin", "order_manager"]);
   const admin = createAdminClient();
   const { data: returns } = await admin
     .from("returns")

@@ -1,13 +1,15 @@
-import { createClient } from "@/lib/supabase/server";
+import { createPublicClient } from "@/lib/supabase/public";
 import ProductCard from "@/components/ProductCard";
 import type { Product } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
+export const metadata = { title: "Search", robots: { index: false, follow: true } };
+
 export default async function SearchPage({ searchParams }: { searchParams: Promise<{ q?: string }> }) {
   const { q } = await searchParams;
   const query = (q ?? "").trim();
-  const supabase = await createClient();
+  const supabase = createPublicClient();
 
   let results: Product[] = [];
   if (query) {

@@ -39,11 +39,11 @@ export default function Footer({ contact, brand, logoSize = 44 }: { contact: any
         <div>
           <h4 className="text-xs font-bold uppercase tracking-widest text-gold-light mb-4">Shop</h4>
           <ul className="space-y-2 text-sm opacity-80">
-            <li><Link href="/shop?category=clothing" className="hover:text-gold-light transition-colors">Clothing</Link></li>
-            <li><Link href="/shop?category=footwear" className="hover:text-gold-light transition-colors">Footwear</Link></li>
-            <li><Link href="/shop?category=baby-essentials" className="hover:text-gold-light transition-colors">Baby Essentials</Link></li>
-            <li><Link href="/shop?category=toys" className="hover:text-gold-light transition-colors">Toys</Link></li>
-            <li><Link href="/shop?category=gift-hampers" className="hover:text-gold-light transition-colors">Gift Hampers</Link></li>
+            <li><Link href="/category/clothing" className="hover:text-gold-light transition-colors">Clothing</Link></li>
+            <li><Link href="/category/footwear" className="hover:text-gold-light transition-colors">Footwear</Link></li>
+            <li><Link href="/category/baby-essentials" className="hover:text-gold-light transition-colors">Baby Essentials</Link></li>
+            <li><Link href="/category/toys" className="hover:text-gold-light transition-colors">Toys</Link></li>
+            <li><Link href="/category/gift-hampers" className="hover:text-gold-light transition-colors">Gift Hampers</Link></li>
           </ul>
         </div>
 

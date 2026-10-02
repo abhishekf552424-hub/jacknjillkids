@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { plpHref } from "@/lib/plp-url";
+import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { Filter, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -29,7 +30,6 @@ export default function PLPFilters({
   current: Record<string, string | undefined>;
 }) {
   const router = useRouter();
-  const params = useSearchParams();
   const [pending, start] = useTransition();
   const [open, setOpen] = useState(false);
   const [min, setMin] = useState(current.min ?? "");
@@ -38,11 +38,7 @@ export default function PLPFilters({
   const topCats = categories.filter((c) => !c.parent_id);
 
   const setParam = (key: string, val: string | null) => {
-    const q = new URLSearchParams(params.toString());
-    if (val === null || val === "") q.delete(key);
-    else q.set(key, val);
-    q.delete("page");
-    start(() => router.push(`/shop?${q.toString()}`));
+    start(() => router.push(plpHref(current, { [key]: val })));
   };
 
   const Content = (
@@ -137,10 +133,7 @@ export default function PLPFilters({
         </div>
         <button
           onClick={() => {
-            const q = new URLSearchParams(params.toString());
-            if (min) q.set("min", min); else q.delete("min");
-            if (max) q.set("max", max); else q.delete("max");
-            start(() => router.push(`/shop?${q.toString()}`));
+            start(() => router.push(plpHref(current, { min: min || null, max: max || null })));
           }}
           className="mt-3 w-full bg-navy text-white rounded-md px-4 py-2 text-sm font-bold hover:opacity-90 transition-opacity"
         >

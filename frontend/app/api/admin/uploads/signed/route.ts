@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { checkAdmin } from "@/lib/admin-auth";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { randomBytes } from "node:crypto";
@@ -9,11 +10,8 @@ export const dynamic = "force-dynamic";
 // Admin-only signed upload URL for the 'media' public bucket.
 // The client PUTs the file to the returned signedUrl and we return the final public URL.
 export async function POST(req: Request) {
-  const s = await createClient();
-  const { data: { user } } = await s.auth.getUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  const { data: profile } = await s.from("profiles").select("role").eq("id", user.id).maybeSingle();
-  if (!profile || profile.role === "customer") return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  const g = await checkAdmin();
+  if ("error" in g) return NextResponse.json({ error: g.error }, { status: g.status });
 
   const { filename, folder = "uploads", contentType } = await req.json();
   if (!filename) return NextResponse.json({ error: "filename required" }, { status: 400 });

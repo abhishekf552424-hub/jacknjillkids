@@ -51,12 +51,35 @@ export default function CheckoutPage() {
       const r = await fetch("/api/checkout/quote", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ subtotal, pincode: addr.pincode }),
+        body: JSON.stringify({ subtotal, pincode: addr.pincode, coupon_code: appliedCoupon || undefined, email: addr.email || undefined }),
       });
       const j = await r.json();
-      setTotals({ subtotal, shipping: j.shipping, tax: j.tax, discount: 0, total: j.total });
+      if (appliedCoupon && j.coupon_error) {
+        // Cart changed and the coupon no longer applies (e.g. below minimum).
+        toast.error(j.coupon_error);
+        setAppliedCoupon(null);
+      }
+      setTotals({ subtotal, shipping: j.shipping, tax: j.tax, discount: j.discount ?? 0, total: j.total });
     })();
-  }, [lines, addr.pincode]);
+  }, [lines, addr.pincode, appliedCoupon]);
+
+  const applyCoupon = async () => {
+    const code = couponInput.trim().toUpperCase();
+    if (!code) return;
+    const subtotal = lines.reduce((s, l) => s + l.price * l.quantity, 0);
+    const r = await fetch("/api/checkout/quote", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ subtotal, coupon_code: code, email: addr.email || undefined }),
+    });
+    const j = await r.json();
+    if (j.coupon_error || !j.coupon) {
+      toast.error(j.coupon_error || "This coupon is not valid");
+      return;
+    }
+    setAppliedCoupon(j.coupon.code);
+    toast.success(`Coupon ${j.coupon.code} applied — you save ${formatINR(j.discount)}`);
+  };
 
   const checkPincode = async () => {
     if (!/^\d{6}$/.test(addr.pincode)) return;
@@ -99,7 +122,7 @@ export default function CheckoutPage() {
       if (payment === "cod" || !j.razorpay_order_id) {
         cart.clear();
         toast.success("Order placed!");
-        router.push(`/orders/${j.order_number}?new=1`);
+        router.push(`/orders/${j.order_number}?new=1&t=${j.access_token ?? ""}`);
         return;
       }
 
@@ -126,7 +149,7 @@ export default function CheckoutPage() {
           });
           cart.clear();
           toast.success("Payment successful!");
-          router.push(`/orders/${j.order_number}?new=1`);
+          router.push(`/orders/${j.order_number}?new=1&t=${j.access_token ?? ""}`);
         },
         modal: {
           ondismiss: () => {
@@ -287,11 +310,7 @@ export default function CheckoutPage() {
                   data-testid="coupon-input"
                 />
                 <button
-                  onClick={() => {
-                    if (!couponInput.trim()) return;
-                    setAppliedCoupon(couponInput.trim());
-                    toast.success(`Coupon ${couponInput.trim()} applied`, { description: "Discount will be verified at order placement" });
-                  }}
+                  onClick={applyCoupon}
                   className="bg-navy text-white rounded-md px-4 py-2 text-sm font-bold hover:opacity-90 transition-opacity"
                   data-testid="coupon-apply"
                 >
@@ -310,6 +329,7 @@ export default function CheckoutPage() {
 
             <div className="mt-4 space-y-1.5 text-sm">
               <Row l="Subtotal" v={formatINR(totals.subtotal)} />
+              {totals.discount > 0 && <Row l={`Coupon${appliedCoupon ? ` (${appliedCoupon})` : ""}`} v={`− ${formatINR(totals.discount)}`} />}
               <Row l="Shipping" v={totals.shipping === 0 ? "FREE" : formatINR(totals.shipping)} />
               <Row l="Tax (incl.)" v={formatINR(totals.tax)} />
               <div className="pt-3 mt-3 border-t border-navy/10 flex justify-between font-display text-lg text-navy">

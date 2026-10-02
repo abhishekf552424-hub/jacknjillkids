@@ -1,5 +1,7 @@
 import { notFound } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { createPublicClient } from "@/lib/supabase/public";
+import { SITE_URL } from "@/lib/site";
+import { getShippingSettings, getReturnsSettings } from "@/lib/settings";
 import PDPClient from "@/components/pdp/PDPClient";
 import ProductCard from "@/components/ProductCard";
 import type { Product } from "@/lib/types";
@@ -9,7 +11,7 @@ import Link from "next/link";
 export const revalidate = 60;
 
 async function loadProduct(slug: string) {
-  const supabase = await createClient();
+  const supabase = createPublicClient();
   const { data: p } = await supabase
     .from("products")
     .select(
@@ -26,7 +28,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const { slug } = await params;
   const p = await loadProduct(slug);
   if (!p) return { title: "Product not found" };
-  const site = process.env.NEXT_PUBLIC_SITE_URL || "";
+  const site = SITE_URL;
   const canonical = `${site}/product/${p.slug}`;
   const desc = p.meta_description || p.short_description || `Buy ${p.name} at Jack & Jill — premium kids fashion in India.`;
   return {
@@ -54,7 +56,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   const product = await loadProduct(slug);
   if (!product) return notFound();
 
-  const supabase = await createClient();
+  const supabase = createPublicClient();
   const { data: related } = await supabase
     .from("products")
     .select("id, slug, name, brand, base_price, mrp, status, is_new_arrival, alt_text, images:product_images(url,alt_text,sort_order)")
@@ -74,7 +76,12 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
     .eq("is_approved", true)
     .order("created_at", { ascending: false });
 
-  const site = process.env.NEXT_PUBLIC_SITE_URL || "";
+  const site = SITE_URL;
+  // Structured-data facts come from real stock, prices and store settings.
+  const [shipping, returns] = await Promise.all([getShippingSettings(), getReturnsSettings()]);
+  const variants = (product.variants ?? []) as any[];
+  const variantPrices = (variants.length ? variants.map((v) => Number(v.price_override ?? product.base_price)) : [Number(product.base_price)]).filter((n) => Number.isFinite(n));
+  const inStock = product.status === "active" && (variants.length === 0 || variants.some((v) => Number(v.stock_qty) > 0));
   const avgRating = (reviews ?? []).length
     ? ((reviews ?? []).reduce((s: number, r: any) => s + (r.rating || 0), 0) / (reviews ?? []).length)
     : 0;
@@ -96,11 +103,25 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
         }
       : {}),
     offers: {
-      "@type": "Offer",
+      "@type": "AggregateOffer",
       priceCurrency: "INR",
-      price: product.base_price,
-      availability: product.status === "active" ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+      lowPrice: Math.min(...variantPrices),
+      highPrice: Math.max(...variantPrices),
+      offerCount: Math.max(1, variants.length),
+      availability: inStock ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
       url: `${site}/product/${product.slug}`,
+      seller: { "@type": "Organization", name: "Jack & Jill" },
+      shippingDetails: {
+        "@type": "OfferShippingDetails",
+        shippingDestination: { "@type": "DefinedRegion", addressCountry: "IN" },
+        shippingRate: { "@type": "MonetaryAmount", currency: "INR", value: Number(product.base_price) >= shipping.free_above ? 0 : shipping.flat_fee },
+      },
+      hasMerchantReturnPolicy: {
+        "@type": "MerchantReturnPolicy",
+        applicableCountry: "IN",
+        returnPolicyCategory: "https://schema.org/MerchantReturnFiniteReturnWindow",
+        merchantReturnDays: returns.exchange_window_days ?? 7,
+      },
     },
   };
 
@@ -111,7 +132,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
       { "@type": "ListItem", position: 1, name: "Home", item: `${site}/` },
       { "@type": "ListItem", position: 2, name: "Shop", item: `${site}/shop` },
       ...(product.category
-        ? [{ "@type": "ListItem", position: 3, name: product.category.name, item: `${site}/shop?category=${product.category.slug}` }]
+        ? [{ "@type": "ListItem", position: 3, name: product.category.name, item: `${site}/category/${product.category.slug}` }]
         : []),
       { "@type": "ListItem", position: product.category ? 4 : 3, name: product.name, item: `${site}/product/${product.slug}` },
     ],
@@ -125,7 +146,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
         <nav aria-label="Breadcrumb" className="text-xs text-muted mb-4 flex items-center gap-1.5">
           <Link href="/" className="hover:text-navy">Home</Link><span>/</span>
           <Link href="/shop" className="hover:text-navy">Shop</Link>
-          {product.category && (<><span>/</span><Link href={`/shop?category=${product.category.slug}`} className="hover:text-navy">{product.category.name}</Link></>)}
+          {product.category && (<><span>/</span><Link href={`/category/${product.category.slug}`} className="hover:text-navy">{product.category.name}</Link></>)}
           <span>/</span><span className="text-navy line-clamp-1">{product.name}</span>
         </nav>
 

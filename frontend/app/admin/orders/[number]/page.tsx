@@ -5,10 +5,12 @@ import OrderActions from "./OrderActions";
 import { formatINR, ORDER_STAGES } from "@/lib/utils";
 import Image from "next/image";
 import Link from "next/link";
+import { requireAdminPage } from "@/lib/admin-auth";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminOrderDetail({ params }: { params: Promise<{ number: string }> }) {
+  await requireAdminPage(["super_admin", "order_manager"]);
   const { number } = await params;
   const admin = createAdminClient();
   const { data: order } = await admin

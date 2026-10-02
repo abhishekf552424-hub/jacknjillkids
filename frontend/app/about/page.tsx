@@ -1,13 +1,15 @@
 import Image from "next/image";
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/server";
+import { createPublicClient } from "@/lib/supabase/public";
+import { abs } from "@/lib/site";
 import { Award, ShieldCheck, Heart, Sparkles, Package, ArrowRight } from "lucide-react";
 import ParentsReviews from "@/components/ParentsReviews";
 
 export const revalidate = 300;
 
 export const metadata = {
-  title: "About Jack & Jill — 22 Years of Kids Fashion in Kolhapur",
+  alternates: { canonical: abs("/about") },
+  title: { absolute: "About Jack & Jill — 22 Years of Kids Fashion in Kolhapur" },
   description:
     "Founded in 2003 by Ajit Mehta, Jack & Jill is Kolhapur's trusted kids lifestyle brand — serving 10,000+ families across India.",
 };
@@ -19,7 +21,7 @@ export const metadata = {
  * new patterns invented, no text testimonials.
  */
 export default async function AboutPage() {
-  const supabase = await createClient();
+  const supabase = createPublicClient();
   const [{ data: cms }, { data: reviewsSection }] = await Promise.all([
     supabase.from("cms_pages").select("*").eq("slug", "about").maybeSingle(),
     supabase.from("homepage_sections").select("*").eq("section_type", "parents_reviews").eq("is_active", true).maybeSingle(),
