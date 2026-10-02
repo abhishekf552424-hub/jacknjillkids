@@ -7,7 +7,7 @@ import { requireAdminPage } from "@/lib/admin-auth";
 export const dynamic = "force-dynamic";
 
 export default async function AdminReturnsPage() {
-  await requireAdminPage(["super_admin", "order_manager"]);
+  await requireAdminPage("returns");
   const admin = createAdminClient();
   const { data: returns } = await admin
     .from("returns")

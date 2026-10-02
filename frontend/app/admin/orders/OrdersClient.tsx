@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { formatINR } from "@/lib/utils";
 import { Search } from "lucide-react";
@@ -18,6 +18,17 @@ const STATUS_TONE: Record<string, "success" | "neutral" | "danger" | "warn" | "g
   return_approved: "danger",
   refunded: "danger",
 };
+
+const QUICK_TABS = [
+  { label: "All", status: "" },
+  { label: "New", status: "placed" },
+  { label: "To pack", status: "confirmed" },
+  { label: "Ready to ship", status: "packed" },
+  { label: "Shipped", status: "shipped" },
+  { label: "Delivered", status: "delivered" },
+  { label: "Returns", status: "return_requested" },
+  { label: "Cancelled", status: "cancelled" },
+];
 
 const BULK_STATUS_OPTIONS = ["confirmed", "packed", "shipped", "out_for_delivery", "delivered", "cancelled"];
 
@@ -36,6 +47,27 @@ export default function OrdersClient({ rows: initialRows, initialFilters }: { ro
   const [busy, setBusy] = useState(false);
   const [sortKey, setSortKey] = useState<"created_at" | "total">("created_at");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
+
+  // The server sends new rows whenever the URL filters change.
+  useEffect(() => {
+    setRows(initialRows);
+    setSelected(new Set());
+  }, [initialRows]);
+  useEffect(() => {
+    setF({
+      q: initialFilters.q || "",
+      status: initialFilters.status || "",
+      payment: initialFilters.payment || "",
+      from: initialFilters.from || "",
+      to: initialFilters.to || "",
+    });
+  }, [initialFilters.q, initialFilters.status, initialFilters.payment, initialFilters.from, initialFilters.to]);
+
+  const goStatus = (status: string) => {
+    const params = new URLSearchParams();
+    Object.entries({ ...f, status }).forEach(([k, v]) => { if (v) params.set(k, v); });
+    router.push(`/admin/orders${params.toString() ? "?" + params.toString() : ""}`);
+  };
 
   const apply = () => {
     const params = new URLSearchParams();
@@ -85,7 +117,24 @@ export default function OrdersClient({ rows: initialRows, initialFilters }: { ro
 
   return (
     <div>
-      <AdminPageHeader eyebrow="Fulfilment" title="Orders" />
+      <AdminPageHeader eyebrow="Orders & customers" title="Orders" />
+
+      <div className="flex gap-2 overflow-x-auto no-scrollbar mb-3 -mx-1 px-1" role="tablist" aria-label="Order status">
+        {QUICK_TABS.map((t) => {
+          const active = (f.status || "") === t.status;
+          return (
+            <button
+              key={t.label}
+              role="tab"
+              aria-selected={active}
+              onClick={() => goStatus(t.status)}
+              className={`shrink-0 rounded-full px-4 py-2 text-sm font-semibold border transition-colors ${active ? "bg-navy text-white border-navy" : "bg-white text-navy border-line hover:bg-cream"}`}
+            >
+              {t.label}
+            </button>
+          );
+        })}
+      </div>
 
       <AdminCard className="p-3 md:p-4 mb-4">
         <div className="grid gap-2 md:grid-cols-[1.5fr_repeat(4,1fr)_auto_auto]">

@@ -5,7 +5,7 @@ import { requireAdminPage } from "@/lib/admin-auth";
 export const dynamic = "force-dynamic";
 
 export default async function AdminCustomers() {
-  await requireAdminPage(["super_admin", "order_manager"]);
+  await requireAdminPage("customers");
   const admin = createAdminClient();
   const { data: profiles } = await admin.from("profiles").select("*").order("created_at", { ascending: false }).limit(300);
   const ids = (profiles ?? []).map((p: any) => p.id);

@@ -5,7 +5,7 @@ import { requireAdminPage } from "@/lib/admin-auth";
 export const dynamic = "force-dynamic";
 
 export default async function NewOrEditProduct({ params }: { params: Promise<{ id: string }> }) {
-  await requireAdminPage(["super_admin", "content_manager"]);
+  await requireAdminPage("products");
   const { id } = await params;
   const isNew = id === "new";
   const admin = createAdminClient();

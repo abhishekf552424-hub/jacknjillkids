@@ -10,7 +10,7 @@ import { requireAdminPage } from "@/lib/admin-auth";
 export const dynamic = "force-dynamic";
 
 export default async function AdminOrderDetail({ params }: { params: Promise<{ number: string }> }) {
-  await requireAdminPage(["super_admin", "order_manager"]);
+  await requireAdminPage("orders");
   const { number } = await params;
   const admin = createAdminClient();
   const { data: order } = await admin

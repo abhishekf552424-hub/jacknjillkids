@@ -63,18 +63,6 @@ class TestPublicPages:
 class TestNextJsAPIRoutesViaPublicURL:
     """These SHOULD hit Next.js /api routes but currently hit FastAPI."""
 
-    def test_pincode_lookup(self, s):
-        r = s.get(f"{BASE_URL}/api/pincode/416001", timeout=15)
-        # Expected: 200 with { serviceable: true, city: 'Kolhapur' ... }
-        # Actual today: FastAPI 404 {"detail":"Not Found"}
-        assert r.status_code == 200, (
-            f"/api/pincode/416001 returned {r.status_code} "
-            f"body={r.text[:200]} — ingress is routing /api/* to FastAPI, "
-            f"but this is a Next.js app. All API calls broken."
-        )
-        body = r.json()
-        assert body.get("serviceable") is True
-
     def test_track_missing_params_returns_400(self, s):
         r = s.get(f"{BASE_URL}/api/track", timeout=15)
         # Next.js route returns 400 for missing params

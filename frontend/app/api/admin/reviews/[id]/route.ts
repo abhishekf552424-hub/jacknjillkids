@@ -5,7 +5,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 
 export const runtime = "nodejs";
 async function requireAdmin() {
-  const g = await checkAdmin(["super_admin", "order_manager", "content_manager"]);
+  const g = await checkAdmin("reviews");
   return "error" in g ? null : g.user;
 }
 export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {

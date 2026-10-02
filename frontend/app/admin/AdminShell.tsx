@@ -1,139 +1,286 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { LayoutDashboard, Package, FolderTree, ShoppingCart, Users, Ticket, LayoutTemplate, FileText, Settings, Menu, X, LogOut, ArrowLeft, RotateCcw, LifeBuoy, MessageSquare, MapPin } from "lucide-react";
+import {
+  LayoutDashboard, Package, Boxes, FolderTree, ShoppingCart, Users, Ticket, LayoutTemplate, FileText, Settings,
+  Menu, X, LogOut, ExternalLink, RotateCcw, LifeBuoy, MessageSquare, UserCog, Search, Plus,
+} from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import NotificationBell from "@/components/admin/NotificationBell";
+import { ROLE_LABEL, canAccess, type AdminRole, type AdminSection } from "@/lib/admin-roles";
 
-const NAV: { href: string; label: string; icon: any; roles: string[]; group: string }[] = [
-  { href: "/admin",              label: "Dashboard",  icon: LayoutDashboard, roles: ["super_admin", "order_manager", "content_manager"], group: "" },
-  { href: "/admin/orders",       label: "Orders",     icon: ShoppingCart,    roles: ["super_admin", "order_manager"], group: "Sales" },
-  { href: "/admin/returns",      label: "Returns",    icon: RotateCcw,       roles: ["super_admin", "order_manager"], group: "Sales" },
-  { href: "/admin/coupons",      label: "Coupons",    icon: Ticket,          roles: ["super_admin", "content_manager"], group: "Sales" },
-  { href: "/admin/products",     label: "Products",   icon: Package,         roles: ["super_admin", "content_manager"], group: "Catalogue" },
-  { href: "/admin/categories",   label: "Categories", icon: FolderTree,      roles: ["super_admin", "content_manager"], group: "Catalogue" },
-  { href: "/admin/homepage",     label: "Homepage",   icon: LayoutTemplate,  roles: ["super_admin", "content_manager"], group: "Content" },
-  { href: "/admin/cms",          label: "CMS",        icon: FileText,        roles: ["super_admin", "content_manager"], group: "Content" },
-  { href: "/admin/reviews",      label: "Reviews",    icon: MessageSquare,   roles: ["super_admin", "content_manager"], group: "Content" },
-  { href: "/admin/customers",    label: "Customers",  icon: Users,           roles: ["super_admin", "order_manager"], group: "People" },
-  { href: "/admin/support",      label: "Support",    icon: LifeBuoy,        roles: ["super_admin", "order_manager"], group: "People" },
-  { href: "/admin/pincodes",     label: "Pincodes",   icon: MapPin,          roles: ["super_admin", "content_manager"], group: "System" },
-  { href: "/admin/settings",     label: "Settings",   icon: Settings,        roles: ["super_admin"], group: "System" },
+type Counts = { orders: number; support: number; returns: number; reviews: number; stock: number };
+type NavItem = { href: string; label: string; hint: string; icon: any; section: AdminSection; badge?: keyof Counts };
+
+const GROUPS: { title: string; items: NavItem[] }[] = [
+  { title: "", items: [{ href: "/admin", label: "Dashboard", hint: "Today's sales and what needs doing", icon: LayoutDashboard, section: "dashboard" }] },
+  {
+    title: "Orders & customers",
+    items: [
+      { href: "/admin/orders", label: "Orders", hint: "Confirm, pack, ship, print invoice", icon: ShoppingCart, section: "orders", badge: "orders" },
+      { href: "/admin/returns", label: "Returns & exchanges", hint: "Size exchange and return requests", icon: RotateCcw, section: "returns", badge: "returns" },
+      { href: "/admin/support", label: "Customer queries", hint: "Messages from the website chat", icon: LifeBuoy, section: "support", badge: "support" },
+      { href: "/admin/customers", label: "Customers", hint: "Who bought, how often", icon: Users, section: "customers" },
+    ],
+  },
+  {
+    title: "Products",
+    items: [
+      { href: "/admin/products", label: "Products", hint: "Add or edit products, photos, prices", icon: Package, section: "products" },
+      { href: "/admin/stock", label: "Stock", hint: "Update how many pieces are left", icon: Boxes, section: "stock", badge: "stock" },
+      { href: "/admin/categories", label: "Categories", hint: "Shop sections like Boys, Girls", icon: FolderTree, section: "categories" },
+    ],
+  },
+  {
+    title: "Marketing",
+    items: [
+      { href: "/admin/coupons", label: "Coupons & offers", hint: "Discount codes", icon: Ticket, section: "coupons" },
+      { href: "/admin/homepage", label: "Homepage", hint: "Banners and sections on the home page", icon: LayoutTemplate, section: "homepage" },
+      { href: "/admin/reviews", label: "Reviews", hint: "Approve or hide customer reviews", icon: MessageSquare, section: "reviews", badge: "reviews" },
+      { href: "/admin/cms", label: "Pages & FAQs", hint: "About, policies, FAQs, trust badges", icon: FileText, section: "cms" },
+    ],
+  },
+  {
+    title: "Shop setup",
+    items: [
+      { href: "/admin/team", label: "Team & access", hint: "Add staff and choose what they can do", icon: UserCog, section: "team" },
+      { href: "/admin/settings", label: "Settings", hint: "Delivery charges, COD, contact details", icon: Settings, section: "settings" },
+    ],
+  },
 ];
 
-export default function AdminShell({ role, name, logoUrl, logoSize = 40, children }: { role: string; name: string; logoUrl?: string; logoSize?: number; children: React.ReactNode }) {
+const ALL_ITEMS = GROUPS.flatMap((g) => g.items);
+
+function matchItem(pathname: string) {
+  return [...ALL_ITEMS]
+    .sort((a, b) => b.href.length - a.href.length)
+    .find((n) => (n.href === "/admin" ? pathname === "/admin" : pathname === n.href || pathname.startsWith(n.href + "/")));
+}
+
+function Badge({ n, tone = "action" }: { n: number; tone?: "action" | "light" }) {
+  if (!n) return null;
+  return (
+    <span
+      className={`ml-auto min-w-[20px] h-5 px-1.5 rounded-full text-[11px] font-bold leading-5 text-center ${tone === "action" ? "bg-action text-white" : "bg-white text-action"}`}
+      aria-label={`${n} waiting`}
+    >
+      {n > 99 ? "99+" : n}
+    </span>
+  );
+}
+
+export default function AdminShell({
+  role,
+  name,
+  logoUrl,
+  logoSize = 40,
+  children,
+}: {
+  role: AdminRole;
+  name: string;
+  logoUrl?: string;
+  logoSize?: number;
+  children: React.ReactNode;
+}) {
   const [open, setOpen] = useState(false);
-  const pathname = usePathname();
-  const items = NAV.filter((n) => n.roles.includes(role));
+  const [counts, setCounts] = useState<Counts>({ orders: 0, support: 0, returns: 0, reviews: 0, stock: 0 });
+  const [q, setQ] = useState("");
+  const pathname = usePathname() || "/admin";
   const router = useRouter();
 
-  // Route guard: if the user navigates (or is deep-linked) to a section their role
-  // shouldn't access, redirect them to /admin.
+  const groups = GROUPS.map((g) => ({ ...g, items: g.items.filter((i) => canAccess(role, i.section)) })).filter((g) => g.items.length);
+  const current = matchItem(pathname);
+
+  // Keep people out of sections their role can't use (the server checks too).
   useEffect(() => {
-    if (!pathname || pathname === "/admin") return;
-    // Find the most-specific NAV entry matching the current path
-    const match = [...NAV]
-      .sort((a, b) => b.href.length - a.href.length)
-      .find((n) => pathname === n.href || pathname.startsWith(n.href + "/"));
-    if (match && !match.roles.includes(role)) {
-      router.replace("/admin");
+    if (current && !canAccess(role, current.section)) router.replace("/admin");
+  }, [current, role, router]);
+
+  useEffect(() => setOpen(false), [pathname]);
+
+  const loadCounts = useCallback(async () => {
+    try {
+      const r = await fetch("/api/admin/counts", { cache: "no-store" });
+      if (r.ok) setCounts(await r.json());
+    } catch {
+      /* badges are optional */
     }
-  }, [pathname, role, router]);
+  }, []);
+
+  useEffect(() => {
+    loadCounts();
+    const t = setInterval(() => {
+      if (document.visibilityState === "visible") loadCounts();
+    }, 30_000);
+    return () => clearInterval(t);
+  }, [loadCounts, pathname]);
 
   const signOut = async () => {
-    const s = createClient();
-    await s.auth.signOut();
-    // The 2FA cookie is httpOnly, so only the server can clear it.
+    await createClient().auth.signOut();
     await fetch("/api/admin/auth/logout", { method: "POST" }).catch(() => {});
     router.push("/admin/login");
     router.refresh();
   };
 
-  const Logo = () =>
-    logoUrl ? (
-      /* eslint-disable-next-line @next/next/no-img-element */
-      <img
-        src={logoUrl}
-        alt="Jack & Jill"
-        style={{ height: logoSize }}
-        className="w-auto object-contain bg-white rounded-md p-1"
-      />
-    ) : (
-      <span className="flex items-baseline gap-1">
-        <span className="font-display text-2xl font-bold text-white">Jack</span>
-        <span className="font-display text-2xl font-bold text-gold-light">&amp;</span>
-        <span className="font-display text-2xl font-bold text-white">Jill</span>
-      </span>
-    );
+  const findOrder = (e: React.FormEvent) => {
+    e.preventDefault();
+    const v = q.trim();
+    if (!v) return;
+    router.push(`/admin/orders?q=${encodeURIComponent(v)}`);
+    setQ("");
+  };
+
+  const logo = logoUrl ? (
+    /* eslint-disable-next-line @next/next/no-img-element */
+    <img src={logoUrl} alt="Jack & Jill" style={{ height: Math.min(logoSize, 40) }} className="w-auto object-contain" />
+  ) : (
+    <span className="flex items-baseline gap-1 font-display font-bold text-navy text-xl">
+      Jack <span className="text-gold-text">&amp;</span> Jill
+    </span>
+  );
+
+  const isActive = (href: string) => (href === "/admin" ? pathname === "/admin" : pathname === href || pathname.startsWith(href + "/"));
+
+  const tabs = (
+    [
+      { href: "/admin", label: "Home", icon: LayoutDashboard, section: "dashboard" },
+      { href: "/admin/orders", label: "Orders", icon: ShoppingCart, section: "orders", badge: "orders" },
+      { href: "/admin/stock", label: "Stock", icon: Boxes, section: "stock", badge: "stock" },
+      { href: "/admin/support", label: "Queries", icon: LifeBuoy, section: "support", badge: "support" },
+    ] as { href: string; label: string; icon: any; section: AdminSection; badge?: keyof Counts }[]
+  ).filter((t) => canAccess(role, t.section));
 
   return (
-    <div data-admin className="min-h-screen bg-neutral-50 flex">
-      {/* Sidebar (desktop) + Drawer (mobile) */}
+    <div data-admin className="min-h-screen bg-[#F6F4EF] text-ink flex">
+      {/* Sidebar: always visible on desktop, slide-in drawer on phones */}
       <aside
-        className={`fixed md:sticky top-0 left-0 z-40 h-screen w-[260px] bg-navy text-white py-6 px-3 flex flex-col transform transition-transform duration-200 ${open ? "translate-x-0" : "-translate-x-full md:translate-x-0"}`}
+        className={`fixed lg:sticky top-0 left-0 z-50 h-[100dvh] w-[272px] shrink-0 bg-white border-r border-line flex flex-col transition-transform duration-200 ${open ? "translate-x-0 shadow-premium" : "-translate-x-full lg:translate-x-0"}`}
+        aria-label="Admin menu"
       >
-        <div className="px-2 flex items-center justify-between mb-6">
-          <Link href="/admin" className="flex items-center gap-2" onClick={() => setOpen(false)} data-testid="admin-logo">
-            <Logo />
+        <div className="h-16 px-5 flex items-center justify-between border-b border-line">
+          <Link href="/admin" className="flex items-center gap-2" data-testid="admin-logo">
+            {logo}
+            <span className="text-[10px] font-bold uppercase tracking-widest text-muted border border-line rounded px-1.5 py-0.5">Admin</span>
           </Link>
-          <button onClick={() => setOpen(false)} className="md:hidden text-white/70 p-1" aria-label="Close menu"><X className="w-5 h-5" /></button>
+          <button onClick={() => setOpen(false)} className="lg:hidden p-2 -mr-2 text-muted" aria-label="Close menu">
+            <X className="w-5 h-5" />
+          </button>
         </div>
-        <p className="text-[10px] uppercase tracking-widest text-gold-light font-bold px-2 mb-3">Admin panel</p>
-        <nav className="flex flex-col gap-0.5 flex-1 overflow-y-auto no-scrollbar">
-          {(() => {
-            let lastGroup: string | null = null;
-            return items.map((n) => {
-              const active = pathname === n.href || (n.href !== "/admin" && pathname.startsWith(n.href));
-              const showGroupLabel = n.group && n.group !== lastGroup;
-              lastGroup = n.group;
-              return (
-                <div key={n.href}>
-                  {showGroupLabel && (
-                    <p className="text-[10px] uppercase tracking-widest text-white/30 font-bold px-3 mt-4 mb-1 first:mt-0">{n.group}</p>
-                  )}
-                  <Link
-                    href={n.href}
-                    onClick={() => setOpen(false)}
-                    className={`flex items-center gap-3 px-3 py-2.5 rounded text-sm transition-colors ${active ? "bg-white/10 text-white border-l-2 border-gold -ml-0.5 pl-[11px]" : "text-white/80 hover:bg-white/5"}`}
-                  >
-                    <n.icon className={`w-4 h-4 ${active ? "text-gold-light" : "text-white/60"}`} /> {n.label}
-                  </Link>
-                </div>
-              );
-            });
-          })()}
+
+        <nav className="flex-1 overflow-y-auto px-3 py-4 no-scrollbar">
+          {groups.map((g) => (
+            <div key={g.title || "top"} className="mb-3">
+              {g.title && <p className="px-3 mb-1.5 text-[11px] font-bold uppercase tracking-wider text-muted">{g.title}</p>}
+              <ul className="space-y-0.5">
+                {g.items.map((n) => {
+                  const active = isActive(n.href);
+                  return (
+                    <li key={n.href}>
+                      <Link
+                        href={n.href}
+                        title={n.hint}
+                        aria-current={active ? "page" : undefined}
+                        className={`flex items-center gap-3 rounded-lg px-3 py-2 text-[15px] transition-colors ${
+                          active ? "bg-navy text-white font-semibold" : "text-ink hover:bg-cream"
+                        }`}
+                      >
+                        <n.icon className={`w-[18px] h-[18px] shrink-0 ${active ? "text-gold-light" : "text-doodle"}`} />
+                        <span className="truncate">{n.label}</span>
+                        {n.badge && <Badge n={counts[n.badge]} tone={active ? "light" : "action"} />}
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          ))}
         </nav>
-        <div className="mt-3 border-t border-white/10 pt-3 px-2">
-          <p className="text-xs text-white/80 truncate">{name}</p>
-          <p className="text-[10px] text-gold-light uppercase tracking-widest">{role.replace(/_/g, " ")}</p>
-          <div className="mt-3 flex flex-col gap-1">
-            <Link href="/" className="flex items-center gap-2 text-xs text-white/60 hover:text-white"><ArrowLeft className="w-3.5 h-3.5" /> Back to store</Link>
-            <button onClick={signOut} className="flex items-center gap-2 text-xs text-white/60 hover:text-white"><LogOut className="w-3.5 h-3.5" /> Sign out</button>
+
+        <div className="border-t border-line p-4">
+          <div className="flex items-center gap-3">
+            <span className="w-9 h-9 rounded-full bg-butter text-navy font-bold flex items-center justify-center uppercase">{(name || "?").slice(0, 1)}</span>
+            <div className="min-w-0">
+              <p className="text-sm font-semibold text-navy truncate">{name}</p>
+              <p className="text-xs text-muted">{ROLE_LABEL[role]}</p>
+            </div>
+          </div>
+          <div className="mt-3 grid grid-cols-2 gap-2">
+            <Link href="/" target="_blank" className="flex items-center justify-center gap-1.5 rounded-lg border border-line py-2 text-xs font-semibold text-navy hover:bg-cream">
+              <ExternalLink className="w-3.5 h-3.5" /> View shop
+            </Link>
+            <button onClick={signOut} className="flex items-center justify-center gap-1.5 rounded-lg border border-line py-2 text-xs font-semibold text-navy hover:bg-cream">
+              <LogOut className="w-3.5 h-3.5" /> Sign out
+            </button>
           </div>
         </div>
       </aside>
 
-      {open && <div className="fixed inset-0 bg-black/40 z-30 md:hidden" onClick={() => setOpen(false)} />}
+      {open && <div className="fixed inset-0 bg-ink/40 z-40 lg:hidden" onClick={() => setOpen(false)} aria-hidden="true" />}
 
-      <div className="flex-1 min-w-0">
-        {/* Mobile topbar */}
-        <header className="md:hidden sticky top-0 z-20 flex items-center justify-between bg-white border-b border-neutral-200 px-4 py-3">
-          <button onClick={() => setOpen(true)} aria-label="Menu" className="p-1.5 rounded hover:bg-neutral-100"><Menu className="w-5 h-5 text-navy" /></button>
-          <div className="flex items-baseline gap-1">
-            <span className="font-display text-lg font-bold text-navy">Jack</span>
-            <span className="font-display text-lg font-bold text-gold-text">&amp;</span>
-            <span className="font-display text-lg font-bold text-navy">Jill</span>
+      <div className="flex-1 min-w-0 flex flex-col">
+        <header className="sticky top-0 z-30 h-16 bg-white/95 backdrop-blur border-b border-line px-3 sm:px-6 flex items-center gap-3">
+          <button onClick={() => setOpen(true)} aria-label="Open menu" className="lg:hidden p-2 -ml-1 rounded-lg hover:bg-cream">
+            <Menu className="w-5 h-5 text-navy" />
+          </button>
+          <div className="lg:hidden">{logo}</div>
+          <div className="hidden lg:block min-w-0">
+            <p className="text-sm font-semibold text-navy truncate">{current?.label ?? "Admin"}</p>
+            {current?.hint && <p className="text-xs text-muted truncate">{current.hint}</p>}
           </div>
-          <NotificationBell />
+
+          {canAccess(role, "orders") && (
+            <form onSubmit={findOrder} className="hidden md:flex items-center ml-auto w-full max-w-xs" role="search">
+              <label className="relative w-full">
+                <span className="sr-only">Find an order</span>
+                <Search className="w-4 h-4 text-muted absolute left-3 top-1/2 -translate-y-1/2" />
+                <input
+                  value={q}
+                  onChange={(e) => setQ(e.target.value)}
+                  placeholder="Find order no., name or phone"
+                  className="w-full rounded-lg border border-line bg-cream/60 pl-9 pr-3 py-2 text-sm outline-none focus:border-doodle focus:bg-white"
+                />
+              </label>
+            </form>
+          )}
+
+          <div className="ml-auto md:ml-0 flex items-center gap-2">
+            {canAccess(role, "products") && (
+              <Link href="/admin/products/new" className="hidden sm:inline-flex items-center gap-1.5 rounded-lg bg-action hover:bg-action-hover text-white px-3.5 py-2 text-sm font-semibold">
+                <Plus className="w-4 h-4" /> Add product
+              </Link>
+            )}
+            <NotificationBell />
+          </div>
         </header>
-        {/* Desktop topbar */}
-        <header className="hidden md:flex sticky top-0 z-20 items-center justify-end bg-white border-b border-neutral-200 px-6 py-3">
-          <NotificationBell />
-        </header>
-        <main className="p-4 md:p-8 max-w-full">{children}</main>
+
+        <main className="flex-1 p-4 sm:p-6 lg:p-8 pb-24 lg:pb-8 max-w-[1440px] w-full mx-auto">{children}</main>
       </div>
+
+      {/* Bottom tabs on phones: the things used every day */}
+      <nav
+        className="lg:hidden fixed bottom-0 inset-x-0 z-30 bg-white border-t border-line flex pb-[env(safe-area-inset-bottom)]"
+        aria-label="Quick menu"
+      >
+        {tabs.map((t) => {
+          const active = isActive(t.href);
+          const n = t.badge ? counts[t.badge] : 0;
+          return (
+            <Link key={t.href} href={t.href} className={`relative flex-1 flex flex-col items-center justify-center gap-0.5 py-2 text-[11px] font-semibold ${active ? "text-navy" : "text-muted"}`}>
+              <t.icon className={`w-5 h-5 ${active ? "text-action" : ""}`} />
+              {t.label}
+              {n > 0 && (
+                <span className="absolute top-1 left-1/2 ml-2 min-w-[16px] h-4 px-1 rounded-full bg-action text-white text-[10px] leading-4 text-center">{n > 99 ? "99+" : n}</span>
+              )}
+            </Link>
+          );
+        })}
+        <button onClick={() => setOpen(true)} className="flex-1 flex flex-col items-center justify-center gap-0.5 py-2 text-[11px] font-semibold text-muted">
+          <Menu className="w-5 h-5" />
+          More
+        </button>
+      </nav>
     </div>
   );
 }

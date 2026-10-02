@@ -19,7 +19,7 @@ const Body = z.object({
     line2: z.string().optional(),
     city: z.string().min(1),
     state: z.string().min(1),
-    pincode: z.string().regex(/^\d{6}$/),
+    pincode: z.string().regex(/^[1-9]\d{5}$/, "Please enter a valid 6-digit pincode"),
   }),
   payment_method: z.enum(["razorpay", "cod"]),
   coupon_code: z.string().max(40).optional(),
@@ -49,13 +49,10 @@ export async function POST(req: Request) {
     for (const l of body.lines) qtyByVariant.set(l.variant_id, (qtyByVariant.get(l.variant_id) ?? 0) + l.quantity);
     const lines = Array.from(qtyByVariant, ([variant_id, quantity]) => ({ variant_id, quantity }));
 
-    // Delivery + COD rules are enforced here, not only in the browser.
-    const { data: pin } = await admin.from("pincodes").select("is_serviceable, cod_available").eq("pincode", body.address.pincode).maybeSingle();
-    if (pin && pin.is_serviceable === false) return fail("Sorry, we don't deliver to this pincode yet.");
+    // COD rules are enforced here, not only in the browser. We deliver to every pincode.
     if (body.payment_method === "cod") {
       const { data: codSetting } = await admin.from("settings").select("value").eq("key", "cod").maybeSingle();
       if ((codSetting?.value as any)?.enabled === false) return fail("Cash on Delivery is currently unavailable. Please pay online.");
-      if (pin && pin.cod_available === false) return fail("Cash on Delivery isn't available for this pincode. Please pay online.");
       if (user) {
         const { data: prof } = await admin.from("profiles").select("cod_blocked").eq("id", user.id).maybeSingle();
         if (prof?.cod_blocked) return fail("Cash on Delivery isn't available for this account. Please pay online.");

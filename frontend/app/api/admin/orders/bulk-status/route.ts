@@ -8,7 +8,7 @@ import { sendEmail, orderStatusTemplate } from "@/lib/resend";
 const VALID_STATUSES = ["placed", "confirmed", "packed", "shipped", "out_for_delivery", "delivered", "cancelled"];
 
 async function requireAdmin() {
-  return checkAdmin(["super_admin", "order_manager"]);
+  return checkAdmin("orders");
 }
 
 export async function POST(req: Request) {

@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server";
 import { checkAdmin } from "@/lib/admin-auth";
+import { canAccess } from "@/lib/admin-roles";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 async function requireAdmin() {
-  return checkAdmin(["super_admin", "order_manager", "content_manager"]);
+  return checkAdmin("dashboard");
 }
 
 export async function GET() {
@@ -12,8 +13,10 @@ export async function GET() {
   if ("error" in g) return NextResponse.json({ ok: false, error: g.error }, { status: g.status });
 
   const admin = createAdminClient();
-  const isOrderScoped = g.role === "super_admin" || g.role === "order_manager";
-  const isContentScoped = g.role === "super_admin" || g.role === "content_manager";
+  // Everyone sees orders, queries and low stock; reviews are for owner/developer.
+  const isOrderScoped = true;
+  const isContentScoped = true;
+  const canModerate = canAccess(g.role, "reviews");
 
   const notifications: { id: string; type: string; message: string; href: string; created_at: string }[] = [];
 
@@ -76,13 +79,13 @@ export async function GET() {
             id: `stock-${v.id}`,
             type: "stock",
             message: `Low stock: ${productName ?? v.sku} (${v.stock_qty} left)`,
-            href: `/admin/products`,
+            href: `/admin/stock?filter=low`,
             created_at: new Date().toISOString(),
           });
         }
       })
     );
-    tasks.push(
+    if (canModerate) tasks.push(
       Promise.resolve(
         admin
           .from("reviews")

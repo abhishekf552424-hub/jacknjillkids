@@ -1,10 +1,11 @@
 -- =========================================================================
--- RUN THIS ONCE IN SUPABASE BEFORE DEPLOYING THE OCTOBER 2026 RELEASE
+-- RUN THIS IN SUPABASE BEFORE DEPLOYING THE OCTOBER 2026 RELEASE
 -- Supabase Dashboard → SQL Editor → New query → paste this whole file → Run
 --
--- It contains migrations 0010 (security) and 0011 (order engine), in order.
--- Safe to run more than once. The last query prints a check table: every row
--- must say "ok".
+-- It contains migrations 0010 (security), 0011 (order engine) and
+-- 0012 (Owner/Staff roles, pincode list removed, live dashboard), in order.
+-- Safe to run more than once — also if you already ran the older version
+-- of this file. The last query prints a check table: every row must say "ok".
 -- =========================================================================
 
 -- =========================================================================
@@ -309,6 +310,85 @@ grant execute on function public.adjust_stock(uuid, int) to service_role;
 update public.orders set stock_released = true where status = 'cancelled' and stock_released = false;
 
 -- =========================================================================
+-- 0012 — Admin roles like Purasatva + remove the pincode feature
+--
+-- Roles (was: super_admin / order_manager / content_manager):
+--   super_admin  developer: everything, incl. payment keys and tracking codes
+--   owner        the shop owner: everything a shop needs, manages staff
+--   staff        orders, returns, support and stock only (no money reports,
+--                no prices, no settings)
+-- Existing order_manager / content_manager accounts become staff.
+-- Make the client's account "owner" from Admin → Team after deploying.
+--
+-- Pincode serviceability list is removed (every Indian pincode is accepted;
+-- the 6-digit pincode in the delivery address stays required).
+--
+-- Safe to re-run.
+-- =========================================================================
+
+-- 1. profiles.role --------------------------------------------------------
+do $$
+declare c record;
+begin
+  for c in
+    select conname from pg_constraint
+     where conrelid = 'public.profiles'::regclass
+       and contype = 'c'
+       and pg_get_constraintdef(oid) ilike '%role%'
+  loop
+    execute format('alter table public.profiles drop constraint %I', c.conname);
+  end loop;
+end $$;
+
+update public.profiles set role = 'staff' where role in ('order_manager', 'content_manager');
+
+alter table public.profiles
+  add constraint profiles_role_check check (role in ('customer', 'super_admin', 'owner', 'staff'));
+
+-- 2. admin_invites.role (invites by link are no longer used) -------------
+do $$
+declare c record;
+begin
+  if to_regclass('public.admin_invites') is null then return; end if;
+  for c in
+    select conname from pg_constraint
+     where conrelid = 'public.admin_invites'::regclass
+       and contype = 'c'
+       and pg_get_constraintdef(oid) ilike '%role%'
+  loop
+    execute format('alter table public.admin_invites drop constraint %I', c.conname);
+  end loop;
+  delete from public.admin_invites where accepted_at is null;
+  update public.admin_invites set role = 'staff' where role in ('order_manager', 'content_manager');
+  alter table public.admin_invites
+    add constraint admin_invites_role_check check (role in ('super_admin', 'owner', 'staff'));
+end $$;
+
+-- 3. helpers used by RLS policies ----------------------------------------
+create or replace function public.is_admin(u uuid)
+returns boolean
+language sql stable security definer set search_path = public
+as $$
+  select exists(select 1 from public.profiles where id = u and role in ('super_admin', 'owner', 'staff') and coalesce(is_active, true));
+$$;
+
+-- 4. pincode feature removed ---------------------------------------------
+drop table if exists public.pincodes cascade;
+
+-- 5. live dashboard: let signed-in admins receive order changes instantly --
+-- (Supabase Realtime still applies RLS, so customers only ever see their own orders.)
+do $$
+begin
+  if exists (select 1 from pg_publication where pubname = 'supabase_realtime')
+     and not exists (
+       select 1 from pg_publication_tables
+        where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = 'orders'
+     ) then
+    alter publication supabase_realtime add table public.orders;
+  end if;
+end $$;
+
+-- =========================================================================
 -- CHECK: every row should say "ok"
 -- =========================================================================
 select 'profile role guard (0010)' as item,
@@ -318,4 +398,10 @@ select 'place_order() (0011)', case when to_regprocedure('public.place_order(jso
 union all
 select 'expire_unpaid_orders() (0011)', case when to_regprocedure('public.expire_unpaid_orders(integer)') is not null then 'ok' else 'MISSING' end
 union all
-select 'orders.stock_released column (0011)', case when exists (select 1 from information_schema.columns where table_schema = 'public' and table_name = 'orders' and column_name = 'stock_released') then 'ok' else 'MISSING' end;
+select 'orders.stock_released column (0011)', case when exists (select 1 from information_schema.columns where table_schema = 'public' and table_name = 'orders' and column_name = 'stock_released') then 'ok' else 'MISSING' end
+union all
+select 'owner / staff roles (0012)', case when exists (select 1 from pg_constraint where conname = 'profiles_role_check' and pg_get_constraintdef(oid) like '%owner%') then 'ok' else 'MISSING' end
+union all
+select 'no old roles left (0012)', case when not exists (select 1 from public.profiles where role in ('order_manager', 'content_manager')) then 'ok' else 'MISSING' end
+union all
+select 'pincode list removed (0012)', case when to_regclass('public.pincodes') is null then 'ok' else 'MISSING' end;

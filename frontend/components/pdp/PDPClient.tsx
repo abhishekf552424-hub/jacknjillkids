@@ -21,8 +21,6 @@ export default function PDPClient({ product, reviews }: { product: Product; revi
   const [zoom, setZoom] = useState({ on: false, x: 50, y: 50 });
   const touchStartX = useRef<number | null>(null);
   const touchDeltaX = useRef(0);
-  const [pincode, setPincode] = useState("");
-  const [pinResult, setPinResult] = useState<string | null>(null);
   const [qty, setQty] = useState(1);
   const [openDesc, setOpenDesc] = useState(true);
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
@@ -60,14 +58,6 @@ export default function PDPClient({ product, reviews }: { product: Product; revi
     });
     toast.success("Added to bag", { description: `${qty} × ${product.name}` });
     window.dispatchEvent(new CustomEvent("cart:open"));
-  };
-
-  const checkPin = async () => {
-    if (!pincode) return;
-    const r = await fetch(`/api/pincode?code=${pincode}`);
-    const d = await r.json();
-    if (d.serviceable) setPinResult(`Delivery to ${d.city}, ${d.state} in ~${d.est_delivery_days} days. ${d.cod_available ? "COD available." : "COD not available."}`);
-    else setPinResult("Sorry, we don't ship to this pincode yet.");
   };
 
   const copyCode = (code: string) => {
@@ -251,22 +241,6 @@ export default function PDPClient({ product, reviews }: { product: Product; revi
           <button aria-label="Wishlist" className="w-12 border-2 border-gold text-gold-text rounded-md flex items-center justify-center hover:bg-gold-text hover:border-gold-text hover:text-white transition-colors">
             <Heart className="w-4 h-4" />
           </button>
-        </div>
-
-        {/* Pincode check */}
-        <div className="mt-6 bg-white rounded-lg p-4 border border-navy/10">
-          <p className="text-sm font-bold text-navy mb-2 flex items-center gap-2"><Truck className="w-4 h-4 text-gold-text" /> Delivery estimate</p>
-          <div className="flex gap-2">
-            <input
-              value={pincode}
-              onChange={(e) => setPincode(e.target.value)}
-              maxLength={6}
-              placeholder="Enter pincode"
-              className="flex-1 bg-cream border border-navy/10 rounded-md px-3 py-2 text-sm outline-none focus:border-gold focus:ring-2 focus:ring-gold/20"
-            />
-            <button onClick={checkPin} className="bg-navy text-white rounded-md px-4 text-sm font-bold hover:opacity-90 transition-opacity">Check</button>
-          </div>
-          {pinResult && <p className="text-xs text-muted mt-2">{pinResult}</p>}
         </div>
 
         {/* Trust badges — same lucide icons as homepage TrustStrip */}
