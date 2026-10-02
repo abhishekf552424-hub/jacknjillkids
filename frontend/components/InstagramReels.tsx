@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import { Instagram } from "lucide-react";
 import { normalizeEmbedUrl } from "@/lib/embeds";
 import BrandLoader from "@/components/BrandLoader";
+import { SectionHeader, type Tone } from "./home/Section";
 
 type Video = { url: string; autoplay_muted?: boolean };
 
@@ -11,7 +12,13 @@ export default function InstagramReels({
   title,
   subtitle,
   videos,
+  tone = "cream",
+  handle,
+  profileUrl,
 }: {
+  tone?: Tone;
+  handle?: string;
+  profileUrl?: string;
   title?: string | null;
   subtitle?: string | null;
   videos?: Video[];
@@ -37,21 +44,20 @@ export default function InstagramReels({
   };
 
   return (
-    <section className="container py-16 md:py-20" data-testid="instagram-reels">
-      <div className="flex items-end justify-between mb-6 gap-4">
-        <div>
-          <p className="text-xs uppercase tracking-[0.3em] text-gold-text font-bold mb-2">Video Gallery</p>
-          <h2 className="font-display text-3xl md:text-4xl text-navy tracking-tight">{title ?? "From Our Feed"}</h2>
-          {subtitle && <p className="mt-2 text-muted">{subtitle}</p>}
+    <section className={`${tone === "white" ? "bg-white" : "bg-cream"} py-12 md:py-20`} data-testid="instagram-reels">
+      <div className="container">
+      <div className="flex items-end justify-between gap-4 flex-wrap">
+        <div className="flex-1 min-w-0">
+          <SectionHeader eyebrow="On Instagram" title={title || "From our Instagram"} subtitle={subtitle} />
         </div>
         <a
-          href="https://instagram.com/jacknjill_kolhapur"
+          href={profileUrl && /^https:\/\//.test(profileUrl) ? profileUrl : "https://instagram.com/jacknjill_kolhapur"}
           target="_blank"
           rel="noreferrer"
-          className="hidden sm:inline-flex items-center gap-2 text-sm font-medium text-navy hover:text-gold-text transition-colors"
+          className="mb-7 md:mb-9 hidden sm:inline-flex items-center gap-2 text-[15px] font-bold text-navy hover:text-action transition-colors"
           data-testid="instagram-profile-link"
         >
-          <Instagram className="w-4 h-4" /> @jacknjill_kolhapur
+          <Instagram className="w-4 h-4" /> {handle || "@jacknjill_kolhapur"}
         </a>
       </div>
 
@@ -91,6 +97,7 @@ export default function InstagramReels({
           ))}
         </div>
       )}
+      </div>
     </section>
   );
 }

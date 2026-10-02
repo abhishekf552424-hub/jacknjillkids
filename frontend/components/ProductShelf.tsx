@@ -1,7 +1,6 @@
-import Link from "next/link";
 import type { Product } from "@/lib/types";
 import ProductCard from "./ProductCard";
-import { ArrowRight } from "lucide-react";
+import { HomeSection, SectionHeader, type Tone } from "./home/Section";
 
 export default function ProductShelf({
   title,
@@ -9,29 +8,21 @@ export default function ProductShelf({
   products,
   viewAllHref,
   tint,
+  tone = "cream",
+  eyebrow,
 }: {
   title: string;
   subtitle?: string | null;
   products: Product[];
   viewAllHref?: string;
   tint?: "cream" | "blush" | "sky";
+  tone?: Tone;
+  eyebrow?: string;
 }) {
-  const bg = tint === "blush" ? "bg-blush" : tint === "sky" ? "bg-sky" : "bg-cream";
+  if (!products.length) return null;
   return (
-    <section className={`${bg} py-16 md:py-20`} data-testid={`shelf-${title.toLowerCase().replace(/\s+/g, "-")}`}>
-      <div className="container">
-        <div className="flex items-end justify-between mb-8 gap-4">
-          <div>
-            <p className="text-xs uppercase tracking-[0.3em] text-gold-text font-bold mb-2">Curated</p>
-            <h2 className="font-display text-3xl md:text-4xl lg:text-5xl text-navy tracking-tight">{title}</h2>
-            {subtitle && <p className="mt-2 text-muted">{subtitle}</p>}
-          </div>
-          {viewAllHref && (
-            <Link href={viewAllHref} className="hidden sm:inline-flex items-center gap-2 text-sm font-medium text-navy hover:text-gold-text transition-colors">
-              View all <ArrowRight className="w-4 h-4" />
-            </Link>
-          )}
-        </div>
+    <HomeSection tone={tone} testid={`shelf-${title.toLowerCase().replace(/\s+/g, "-")}`}>
+        <SectionHeader eyebrow={eyebrow || "Curated"} title={title} subtitle={subtitle} href={viewAllHref} />
         {/* Mobile: horizontal scroll row. Desktop: grid. */}
         <div className="md:hidden -mx-4 px-4 flex gap-4 overflow-x-auto no-scrollbar snap-x snap-mandatory pb-2">
           {products.slice(0, 8).map((p) => (
@@ -45,7 +36,6 @@ export default function ProductShelf({
             <ProductCard key={p.id} product={p} />
           ))}
         </div>
-      </div>
-    </section>
+    </HomeSection>
   );
 }

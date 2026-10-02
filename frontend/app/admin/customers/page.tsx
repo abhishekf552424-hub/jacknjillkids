@@ -1,5 +1,6 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import CustomersClient from "./CustomersClient";
+import ClubMembers from "./ClubMembers";
 import { requireAdminPage } from "@/lib/admin-auth";
 
 export const dynamic = "force-dynamic";
@@ -23,5 +24,12 @@ export default async function AdminCustomers() {
     total_spend: spendByUser[p.id] ?? 0,
   }));
 
-  return <CustomersClient initial={rows} />;
+  const { data: club, count: clubCount } = await admin.from("club_members").select("phone, created_at", { count: "exact" }).order("created_at", { ascending: false }).limit(500);
+
+  return (
+    <>
+      <CustomersClient initial={rows} />
+      <ClubMembers rows={(club ?? []) as { phone: string; created_at: string }[]} total={clubCount ?? 0} />
+    </>
+  );
 }

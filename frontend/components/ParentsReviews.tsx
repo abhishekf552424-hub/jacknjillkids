@@ -4,16 +4,19 @@ import { useRef } from "react";
 import { Play, ChevronLeft, ChevronRight } from "lucide-react";
 import { motion } from "framer-motion";
 import { normalizeEmbedUrl } from "@/lib/embeds";
+import { SectionHeader, type Tone } from "./home/Section";
 
 type Video = { url: string; name?: string; caption?: string; autoplay?: boolean };
 
 export default function ParentsReviews({
   title,
   subtitle,
+  tone = "white",
   videos,
 }: {
   title?: string | null;
   subtitle?: string | null;
+  tone?: Tone;
   videos?: Video[];
 }) {
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -33,13 +36,9 @@ export default function ParentsReviews({
   };
 
   return (
-    <section className="bg-blush py-16 md:py-20" data-testid="parents-reviews">
+    <section className={`${tone === "white" ? "bg-white" : "bg-cream"} py-12 md:py-20`} data-testid="parents-reviews">
       <div className="container">
-        <div className="text-center mb-10">
-          <p className="text-xs uppercase tracking-[0.3em] text-gold-text font-bold mb-2">Testimonials</p>
-          <h2 className="font-display text-3xl md:text-4xl lg:text-5xl text-navy tracking-tight">{title ?? "Real Parents, Real Stories"}</h2>
-          {subtitle && <p className="mt-2 text-muted">{subtitle}</p>}
-        </div>
+        <SectionHeader eyebrow="Real parents" title={title || "Real parents, real stories"} subtitle={subtitle} center />
         
         <div className="relative">
           {/* Left arrow */}
