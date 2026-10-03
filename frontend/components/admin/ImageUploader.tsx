@@ -14,6 +14,10 @@ type Props = {
   label?: string;
   className?: string;
   showUrlField?: boolean;
+  /** Plain-English size advice shown under the box, e.g. "Best: 1200 × 1500 px, portrait". */
+  hint?: string;
+  /** Warn (never block) when a picture is narrower than this many pixels. */
+  minWidth?: number;
 };
 
 export default function ImageUploader({
@@ -25,6 +29,8 @@ export default function ImageUploader({
   label = "Upload image",
   className = "",
   showUrlField = false,
+  hint,
+  minWidth,
 }: Props) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
@@ -38,6 +44,16 @@ export default function ImageUploader({
     if (file.size > 25 * 1024 * 1024) {
       toast.error("File too large to process. Max 25MB before compression.");
       return;
+    }
+    // Friendly warning for pictures that will look blurry (upload still goes ahead).
+    if (minWidth && file.type.startsWith("image/") && file.type !== "image/svg+xml") {
+      try {
+        const bmp = await createImageBitmap(file);
+        if (bmp.width < minWidth) toast.warning(`This picture is small (${bmp.width} × ${bmp.height} px). For a sharp look use at least ${minWidth} px wide.`);
+        bmp.close?.();
+      } catch {
+        /* size check is only advice */
+      }
     }
     setUploading(true);
     setProgress(0);
@@ -138,6 +154,7 @@ export default function ImageUploader({
           )}
         </label>
       )}
+      {hint && <p className="mt-1.5 text-[11px] leading-snug text-neutral-500">{hint}</p>}
       {showUrlField && (
         <input
           type="url"

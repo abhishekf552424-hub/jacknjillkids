@@ -17,8 +17,13 @@ export async function POST(req: Request) {
   if (!filename) return NextResponse.json({ error: "filename required" }, { status: 400 });
 
   // Whitelist folder to prevent path traversal
-  const safeFolder = String(folder).replace(/[^a-z0-9/_-]/gi, "").slice(0, 40) || "uploads";
-  const ext = filename.split(".").pop()?.toLowerCase() || "bin";
+  const safeFolder = safeFolderName(folder);
+  const ext = String(filename).split(".").pop()?.toLowerCase() || "";
+  // Only pictures and short videos can be uploaded (SVG only for the logo).
+  const allowed = ["jpg", "jpeg", "png", "webp", "gif", "avif", "mp4", "webm", "mov"];
+  if (!allowed.includes(ext) && !(ext === "svg" && safeFolderName(folder) === "branding")) {
+    return NextResponse.json({ error: "Please upload a JPG, PNG, WebP or GIF picture, or an MP4/WebM video." }, { status: 400 });
+  }
   const key = `${safeFolder}/${Date.now()}-${randomBytes(6).toString("hex")}.${ext}`;
 
   const admin = createAdminClient();
@@ -33,4 +38,8 @@ export async function POST(req: Request) {
     publicUrl: pub.publicUrl,
     contentType: contentType || "application/octet-stream",
   });
+}
+
+function safeFolderName(folder: unknown) {
+  return String(folder ?? "uploads").replace(/[^a-z0-9_-]/gi, "").slice(0, 40) || "uploads";
 }

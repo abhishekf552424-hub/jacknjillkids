@@ -174,7 +174,7 @@ function HeroEditor({ config, onChange }: { config: any; onChange: (c: any) => v
                 <button type="button" onClick={() => patch(i, { image: "", video: "" })} className={`px-2 py-1 ${mode === "video" ? "bg-navy text-white" : "bg-white text-navy"}`}>Video</button>
               </div>
               {mode === "image" ? (
-                <ImageUploader value={sl.image || sl.video || ""} folder="hero" accept="image/*,video/*" maxSizeMB={20} onChange={(url) => patch(i, /\.(mp4|webm|mov)$/i.test(url) ? { image: "", video: url, video_url: "" } : { image: url, video: "", video_url: "" })} showUrlField />
+                <ImageUploader value={sl.image || sl.video || ""} folder="hero" accept="image/*,video/*" maxSizeMB={20} minWidth={1600} hint="Best: 2400 × 1100 px (wide). Keep faces and products in the middle — phones crop the sides." onChange={(url) => patch(i, /\.(mp4|webm|mov)$/i.test(url) ? { image: "", video: url, video_url: "" } : { image: url, video: "", video_url: "" })} showUrlField />
               ) : (
                 <input value={sl.video_url || ""} onChange={(e) => patch(i, { video_url: e.target.value })} placeholder="https://vimeo.com/123456789" className="w-full border rounded px-2 py-1.5 text-xs" />
               )}
@@ -317,7 +317,7 @@ function BrandStoryEditor({ config, onChange }: { config: any; onChange: (c: any
   const set = (patch: any) => onChange({ ...(config || {}), ...patch });
   return (
     <div className="grid md:grid-cols-[220px_1fr] gap-3">
-      <ImageUploader value={config?.image || config?.video || ""} folder="brand-story" accept="image/*,video/*" maxSizeMB={20} onChange={(url) => { if (/\.(mp4|webm|mov)$/i.test(url)) set({ video: url, image: "" }); else set({ image: url, video: "" }); }} showUrlField />
+      <ImageUploader value={config?.image || config?.video || ""} folder="brand-story" accept="image/*,video/*" maxSizeMB={20} minWidth={1000} hint="Best: 1500 × 1200 px (slightly wide). Real photo of the store or founder works best." onChange={(url) => { if (/\.(mp4|webm|mov)$/i.test(url)) set({ video: url, image: "" }); else set({ image: url, video: "" }); }} showUrlField />
       <div className="space-y-2">
         <label className="text-xs">Or paste Vimeo/YouTube URL<input value={config?.embed_url || ""} onChange={(e) => set({ embed_url: e.target.value })} placeholder="https://vimeo.com/..." className="mt-1 w-full border rounded px-2 py-1.5 text-sm" /></label>
         <label className="text-xs">Body text<textarea rows={4} value={config?.body || ""} onChange={(e) => set({ body: e.target.value })} className="mt-1 w-full border rounded px-2 py-1.5 text-sm" /></label>
@@ -383,7 +383,7 @@ function PromoStripEditor({ config, onChange }: { config: any; onChange: (c: any
         const radius = c.border_radius || "soft";
         return (
           <div key={i} className="border border-neutral-200 rounded-lg p-3 grid md:grid-cols-[200px_1fr_auto] gap-3 items-start">
-            <ImageUploader value={c.image || ""} folder="promo-strip" onChange={(url) => patch(i, { image: url })} showUrlField />
+            <ImageUploader value={c.image || ""} folder="promo-strip" minWidth={900} hint="Best: wide picture (like 1536 × 1024 or 1280 × 720). Text sits at the bottom-left, keep that area calm." onChange={(url) => patch(i, { image: url })} showUrlField />
             <div className="grid gap-2">
               <input value={c.headline || ""} onChange={(e) => patch(i, { headline: e.target.value })} placeholder="Headline" className="border rounded px-2 py-1.5 text-sm" />
               <input value={c.subtext || ""} onChange={(e) => patch(i, { subtext: e.target.value })} placeholder="Small subtext (optional)" className="border rounded px-2 py-1.5 text-sm" />
@@ -466,7 +466,7 @@ function OccasionsEditor({ config, onChange }: { config: any; onChange: (c: any)
       <Field label="Small label above title" value={config?.eyebrow || ""} placeholder="Collections" onChange={(v) => onChange({ ...(config || {}), eyebrow: v })} />
       {cards.map((c, i) => (
         <div key={i} className="border border-neutral-200 rounded-lg p-3 grid md:grid-cols-[200px_1fr_auto] gap-3 items-start">
-          <ImageUploader value={c.image || ""} folder="occasions" onChange={(url) => patch(i, { image: url })} showUrlField />
+          <ImageUploader value={c.image || ""} folder="occasions" minWidth={900} hint="Best: portrait picture (like 1024 × 1536), at least 900 px wide. Keep the bottom third plain — the white name card sits there." onChange={(url) => patch(i, { image: url })} showUrlField />
           <div className="grid gap-2">
             <Field label="Name" value={c.title || ""} placeholder="Festive" max={40} onChange={(v) => patch(i, { title: v })} />
             <Field label="One line about it" value={c.subtitle || ""} placeholder="Kurtas, lehengas and festival sets" max={80} onChange={(v) => patch(i, { subtitle: v })} />
@@ -519,7 +519,7 @@ function LookEditor({ config, products, onChange }: { config: any; products: Pic
     <div className="grid md:grid-cols-[220px_1fr] gap-3">
       <div>
         <p className="text-xs text-muted mb-1">Styled photo of the whole outfit</p>
-        <ImageUploader value={config?.image || ""} folder="shop-the-look" onChange={(url) => set({ image: url })} showUrlField />
+        <ImageUploader value={config?.image || ""} folder="shop-the-look" minWidth={1000} hint="Best: square picture (like 1024 × 1024 or bigger). Keep the child in the centre; edges get cropped on phones." onChange={(url) => set({ image: url })} showUrlField />
       </div>
       <div>
         <Field label="Small label" value={config?.eyebrow || ""} placeholder="Complete outfits" onChange={(v) => set({ eyebrow: v })} />
@@ -541,7 +541,7 @@ function LookEditor({ config, products, onChange }: { config: any; products: Pic
 function VisitEditor({ config, onChange }: { config: any; onChange: (c: any) => void }) {
   return (
     <div className="grid md:grid-cols-[220px_1fr] gap-3 items-start">
-      <ImageUploader value={config?.image || ""} folder="store" onChange={(url) => onChange({ ...(config || {}), image: url })} showUrlField />
+      <ImageUploader value={config?.image || ""} folder="store" minWidth={1200} hint="Best: 1600 × 1200 px (landscape). A real photo of the shop front or inside." onChange={(url) => onChange({ ...(config || {}), image: url })} showUrlField />
       <div className="space-y-2">
         <Field label="Small label" value={config?.eyebrow || ""} placeholder="Visit us" onChange={(v) => onChange({ ...(config || {}), eyebrow: v })} />
         <p className="text-[11px] text-neutral-500">Address, hours and phone come from <a href="/admin/settings" className="underline">Settings → Contact info</a>, so they are always the same everywhere.</p>
