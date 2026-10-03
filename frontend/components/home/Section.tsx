@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { optimised } from "@/lib/img";
 import { ArrowRight } from "lucide-react";
 import type { ReactNode } from "react";
 
@@ -52,8 +53,12 @@ export function SectionHeader({
 /** Photo-or-colour panel used by the new sections when no picture is uploaded yet. */
 export function Media({ src, alt, className = "", sizes = "100vw", priority = false }: { src?: string | null; alt: string; className?: string; sizes?: string; priority?: boolean }) {
   if (!src) return <div className={`bg-[#EFE6D3] ${className}`} aria-hidden="true" />;
+  // Uploaded pictures are served resized/compressed for each screen size.
+  const widths = [640, 828, 1200, 1920] as const;
+  const opt = optimised(src, 1200);
+  const srcSet = opt !== src ? widths.map((w) => `${optimised(src, w)} ${w}w`).join(", ") : undefined;
   // eslint-disable-next-line @next/next/no-img-element
-  return <img src={src} alt={alt} sizes={sizes} loading={priority ? "eager" : "lazy"} className={`object-cover ${className}`} />;
+  return <img src={opt} srcSet={srcSet} alt={alt} sizes={sizes} loading={priority ? "eager" : "lazy"} decoding="async" className={`object-cover ${className}`} />;
 }
 
 /** Only allow site paths and normal web links in admin-entered links. */
