@@ -1,3 +1,4 @@
+import { optimised } from "@/lib/img";
 import Link from "next/link";
 import { Instagram, Facebook, Mail, Phone, MapPin, Clock, ChevronDown, Navigation, Truck, RotateCcw, ShieldCheck, Store } from "lucide-react";
 import type { Category } from "@/lib/types";
@@ -119,7 +120,7 @@ export default function Footer({
         <div className="md:col-span-5 lg:col-span-4">
           {brand?.logo_url ? (
             /* eslint-disable-next-line @next/next/no-img-element */
-            <img src={brand.logo_url} alt={brand?.store_name || "Jack & Jill"} style={{ height: logoSize }} className="w-auto object-contain bg-white rounded-xl px-3 py-2" />
+            <img src={optimised(brand.logo_url, 384)} loading="lazy" decoding="async" alt={brand?.store_name || "Jack & Jill"} style={{ height: logoSize }} className="w-auto object-contain bg-white rounded-xl px-3 py-2" />
           ) : (
             <p className="font-display text-3xl font-bold">
               Jack <span className="text-gold-light">&amp;</span> Jill

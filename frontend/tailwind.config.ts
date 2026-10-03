@@ -82,6 +82,22 @@ const config: Config = {
           "0%": { transform: "translateX(100%)" },
           "100%": { transform: "translateX(0)" },
         },
+        "hero-in": {
+          "0%": { opacity: "0", transform: "scale(1.02)" },
+          "100%": { opacity: "1", transform: "none" },
+        },
+        "hero-text": {
+          "0%": { opacity: "0", transform: "translateY(20px)" },
+          "100%": { opacity: "1", transform: "none" },
+        },
+        "drop-in": {
+          "0%": { opacity: "0", transform: "translateY(6px)" },
+          "100%": { opacity: "1", transform: "none" },
+        },
+        "msg-in": {
+          "0%": { opacity: "0", transform: "translateY(12px)" },
+          "100%": { opacity: "1", transform: "none" },
+        },
         marquee: {
           "0%": { transform: "translateX(0)" },
           "100%": { transform: "translateX(-50%)" },
@@ -91,6 +107,10 @@ const config: Config = {
         "fade-up": "fade-up 500ms cubic-bezier(0.22,1,0.36,1) both",
         "slide-in-right": "slide-in-right 400ms cubic-bezier(0.22,1,0.36,1) both",
         marquee: "marquee 30s linear infinite",
+        "hero-in": "hero-in 900ms cubic-bezier(0.22,1,0.36,1) both",
+        "hero-text": "hero-text 650ms cubic-bezier(0.22,1,0.36,1) both",
+        "drop-in": "drop-in 200ms cubic-bezier(0.22,1,0.36,1) both",
+        "msg-in": "msg-in 300ms cubic-bezier(0.22,1,0.36,1) both",
       },
       transitionTimingFunction: {
         premium: "cubic-bezier(0.22, 1, 0.36, 1)",

@@ -1,6 +1,7 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useState } from "react";
+import Rail from "./Rail";
 import { Instagram } from "lucide-react";
 import { normalizeEmbedUrl } from "@/lib/embeds";
 import BrandLoader from "@/components/BrandLoader";
@@ -23,7 +24,6 @@ export default function InstagramReels({
   subtitle?: string | null;
   videos?: Video[];
 }) {
-  const scroll = useRef<HTMLDivElement>(null);
   const [loaded, setLoaded] = useState<Record<number, boolean>>({});
   const items: Video[] = (videos ?? []).filter((v) => v.url);
 
@@ -66,35 +66,29 @@ export default function InstagramReels({
           No videos added yet.
         </div>
       ) : (
-        <div
-          ref={scroll}
-          className="flex gap-4 md:gap-5 overflow-x-auto no-scrollbar snap-x snap-mandatory pb-2"
-          data-testid="instagram-reels-scroll"
-        >
-          {items.map((v, i) => (
-            <div
-              key={`${v.url}-${i}`}
-              className="w-[220px] md:w-[260px] snap-start flex-shrink-0"
-              data-testid={`instagram-reel-${i}`}
-            >
-              <div className="relative aspect-[9/16] rounded-lg overflow-hidden bg-cream shadow-soft">
-                {!loaded[i] && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-cream">
-                    <BrandLoader size="md" />
-                  </div>
-                )}
-                <iframe
-                  src={getChromelessUrl(v)}
-                  className="absolute inset-0 w-full h-full"
-                  frameBorder={0}
-                  allow="autoplay; fullscreen; picture-in-picture"
-                  loading="lazy"
-                  title={`Video ${i + 1}`}
-                  onLoad={() => setLoaded((prev) => ({ ...prev, [i]: true }))}
-                />
+        <div data-testid="instagram-reels-scroll">
+          <Rail label={title || "From our Instagram"} itemClassName="w-[62%] sm:w-[34%] md:w-[26%] lg:w-[19.2%]" gapClassName="gap-4 md:gap-5">
+            {items.map((v, i) => (
+              <div key={`${v.url}-${i}`} data-testid={`instagram-reel-${i}`}>
+                <div className="relative aspect-[9/16] rounded-lg overflow-hidden bg-cream shadow-soft">
+                  {!loaded[i] && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-cream">
+                      <BrandLoader size="md" />
+                    </div>
+                  )}
+                  <iframe
+                    src={getChromelessUrl(v)}
+                    className="absolute inset-0 w-full h-full"
+                    frameBorder={0}
+                    allow="autoplay; fullscreen; picture-in-picture"
+                    loading="lazy"
+                    title={`Video ${i + 1}`}
+                    onLoad={() => setLoaded((prev) => ({ ...prev, [i]: true }))}
+                  />
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </Rail>
         </div>
       )}
       </div>

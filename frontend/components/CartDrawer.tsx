@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { motion, AnimatePresence } from "framer-motion";
+import { usePresence } from "@/lib/use-presence";
 import { X, Minus, Plus, Trash2, ShoppingBag } from "lucide-react";
 import { cart } from "@/lib/cart";
 import type { CartLine } from "@/lib/types";
@@ -26,29 +26,22 @@ export default function CartDrawer({ open, onClose, freeShippingAbove = 999 }: {
     };
   }, [open]);
 
+  const { mounted, shown } = usePresence(open, 400);
   const subtotal = lines.reduce((s, l) => s + l.price * l.quantity, 0);
   const left = Math.max(0, freeShippingAbove - subtotal);
   const pct = freeShippingAbove > 0 ? Math.min(100, Math.round((subtotal / freeShippingAbove) * 100)) : 100;
 
   return (
-    <AnimatePresence>
-      {open && (
+    <>
+      {mounted && (
         <>
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.25 }}
-            className="fixed inset-0 z-50 bg-navy/40"
+          <div
+            className={`fixed inset-0 z-50 bg-navy/40 transition-opacity duration-300 ${shown ? "opacity-100" : "opacity-0"}`}
             onClick={onClose}
           />
-          <motion.aside
-            initial={{ x: "100%" }}
-            animate={{ x: 0 }}
-            exit={{ x: "100%" }}
-            transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+          <aside
             data-testid="cart-drawer"
-            className="fixed inset-y-0 right-0 z-50 w-full max-w-md bg-cream flex flex-col shadow-premium"
+            className={`fixed inset-y-0 right-0 z-50 w-full max-w-md bg-cream flex flex-col shadow-premium transition-transform duration-[400ms] ease-premium ${shown ? "translate-x-0" : "translate-x-full"}`}
           >
             <div className="flex items-center justify-between px-6 py-4 border-b border-navy/10">
               <h2 className="font-display text-xl text-navy">Your Bag</h2>
@@ -155,9 +148,9 @@ export default function CartDrawer({ open, onClose, freeShippingAbove = 999 }: {
                 </button>
               </div>
             )}
-          </motion.aside>
+          </aside>
         </>
       )}
-    </AnimatePresence>
+    </>
   );
 }
