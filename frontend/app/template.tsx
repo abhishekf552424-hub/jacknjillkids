@@ -1,7 +1,15 @@
-/**
- * Re-mounts on every page change, so each page fades softly in.
- * The animation leaves no transform behind, so sticky/fixed bars keep working.
- */
+"use client";
+
+import { useEffect } from "react";
+
+// First landing shows the page straight away (no fade while the site loads);
+// every later page change fades softly in.
+let landed = false;
+
 export default function Template({ children }: { children: React.ReactNode }) {
-  return <div className="page-in">{children}</div>;
+  const animate = landed;
+  useEffect(() => {
+    landed = true;
+  }, []);
+  return <div className={animate ? "page-in" : undefined}>{children}</div>;
 }

@@ -1,11 +1,12 @@
 "use client";
 
+import { optimised } from "@/lib/img";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { Search, ShoppingBag, Heart, User, Menu, X, ChevronRight, ChevronDown, Phone, Truck, RotateCcw, MapPin, PackageSearch } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { usePresence } from "@/lib/use-presence";
 import type { Category, AgeGroup } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import CartDrawer from "./CartDrawer";
@@ -119,6 +120,8 @@ export default function Header({
     return () => window.removeEventListener("keydown", onKey);
   }, [searchOpen, menuOpen]);
 
+  const menu = usePresence(menuOpen, 350);
+
   const styleVars = {
     ["--logo-h-mobile"]: `${logoSizeMobile}px`,
     ["--logo-h-tablet"]: `${logoSizeTablet}px`,
@@ -127,7 +130,7 @@ export default function Header({
 
   const logo = logoUrl ? (
     /* eslint-disable-next-line @next/next/no-img-element */
-    <img src={logoUrl} alt={storeName} className="jj-logo-img w-auto object-contain" />
+    <img src={optimised(logoUrl, 256)} srcSet={`${optimised(logoUrl, 256)} 1x, ${optimised(logoUrl, 384)} 2x`} alt={storeName} fetchPriority="high" decoding="async" className="jj-logo-img w-auto max-w-[180px] sm:max-w-[240px] object-contain h-[var(--logo-h-mobile,36px)] sm:h-[var(--logo-h-tablet,44px)] lg:h-[var(--logo-h-desktop,52px)]" />
   ) : (
     <span className="flex items-baseline gap-1 font-display text-2xl md:text-3xl font-bold text-navy">
       Jack <span className="text-brand-orange">&amp;</span> Jill
@@ -205,15 +208,8 @@ export default function Header({
                 )}
               />
             </Link>
-            <AnimatePresence>
-              {open && (
-                <motion.div
-                  initial={{ opacity: 0, y: 6 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 6 }}
-                  transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
-                  className="absolute left-0 top-full pt-3 z-50"
-                >
+            {open && (
+                <div className="absolute left-0 top-full pt-3 z-50 animate-drop-in">
                   <div className="w-[300px] bg-white rounded-2xl shadow-premium border border-line p-2">
                     <ul className={cn("grid gap-0.5", kids.length > 6 && "grid-cols-2 w-[420px]")}>
                       {kids.map((s) => (
@@ -230,9 +226,8 @@ export default function Header({
                       <ChevronRight className="w-4 h-4" />
                     </Link>
                   </div>
-                </motion.div>
+                </div>
               )}
-            </AnimatePresence>
           </div>
         );
       })}
@@ -241,25 +236,15 @@ export default function Header({
 
   return (
     <>
-      <style jsx global>{`
-        .jj-logo-img { height: var(--logo-h-mobile); }
-        @media (min-width: 640px) { .jj-logo-img { height: var(--logo-h-tablet); } }
-        @media (min-width: 1024px) { .jj-logo-img { height: var(--logo-h-desktop); } }
-      `}</style>
 
       {/* Utility bar */}
       <div className="bg-navy text-white text-[13px]">
         <div className="container h-9 flex items-center justify-center lg:justify-between gap-4">
           {/* phones: one line at a time */}
           <div className="lg:hidden relative h-9 w-full overflow-hidden" aria-live="polite">
-            <AnimatePresence mode="wait" initial={false}>
-              <motion.p
+            <p
                 key={msg}
-                initial={{ y: 12, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                exit={{ y: -12, opacity: 0 }}
-                transition={{ duration: 0.3 }}
-                className="absolute inset-0 flex items-center justify-center gap-2 whitespace-nowrap"
+                className="animate-msg-in absolute inset-0 flex items-center justify-center gap-2 whitespace-nowrap"
               >
                 {(() => {
                   const P = promises[msg];
@@ -270,8 +255,7 @@ export default function Header({
                     </>
                   );
                 })()}
-              </motion.p>
-            </AnimatePresence>
+              </p>
           </div>
           {/* desktop: everything */}
           <ul className="hidden lg:flex items-center gap-6 text-white/90">
@@ -334,15 +318,8 @@ export default function Header({
         )}
 
         {/* Search */}
-        <AnimatePresence>
           {searchOpen && (
-            <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: "auto", opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              transition={{ duration: 0.2 }}
-              className="overflow-hidden border-t border-line bg-white"
-            >
+            <div className="overflow-hidden border-t border-line bg-white animate-drop-in">
               <form action="/search" method="get" role="search" className="container py-4" onSubmit={() => setSearchOpen(false)}>
                 <label className="relative block max-w-2xl mx-auto">
                   <span className="sr-only">Search the shop</span>
@@ -367,22 +344,16 @@ export default function Header({
                   ))}
                 </div>
               </form>
-            </motion.div>
+            </div>
           )}
-        </AnimatePresence>
       </header>
 
       {/* Drawer — phones and tablets */}
-      <AnimatePresence>
-        {menuOpen && (
+        {menu.mounted && (
           <>
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 bg-ink/50 lg:hidden" onClick={() => setMenuOpen(false)} />
-            <motion.aside
-              initial={{ x: "-100%" }}
-              animate={{ x: 0 }}
-              exit={{ x: "-100%" }}
-              transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-              className="fixed inset-y-0 left-0 z-50 w-[88%] max-w-sm bg-white lg:hidden flex flex-col"
+            <div className={cn("fixed inset-0 z-50 bg-ink/50 lg:hidden transition-opacity duration-300", menu.shown ? "opacity-100" : "opacity-0")} onClick={() => setMenuOpen(false)} />
+            <aside
+              className={cn("fixed inset-y-0 left-0 z-50 w-[88%] max-w-sm bg-white lg:hidden flex flex-col transition-transform duration-[350ms] ease-premium", menu.shown ? "translate-x-0" : "-translate-x-full")}
               data-testid="hamburger-panel"
               role="dialog"
               aria-modal="true"
@@ -430,9 +401,8 @@ export default function Header({
                             </button>
                           )}
                         </div>
-                        <AnimatePresence initial={false}>
                           {expanded && (
-                            <motion.ul initial={{ height: 0 }} animate={{ height: "auto" }} exit={{ height: 0 }} className="overflow-hidden pl-[58px] pr-2">
+                            <ul className="overflow-hidden pl-[58px] pr-2 animate-drop-in">
                               {kids.map((s) => (
                                 <li key={s.id}>
                                   <Link href={`/category/${s.slug}`} onClick={() => setMenuOpen(false)} className="block py-2.5 text-sm text-ink hover:text-navy">
@@ -445,9 +415,8 @@ export default function Header({
                                   View all {c.name}
                                 </Link>
                               </li>
-                            </motion.ul>
+                            </ul>
                           )}
-                        </AnimatePresence>
                       </li>
                     );
                   })}
@@ -504,10 +473,9 @@ export default function Header({
                   )}
                 </div>
               )}
-            </motion.aside>
+            </aside>
           </>
         )}
-      </AnimatePresence>
 
       <CartDrawer open={cartOpen} onClose={() => setCartOpen(false)} freeShippingAbove={freeShippingAbove} />
     </>

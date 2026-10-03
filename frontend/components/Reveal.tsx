@@ -1,29 +1,9 @@
-"use client";
-
-import { useEffect, useRef } from "react";
-
-export default function Reveal({ children, delay = 0 }: { children: React.ReactNode; delay?: number }) {
-  const ref = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const io = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((e) => {
-          if (e.isIntersecting) {
-            setTimeout(() => el.classList.add("in"), delay);
-            io.unobserve(el);
-          }
-        });
-      },
-      { threshold: 0.08, rootMargin: "0px 0px -6% 0px" },
-    );
-    io.observe(el);
-    return () => io.disconnect();
-  }, [delay]);
-  return (
-    <div ref={ref} className="reveal">
-      {children}
-    </div>
-  );
+/**
+ * Scroll reveal with no JavaScript: the browser animates the section as it
+ * scrolls into view (CSS scroll-driven animations, see globals.css).
+ * Content is never hidden while the page loads, so Google's speed test sees
+ * it straight away. Browsers without support simply show it without motion.
+ */
+export default function Reveal({ children }: { children: React.ReactNode; delay?: number }) {
+  return <div className="reveal">{children}</div>;
 }

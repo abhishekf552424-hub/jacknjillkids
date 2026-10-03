@@ -5,9 +5,8 @@ import "./globals.css";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import SiteChrome from "@/components/SiteChrome";
-import PromoPopup from "@/components/PromoPopup";
+import { LazyPromoPopup, LazySupportChat } from "@/components/LazyExtras";
 import AnalyticsPixels from "@/components/AnalyticsPixels";
-import SupportChat from "@/components/SupportChat";
 import { createPublicClient } from "@/lib/supabase/public";
 import { SITE_URL } from "@/lib/site";
 import { getTrackingSettings, getPromoPopup, getBrandSettings } from "@/lib/settings";
@@ -207,11 +206,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <SiteChrome
           header={<Header categoriesTree={globals.categoriesTree} ageGroups={globals.ageGroups} logoUrl={globals.brand?.logo_url} storeName={globals.brand?.store_name} logoSizeMobile={logoSizeMobile} logoSizeTablet={logoSizeTablet} logoSizeDesktop={logoSizeDesktop} logoAlign={logoAlign} phone={(globals.contact as any)?.phone} freeShippingAbove={globals.freeShippingAbove} exchangeDays={globals.exchangeDays} />}
           footer={<Footer contact={globals.contact} brand={globals.brand} logoSize={logoSize} categories={globals.categoriesTree} freeShippingAbove={globals.freeShippingAbove} exchangeDays={globals.exchangeDays} />}
-          support={<SupportChat whatsappNumber={globals.contact?.phone || globals.brand?.whatsapp_number} siteName={globals.brand?.store_name || "Jack & Jill"} />}
+          support={<LazySupportChat whatsappNumber={globals.contact?.phone || globals.brand?.whatsapp_number} siteName={globals.brand?.store_name || "Jack & Jill"} />}
         >
           {children}
         </SiteChrome>
-        <PromoPopup popup={promo} />
+        <LazyPromoPopup popup={promo} />
         <AnalyticsPixels gaId={tracking.ga4_id} pixelId={tracking.meta_pixel_id} />
         <Toaster position="top-right" richColors closeButton />
         <script

@@ -57,20 +57,26 @@ body {
    --------------------------------------------------------------------------- */
 :root { --ease: cubic-bezier(0.22, 1, 0.36, 1); }
 
-/* 1. Section reveal: the section fades up, then its header lines and cards
-      follow one after another (the "stagger"). */
-.reveal { opacity: 0; transform: translateY(28px); transition: opacity 700ms var(--ease), transform 700ms var(--ease); }
-.reveal.in { opacity: 1; transform: none; }
-.reveal .sh > *,
-.reveal .stagger > * { opacity: 0; transform: translateY(18px); transition: opacity 600ms var(--ease), transform 600ms var(--ease); }
-.reveal .sh > * { transition-delay: calc(var(--i, 0) * 90ms + 120ms); }
-.reveal .stagger > * { transition-delay: calc(var(--i, 0) * 70ms + 220ms); }
-.reveal .sh > :nth-child(2), .stagger > :nth-child(2) { --i: 1; }
-.stagger > :nth-child(3) { --i: 2; } .stagger > :nth-child(4) { --i: 3; } .stagger > :nth-child(5) { --i: 4; }
-.stagger > :nth-child(6) { --i: 5; } .stagger > :nth-child(7) { --i: 6; } .stagger > :nth-child(n+8) { --i: 7; }
+/* 1. Section reveal: as a section scrolls into view it fades up, then its
+      header lines and cards follow one after another (the "stagger").
+      Driven by scrolling itself — no JavaScript, nothing hidden at load. */
+@supports (animation-timeline: view()) {
+  .reveal {
+    view-timeline-name: --reveal;
+    animation: reveal-up linear both;
+    animation-timeline: --reveal;
+    animation-range: entry 0px entry 240px;
+  }
+  .reveal .sh > *,
+  .reveal .stagger > * {
+    animation: reveal-up linear both;
+    animation-timeline: --reveal;
+    animation-range: entry calc(60px + var(--i, 0) * 28px) entry calc(300px + var(--i, 0) * 28px);
+  }
+}
+.reveal .sh > :nth-child(2) { --i: 1; }
 .reveal .sh > :nth-child(3) { --i: 2; }
-.reveal.in .sh > *,
-.reveal.in .stagger > * { opacity: 1; transform: none; }
+@keyframes reveal-up { from { opacity: 0; transform: translateY(26px); } to { opacity: 1; transform: none; } }
 
 /* 2. Pages fade in on every navigation (no lasting transform, so fixed bars still work). */
 .page-in { animation: page-in 520ms var(--ease) backwards; }
@@ -107,7 +113,7 @@ body {
 details[open] > .faq-body { animation: page-in 380ms var(--ease); }
 
 @media (prefers-reduced-motion: reduce) {
-  .reveal, .reveal .sh > *, .reveal .stagger > * { opacity: 1 !important; transform: none !important; transition: none !important; }
+  .reveal, .reveal .sh > *, .reveal .stagger > * { animation: none !important; opacity: 1 !important; transform: none !important; }
   .page-in, .stagger-load > *, .pop, .kenburns { animation: none !important; }
   *, *::before, *::after { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; scroll-behavior: auto !important; }
 }
@@ -127,26 +133,23 @@ a { color: inherit; text-decoration: none; }
 .prose-jj h2 { font-family: var(--font-display), var(--font-deva), system-ui, sans-serif; font-weight: 700; font-size: 1.75rem; margin: 1.5rem 0 0.75rem; color: var(--brand-navy); }
 .prose-jj h3 { font-family: var(--font-display), var(--font-deva), system-ui, sans-serif; font-weight: 700; font-size: 1.375rem; margin: 1.25rem 0 0.5rem; color: var(--brand-navy); }
 
-/* --- BrandLoader: single site-wide loader animation --- */
-.brand-loader-ring {
-  background: conic-gradient(from 0deg, transparent 0deg, #EA4137 90deg, #F38838 180deg, #FCD325 270deg, transparent 360deg);
-  -webkit-mask: radial-gradient(circle, transparent 55%, black 58%);
-          mask: radial-gradient(circle, transparent 55%, black 58%);
-  animation: brand-loader-spin 1.2s linear infinite;
+/* --- BrandLoader: three bouncing brand-colour dots --- */
+.jj-dots { display: inline-flex; align-items: flex-end; gap: calc(var(--d) * 0.55); height: calc(var(--d) * 2.6); }
+.jj-dots > span {
+  width: var(--d); height: var(--d); border-radius: 9999px; background: currentColor;
+  transform-origin: 50% 100%;
+  animation: jj-bounce 900ms cubic-bezier(0.37, 0, 0.63, 1) infinite;
 }
-.brand-loader-inner {
-  animation: brand-loader-pulse 1.4s ease-in-out infinite;
-}
-@keyframes brand-loader-spin {
-  from { transform: rotate(0deg); }
-  to   { transform: rotate(360deg); }
-}
-@keyframes brand-loader-pulse {
-  0%,100% { transform: scale(1);    opacity: 1; }
-  50%     { transform: scale(0.94); opacity: 0.88; }
+.jj-dots > span:nth-child(2) { animation-delay: 120ms; }
+.jj-dots > span:nth-child(3) { animation-delay: 240ms; }
+@keyframes jj-bounce {
+  0%, 100% { transform: translateY(0) scale(1.15, 0.85); }
+  35%      { transform: translateY(calc(var(--d) * -1.5)) scale(0.92, 1.08); }
+  60%      { transform: translateY(0) scale(1, 1); }
 }
 @media (prefers-reduced-motion: reduce) {
-  .brand-loader-ring, .brand-loader-inner { animation: none !important; }
+  .jj-dots > span { animation: jj-fade 1.2s ease-in-out infinite !important; animation-duration: 1.2s !important; }
+  @keyframes jj-fade { 50% { opacity: 0.35; } }
 }
 
 /* --- Marquee scroll (Phase 3) --- */

@@ -2,7 +2,6 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect, useRef } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { getVimeoBackgroundUrl } from "@/lib/embeds";
@@ -67,11 +66,43 @@ function CtaButton({ style, text, link }: { style: string; text: string; link: s
   );
 }
 
+/** One slide's photo/video + overlay. `enter` fades it in (CSS, no JS library). */
+function SlideMedia({ s, enter = false, priority = false }: { s: Slide; enter?: boolean; priority?: boolean }) {
+  const bgVideo = s.video_url ? getVimeoBackgroundUrl(s.video_url) : null;
+  const overlayOpacity = typeof s.overlay_opacity === "number" ? Math.max(0, Math.min(100, s.overlay_opacity)) : 20;
+  const overlayColor = s.overlay_color || "#1F2650";
+  return (
+    <div className={`absolute inset-0 ${enter ? "animate-hero-in" : ""}`}>
+      {bgVideo ? (
+        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+          <iframe
+            src={bgVideo}
+            title={s.heading || "Hero video"}
+            frameBorder={0}
+            allow="autoplay; fullscreen; picture-in-picture"
+            className="absolute top-1/2 left-1/2 w-[177.78vh] h-[56.25vw] min-w-full min-h-full -translate-x-1/2 -translate-y-1/2 border-0"
+          />
+        </div>
+      ) : s.image ? (
+        <Image src={s.image} alt={s.heading || "Hero"} fill priority={priority} sizes="(min-width: 1400px) 1340px, 100vw" className={`object-cover ${enter ? "kenburns" : ""}`} />
+      ) : null}
+      {/* Per-slide flat overlay — 0% opacity renders NO overlay at all */}
+      {overlayOpacity > 0 && <div className="absolute inset-0" style={{ backgroundColor: overlayColor, opacity: overlayOpacity / 100 }} />}
+    </div>
+  );
+}
+
 export default function HeroCarousel({ slides, title, subtitle }: { slides: Slide[]; title?: string | null; subtitle?: string | null }) {
   const [i, setI] = useState(0);
+  const changed = useRef(false);
+  useEffect(() => {
+    if (i !== 0) changed.current = true;
+  }, [i]);
   const [paused, setPaused] = useState(false);
   const [calm, setCalm] = useState(true);
   const touchX = useRef(0);
+  // True only for the very first slide shown after the page loads.
+  const landing = i === 0 && !changed.current;
   // Defensive filter: a slide with neither an image nor a video configured
   // (e.g. an admin-added slide that was never finished) would otherwise
   // render as a blank navy box for its entire ~6s turn — not just during
@@ -93,11 +124,19 @@ export default function HeroCarousel({ slides, title, subtitle }: { slides: Slid
     setCalm(window.matchMedia("(prefers-reduced-motion: reduce)").matches);
   }, [list.length]);
 
+  // Remember the slide we came from, for the cross-fade.
+  const last = useRef(0);
+  const [prev, setPrev] = useState<number | null>(null);
+  useEffect(() => {
+    if (last.current === i) return;
+    setPrev(last.current);
+    last.current = i;
+    const t = window.setTimeout(() => setPrev(null), 950);
+    return () => window.clearTimeout(t);
+  }, [i]);
+
   const s = list[i];
-  const bgVideo = s.video_url ? getVimeoBackgroundUrl(s.video_url) : null;
   const hasCta = Boolean(s.cta_text && s.cta_link && s.cta_text.trim() && s.cta_link.trim());
-  const overlayOpacity = typeof s.overlay_opacity === "number" ? Math.max(0, Math.min(100, s.overlay_opacity)) : 20;
-  const overlayColor = s.overlay_color || "#1F2650";
   const headingColor = s.heading_color || "#ffffff";
   const headingSizeCls = HEADING_SIZE_CLASSES[s.heading_size || "lg"];
   const posCls = CONTENT_POS_CLASSES[s.content_position || "left"];
@@ -116,76 +155,30 @@ export default function HeroCarousel({ slides, title, subtitle }: { slides: Slid
             if (list.length > 1 && Math.abs(dx) > 45) setI((v) => (v + (dx < 0 ? 1 : -1) + list.length) % list.length);
           }}
           className={`group/hero relative w-full aspect-[16/10] sm:aspect-[16/9] lg:aspect-[21/9] max-h-[720px] overflow-hidden bg-navy ${radiusCls}`}>
-          <AnimatePresence>
-            <motion.div
-              key={i}
-              initial={{ opacity: 0, scale: 1.02 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
-              className="absolute inset-0"
-            >
-              {bgVideo ? (
-                <div className="absolute inset-0 pointer-events-none overflow-hidden">
-                  <iframe
-                    src={bgVideo}
-                    title={s.heading || "Hero video"}
-                    frameBorder={0}
-                    allow="autoplay; fullscreen; picture-in-picture"
-                    className="absolute top-1/2 left-1/2 w-[177.78vh] h-[56.25vw] min-w-full min-h-full -translate-x-1/2 -translate-y-1/2 border-0"
-                  />
-                </div>
-              ) : s.image ? (
-                <Image
-                  src={s.image}
-                  alt={s.heading || "Hero"}
-                  fill
-                  priority
-                  sizes="100vw"
-                  className="object-cover kenburns"
-                />
-              ) : null}
-              {/* Per-slide flat overlay — 0% opacity renders NO overlay at all */}
-              {overlayOpacity > 0 && (
-                <div
-                  className="absolute inset-0"
-                  style={{ backgroundColor: overlayColor, opacity: overlayOpacity / 100 }}
-                />
-              )}
-            </motion.div>
-          </AnimatePresence>
+          {/* The previous slide stays underneath while the new one fades in on top. */}
+          {prev !== null && prev !== i && list[prev] && <SlideMedia key={`m-${prev}`} s={list[prev]} />}
+          <SlideMedia key={`m-${i}`} s={s} enter={!landing} priority={landing} />
 
           <div className="relative h-full flex items-end md:items-center">
             <div className={`w-full p-5 sm:p-8 md:p-14 ${posCls}`} style={{ color: headingColor }}>
-              <motion.p
+              <p
                 key={`sub-${i}`}
-                initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.15, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-                className="uppercase tracking-[0.3em] text-gold-light text-[10px] sm:text-xs font-bold mb-3"
+                style={landing ? undefined : { animationDelay: "150ms" }}
+                className={`${landing ? "" : "animate-hero-text"} uppercase tracking-[0.3em] text-gold-light text-[10px] sm:text-xs font-bold mb-3`}
               >
                 {s.subheading ?? "Since 2003 • Kolhapur"}
-              </motion.p>
-              <motion.h1
+              </p>
+              <h1
                 key={`h-${i}`}
-                initial={{ opacity: 0, y: 28 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.25, duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-                className={`font-display leading-[1.05] tracking-tight ${headingSizeCls}`}
+                className={`${landing ? "" : "animate-hero-text [animation-delay:250ms]"} font-display leading-[1.05] tracking-tight ${headingSizeCls}`}
                 style={{ color: headingColor }}
               >
                 {s.heading ?? "Tiny Steps, Big Smiles"}
-              </motion.h1>
+              </h1>
               {hasCta && (
-                <motion.div
-                  key={`c-${i}`}
-                  initial={{ opacity: 0, y: 12 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.4, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-                  className="mt-6 md:mt-8"
-                >
+                <div key={`c-${i}`} className={`${landing ? "" : "animate-hero-text [animation-delay:400ms]"} mt-6 md:mt-8`}>
                   <CtaButton style={s.cta_style || "gradient"} text={s.cta_text!} link={s.cta_link!} />
-                </motion.div>
+                </div>
               )}
             </div>
           </div>
