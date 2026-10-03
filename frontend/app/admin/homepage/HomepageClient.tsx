@@ -466,7 +466,7 @@ function OccasionsEditor({ config, onChange }: { config: any; onChange: (c: any)
       <Field label="Small label above title" value={config?.eyebrow || ""} placeholder="Collections" onChange={(v) => onChange({ ...(config || {}), eyebrow: v })} />
       {cards.map((c, i) => (
         <div key={i} className="border border-neutral-200 rounded-lg p-3 grid md:grid-cols-[200px_1fr_auto] gap-3 items-start">
-          <ImageUploader value={c.image || ""} folder="occasions" minWidth={900} hint="Best: portrait picture (like 1024 × 1536), at least 900 px wide. Keep the bottom third plain — the white name card sits there." onChange={(url) => patch(i, { image: url })} showUrlField />
+          <ImageUploader value={c.image || ""} folder="occasions" minWidth={900} hint="Best: portrait picture (like 1024 × 1536), at least 900 px wide. Shown in a tall 4:5 frame — keep faces in the upper half, nothing important at the very edges." onChange={(url) => patch(i, { image: url })} showUrlField />
           <div className="grid gap-2">
             <Field label="Name" value={c.title || ""} placeholder="Festive" max={40} onChange={(v) => patch(i, { title: v })} />
             <Field label="One line about it" value={c.subtitle || ""} placeholder="Kurtas, lehengas and festival sets" max={80} onChange={(v) => patch(i, { subtitle: v })} />
