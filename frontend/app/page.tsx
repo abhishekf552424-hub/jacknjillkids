@@ -21,6 +21,7 @@ import HomeFaq from "@/components/home/HomeFaq";
 import JoinClub from "@/components/home/JoinClub";
 import SignOff from "@/components/home/SignOff";
 import type { Tone } from "@/components/home/Section";
+import { normaliseSocial } from "@/lib/social";
 import type { HomepageSection, Product, Category, TrustBadge, AgeGroup } from "@/lib/types";
 
 export const metadata: Metadata = {
@@ -113,14 +114,17 @@ const OWN_BACKGROUND = new Set(["hero", "marquee", "promo_strip", "sign_off", "t
 
 export default async function HomePage() {
   const supabase = createPublicClient();
-  const [{ data: sections }, { data: cats }, { data: badges }, { data: ages }, { data: faqs }, { data: contactRow }] = await Promise.all([
+  const [{ data: sections }, { data: cats }, { data: badges }, { data: ages }, { data: faqs }, { data: contactRow }, { data: socialRow }, { data: brandRow }] = await Promise.all([
     supabase.from("homepage_sections").select("*").eq("is_active", true).order("sort_order"),
     supabase.from("categories").select("*").eq("is_active", true).eq("is_featured_in_menu", true).is("parent_id", null).order("sort_order"),
     supabase.from("trust_badges").select("*").eq("is_active", true).order("sort_order"),
     supabase.from("age_groups").select("*").order("sort_order"),
     supabase.from("faqs").select("id, question, answer").eq("is_active", true).order("sort_order").limit(12),
     supabase.from("settings").select("value").eq("key", "contact_info").maybeSingle(),
+    supabase.from("settings").select("value").eq("key", "social").maybeSingle(),
+    supabase.from("settings").select("value").eq("key", "brand").maybeSingle(),
   ]);
+  const social = normaliseSocial(socialRow?.value, brandRow?.value);
 
   const list = (sections ?? []) as HomepageSection[];
   const categories = (cats ?? []) as Category[];
@@ -148,6 +152,8 @@ export default async function HomePage() {
       case "age_groups": return ageList.length > 0;
       case "occasions": return (c.cards ?? []).some((x: any) => x?.title);
       case "categories": return categories.length > 0;
+      case "instagram_reels": return (c.videos ?? []).some((v: any) => v?.url);
+      case "parents_reviews": return (c.videos ?? []).some((v: any) => v?.url || v?.caption) || Boolean(social.google_rating && social.google_reviews_url);
       default: return true;
     }
   };
@@ -191,17 +197,17 @@ export default async function HomePage() {
       case "brand_story":
         return <BrandStory title={s.title} subtitle={s.subtitle} image={c.image} video={c.video} embed_url={c.embed_url} body={c.body} tone={tone} config={c} />;
       case "instagram_reels":
-        return <InstagramReels title={s.title} subtitle={s.subtitle} videos={c.videos ?? []} tone={tone} handle={c.handle} profileUrl={c.profile_url} />;
+        return <InstagramReels title={s.title} subtitle={s.subtitle} videos={c.videos ?? []} tone={tone} handle={c.handle} profileUrl={c.profile_url} instagram={social.instagram} />;
       case "parents_reviews":
-        return <ParentsReviews title={s.title} subtitle={s.subtitle} videos={c.videos ?? []} tone={tone} />;
+        return <ParentsReviews title={s.title} subtitle={s.subtitle} videos={c.videos ?? []} tone={tone} social={social} />;
       case "visit_store":
-        return <VisitStore title={s.title} subtitle={s.subtitle} config={c} contact={contact} tone={tone} />;
+        return <VisitStore title={s.title} subtitle={s.subtitle} config={c} contact={contact} tone={tone} social={social} />;
       case "faq":
         return <HomeFaq title={s.title} subtitle={s.subtitle} config={c} faqs={faqList.slice(0, Math.min(Number(c.limit) || 6, 12))} tone={tone} />;
       case "join_club":
         return <JoinClub title={s.title} subtitle={s.subtitle} config={{ eyebrow: c.eyebrow, button_text: c.button_text }} tone={tone} />;
       case "sign_off":
-        return <SignOff title={s.title} subtitle={s.subtitle} />;
+        return <SignOff title={s.title} subtitle={s.subtitle} social={social} />;
       case "trust_badges":
         return <TrustStrip badges={trust} />;
       case "marquee":

@@ -5,6 +5,7 @@ import "./globals.css";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import SiteChrome from "@/components/SiteChrome";
+import { normaliseSocial } from "@/lib/social";
 import { LazyPromoPopup, LazySupportChat } from "@/components/LazyExtras";
 import AnalyticsPixels from "@/components/AnalyticsPixels";
 import { createPublicClient } from "@/lib/supabase/public";
@@ -94,7 +95,7 @@ export const metadata: Metadata = {
 async function fetchGlobals() {
   // Public catalogue data only — no cookies, so pages can be cached.
   const supabase = createPublicClient();
-  const [{ data: cats }, { data: ages }, { data: badges }, { data: setBrand }, { data: contact }, { data: shipping }, { data: returns }] = await Promise.all([
+  const [{ data: cats }, { data: ages }, { data: badges }, { data: setBrand }, { data: contact }, { data: shipping }, { data: returns }, { data: socialRow }] = await Promise.all([
     supabase.from("categories").select("*").eq("is_active", true).order("sort_order"),
     supabase.from("age_groups").select("*").order("sort_order"),
     supabase.from("trust_badges").select("*").eq("is_active", true).order("sort_order"),
@@ -102,6 +103,7 @@ async function fetchGlobals() {
     supabase.from("settings").select("value").eq("key", "contact_info").maybeSingle(),
     supabase.from("settings").select("value").eq("key", "shipping").maybeSingle(),
     supabase.from("settings").select("value").eq("key", "returns").maybeSingle(),
+    supabase.from("settings").select("value").eq("key", "social").maybeSingle(),
   ]);
   const flat = (cats ?? []) as Category[];
   const map = new Map(flat.map((c) => [c.id, { ...c, children: [] as Category[] }]));
@@ -119,6 +121,7 @@ async function fetchGlobals() {
     contact: contact?.value ?? {},
     freeShippingAbove: Number((shipping?.value as any)?.free_above) || 999,
     exchangeDays: Number((returns?.value as any)?.exchange_window_days) || 7,
+    social: normaliseSocial(socialRow?.value, setBrand?.value),
   };
 }
 
@@ -142,7 +145,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     name: "Jack & Jill",
     url: SITE_URL,
     logo: `${SITE_URL}/logo.svg`,
-    sameAs: [globals.brand?.instagram, globals.brand?.facebook].filter(Boolean),
+    sameAs: [globals.social.instagram, globals.social.facebook, globals.social.youtube, globals.social.google_reviews_url].filter(Boolean),
     address: {
       "@type": "PostalAddress",
       streetAddress: "Opp. Shahji Law College, E Ward, Shahupuri",
@@ -197,15 +200,15 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         closes: "21:00",
       },
     ],
-    sameAs: [globals.brand?.instagram, globals.brand?.facebook].filter(Boolean),
+    sameAs: [globals.social.instagram, globals.social.facebook, globals.social.youtube, globals.social.google_reviews_url].filter(Boolean),
   };
 
   return (
     <html lang="en-IN" className={`${display.variable} ${body.variable} ${hand.variable} ${deva.variable}`}>
       <body>
         <SiteChrome
-          header={<Header categoriesTree={globals.categoriesTree} ageGroups={globals.ageGroups} logoUrl={globals.brand?.logo_url} storeName={globals.brand?.store_name} logoSizeMobile={logoSizeMobile} logoSizeTablet={logoSizeTablet} logoSizeDesktop={logoSizeDesktop} logoAlign={logoAlign} phone={(globals.contact as any)?.phone} freeShippingAbove={globals.freeShippingAbove} exchangeDays={globals.exchangeDays} />}
-          footer={<Footer contact={globals.contact} brand={globals.brand} logoSize={logoSize} categories={globals.categoriesTree} freeShippingAbove={globals.freeShippingAbove} exchangeDays={globals.exchangeDays} />}
+          header={<Header categoriesTree={globals.categoriesTree} ageGroups={globals.ageGroups} logoUrl={globals.brand?.logo_url} storeName={globals.brand?.store_name} logoSizeMobile={logoSizeMobile} logoSizeTablet={logoSizeTablet} logoSizeDesktop={logoSizeDesktop} logoAlign={logoAlign} phone={(globals.contact as any)?.phone} freeShippingAbove={globals.freeShippingAbove} exchangeDays={globals.exchangeDays} social={globals.social} />}
+          footer={<Footer contact={globals.contact} brand={globals.brand} logoSize={logoSize} categories={globals.categoriesTree} freeShippingAbove={globals.freeShippingAbove} exchangeDays={globals.exchangeDays} social={globals.social} />}
           support={<LazySupportChat whatsappNumber={globals.contact?.phone || globals.brand?.whatsapp_number} siteName={globals.brand?.store_name || "Jack & Jill"} />}
         >
           {children}
