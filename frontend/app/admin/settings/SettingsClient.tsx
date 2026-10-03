@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
-import { CreditCard, Truck, Info, Save, Users, ArrowRight, Palette, Percent, RotateCcw } from "lucide-react";
+import { CreditCard, Truck, Info, Save, Users, ArrowRight, Palette, Percent, RotateCcw, Share2 } from "lucide-react";
 import ImageUploader from "@/components/admin/ImageUploader";
 
 export default function SettingsClient({ initial, isDeveloper }: { initial: Record<string, any>; isDeveloper: boolean }) {
@@ -27,6 +27,25 @@ export default function SettingsClient({ initial, isDeveloper }: { initial: Reco
     instagram: initial.brand?.instagram ?? "",
     facebook: initial.brand?.facebook ?? "",
   });
+  const [social, setSocial] = useState({
+    instagram: initial.social?.instagram ?? initial.brand?.instagram ?? "",
+    facebook: initial.social?.facebook ?? initial.brand?.facebook ?? "",
+    youtube: initial.social?.youtube ?? "",
+    google_reviews_url: initial.social?.google_reviews_url ?? "",
+    google_write_url: initial.social?.google_write_url ?? "",
+    google_rating: initial.social?.google_rating != null ? String(initial.social.google_rating) : "",
+    google_review_count: initial.social?.google_review_count != null ? String(initial.social.google_review_count) : "",
+  });
+  const saveSocial = () => {
+    const links = [social.instagram, social.facebook, social.youtube, social.google_reviews_url, social.google_write_url];
+    if (links.some((u) => u && !/^https:\/\/[^\s]+$/.test(u))) return toast.error("Links must start with https://");
+    const rating = social.google_rating === "" ? null : Number(social.google_rating);
+    if (rating !== null && !(rating >= 1 && rating <= 5)) return toast.error("Google rating must be between 1 and 5, e.g. 4.8");
+    const count = social.google_review_count === "" ? null : Math.round(Number(social.google_review_count));
+    if (count !== null && !(count >= 0)) return toast.error("Number of reviews must be a number");
+    if (rating !== null && !social.google_reviews_url) return toast.error("Add the Google reviews link too, so people can check the rating");
+    save("social", { ...social, google_rating: rating, google_review_count: count });
+  };
   const [shipping, setShipping] = useState({
     free_above: initial.shipping?.free_above ?? 999,
     flat_fee: initial.shipping?.flat_fee ?? 79,
@@ -167,14 +186,37 @@ export default function SettingsClient({ initial, isDeveloper }: { initial: Reco
             <F label="GSTIN" value={brand.gstin} onChange={(v) => setBrand({ ...brand, gstin: v })} placeholder="27ABCDE1234F1Z5" />
             <div className="sm:col-span-2"><F label="Billing / registered address (for invoices)" value={brand.billing_address} onChange={(v) => setBrand({ ...brand, billing_address: v })} /></div>
             <F label="Billing state (for GST intra/inter)" value={brand.billing_state} onChange={(v) => setBrand({ ...brand, billing_state: v })} />
-            <F label="Instagram page link (shows in the footer)" value={brand.instagram} onChange={(v) => setBrand({ ...brand, instagram: v.trim() })} placeholder="https://www.instagram.com/..." />
-            <F label="Facebook page link (shows in the footer)" value={brand.facebook} onChange={(v) => setBrand({ ...brand, facebook: v.trim() })} placeholder="https://www.facebook.com/..." />
           </div>
           <button onClick={() => {
             const bad = [brand.instagram, brand.facebook].some((u) => u && !/^https:\/\/[^\s]+$/.test(u));
             if (bad) return toast.error("Social links must start with https://");
             save("brand", brand);
           }} className="mt-4 bg-navy text-white rounded px-4 py-2 text-sm flex items-center gap-2"><Save className="w-4 h-4" /> Save branding</button>
+        </div>
+
+        <div className="bg-white rounded-lg p-6 shadow-soft" id="social">
+          <div className="flex items-center gap-2 mb-1">
+            <Share2 className="w-4 h-4 text-gold-text" />
+            <h2 className="font-display text-xl text-navy">Social media &amp; Google reviews</h2>
+          </div>
+          <p className="text-sm text-muted mb-4">Shows in the top bar, phone menu, footer, &ldquo;Visit us&rdquo;, &ldquo;Real parents&rdquo; and the last line of the homepage. Leave a box empty to hide it.</p>
+          <div className="grid sm:grid-cols-3 gap-4">
+            <F label="Instagram link" value={social.instagram} onChange={(v) => setSocial({ ...social, instagram: v.trim() })} placeholder="https://www.instagram.com/..." />
+            <F label="Facebook link" value={social.facebook} onChange={(v) => setSocial({ ...social, facebook: v.trim() })} placeholder="https://www.facebook.com/..." />
+            <F label="YouTube link" value={social.youtube} onChange={(v) => setSocial({ ...social, youtube: v.trim() })} placeholder="https://www.youtube.com/@..." />
+          </div>
+          <div className="mt-5 rounded-lg bg-cream/60 p-4">
+            <p className="text-xs uppercase tracking-widest text-navy font-bold mb-1">Google reviews (from your Google Business Profile)</p>
+            <p className="text-xs text-muted mb-3">Copy the star rating and number of reviews exactly as Google shows them, and update them now and then. The rating only shows on the website when the reviews link is also filled, so customers can check it.</p>
+            <div className="grid sm:grid-cols-2 gap-4">
+              <F label="Link to your Google reviews" value={social.google_reviews_url} onChange={(v) => setSocial({ ...social, google_reviews_url: v.trim() })} placeholder="https://g.page/... or https://maps.app.goo.gl/..." />
+              <F label="“Write a review” link" value={social.google_write_url} onChange={(v) => setSocial({ ...social, google_write_url: v.trim() })} placeholder="https://g.page/r/.../review" />
+              <F label="Star rating on Google" value={social.google_rating} onChange={(v) => setSocial({ ...social, google_rating: v.replace(/[^\d.]/g, "").slice(0, 3) })} placeholder="4.8" />
+              <F label="Number of Google reviews" value={social.google_review_count} onChange={(v) => setSocial({ ...social, google_review_count: v.replace(/\D/g, "").slice(0, 6) })} placeholder="320" />
+            </div>
+            <p className="text-[11px] text-muted mt-3">Where to find the links: open your Google Business Profile → &ldquo;Ask for reviews&rdquo; gives the write-a-review link; &ldquo;Share&rdquo; on your Google Maps listing gives the reviews link.</p>
+          </div>
+          <button onClick={saveSocial} className="mt-4 bg-navy text-white rounded px-4 py-2 text-sm flex items-center gap-2"><Save className="w-4 h-4" /> Save social &amp; reviews</button>
         </div>
 
         {isDeveloper && (

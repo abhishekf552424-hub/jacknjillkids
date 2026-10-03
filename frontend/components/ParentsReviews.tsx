@@ -2,6 +2,8 @@
 
 import { Play } from "lucide-react";
 import Rail from "./Rail";
+import { GoogleRating } from "./SocialLinks";
+import type { Social } from "@/lib/social";
 import { normalizeEmbedUrl } from "@/lib/embeds";
 import { SectionHeader, type Tone } from "./home/Section";
 
@@ -12,25 +14,34 @@ export default function ParentsReviews({
   subtitle,
   tone = "white",
   videos,
+  social = {},
 }: {
+  social?: Social;
   title?: string | null;
   subtitle?: string | null;
   tone?: Tone;
   videos?: Video[];
 }) {
-  const list: Video[] = videos?.length
-    ? videos
-    : [
-        { name: "Priya S.", caption: "Amazing quality, lasted us 2 years!", url: "" },
-        { name: "Rahul M.", caption: "Fastest delivery in Kolhapur.", url: "" },
-        { name: "Anita P.", caption: "Skin-safe fabrics — no rashes!", url: "" },
-      ];
+  // Only real reviews: the parents' videos added in Admin, plus the live Google rating.
+  const list: Video[] = (videos ?? []).filter((v) => v?.url || v?.caption);
+  const hasGoogle = Boolean(social.google_rating && social.google_reviews_url);
+  if (!list.length && !hasGoogle) return null;
 
   return (
     <section className={`${tone === "white" ? "bg-white" : "bg-cream"} py-12 md:py-20`} data-testid="parents-reviews">
       <div className="container">
         <SectionHeader eyebrow="Real parents" title={title || "Real parents, real stories"} subtitle={subtitle} center />
-        
+        {hasGoogle && (
+          <div className="-mt-3 mb-8 flex flex-wrap items-center justify-center gap-x-4 gap-y-2">
+            <GoogleRating social={social} />
+            {social.google_write_url && (
+              <a href={social.google_write_url} target="_blank" rel="noopener noreferrer" className="text-sm font-bold text-navy underline decoration-brand-yellow decoration-2 underline-offset-4 hover:text-action">
+                Shopped with us? Write a review
+              </a>
+            )}
+          </div>
+        )}
+        {list.length > 0 && (
         <Rail label={title || "Real parents, real stories"} itemClassName="w-[86%] sm:w-[48%] lg:w-[32%]" gapClassName="gap-4 md:gap-6">
           {list.map((v, i) => (
             <div
@@ -63,6 +74,7 @@ export default function ParentsReviews({
             </div>
           ))}
         </Rail>
+        )}
       </div>
     </section>
   );

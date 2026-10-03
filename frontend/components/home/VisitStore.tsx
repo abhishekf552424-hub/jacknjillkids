@@ -1,10 +1,12 @@
 import { MapPin, Clock, Phone, Navigation } from "lucide-react";
 import { WhatsAppIcon } from "@/components/WhatsAppIcon";
 import { HomeSection, Media, type Tone } from "./Section";
+import { GoogleRating } from "@/components/SocialLinks";
+import type { Social } from "@/lib/social";
 
 type Contact = { address?: string; hours?: string; phone?: string };
 
-export default function VisitStore({ title, subtitle, config, contact, tone }: { title?: string | null; subtitle?: string | null; config?: { eyebrow?: string; image?: string }; contact: Contact; tone?: Tone }) {
+export default function VisitStore({ title, subtitle, config, contact, tone, social }: { title?: string | null; subtitle?: string | null; config?: { eyebrow?: string; image?: string }; contact: Contact; tone?: Tone; social?: Social }) {
   const digits = (contact.phone || "").replace(/\D/g, "");
   const wa = digits ? `https://wa.me/${digits.length === 10 ? "91" + digits : digits}` : null;
   const tel = contact.phone ? `tel:${contact.phone.replace(/[^\d+]/g, "")}` : null;
@@ -38,6 +40,16 @@ export default function VisitStore({ title, subtitle, config, contact, tone }: {
               </li>
             )}
           </ul>
+          {social?.google_rating && social.google_reviews_url && (
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+              <GoogleRating social={social} tone="light" />
+              {social.google_write_url && (
+                <a href={social.google_write_url} target="_blank" rel="noopener noreferrer" className="text-sm font-bold text-brand-yellow underline-offset-4 hover:underline">
+                  Write a review
+                </a>
+              )}
+            </div>
+          )}
           <div className="flex flex-wrap gap-3 pt-1">
             {maps && (
               <a href={maps} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 rounded-full bg-white text-navy px-6 py-3.5 text-[15px] font-bold hover:bg-cream">

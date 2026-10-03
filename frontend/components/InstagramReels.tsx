@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Rail from "./Rail";
+import { instagramHandle } from "@/lib/social";
 import { Instagram } from "lucide-react";
 import { normalizeEmbedUrl } from "@/lib/embeds";
 import BrandLoader from "@/components/BrandLoader";
@@ -16,7 +17,9 @@ export default function InstagramReels({
   tone = "cream",
   handle,
   profileUrl,
+  instagram,
 }: {
+  instagram?: string;
   tone?: Tone;
   handle?: string;
   profileUrl?: string;
@@ -26,6 +29,8 @@ export default function InstagramReels({
 }) {
   const [loaded, setLoaded] = useState<Record<number, boolean>>({});
   const items: Video[] = (videos ?? []).filter((v) => v.url);
+  const igUrl = (profileUrl && /^https:\/\//.test(profileUrl) ? profileUrl : undefined) || instagram;
+  const igHandle = handle || instagramHandle(igUrl);
 
   // Build chromeless Vimeo embed URL with autoplay/loop/muted params
   const getChromelessUrl = (v: Video): string => {
@@ -50,15 +55,17 @@ export default function InstagramReels({
         <div className="flex-1 min-w-0">
           <SectionHeader eyebrow="On Instagram" title={title || "From our Instagram"} subtitle={subtitle} />
         </div>
-        <a
-          href={profileUrl && /^https:\/\//.test(profileUrl) ? profileUrl : "https://instagram.com/jacknjill_kolhapur"}
-          target="_blank"
-          rel="noreferrer"
-          className="mb-7 md:mb-9 hidden sm:inline-flex items-center gap-2 text-[15px] font-bold text-navy hover:text-action transition-colors"
-          data-testid="instagram-profile-link"
-        >
-          <Instagram className="w-4 h-4" /> {handle || "@jacknjill_kolhapur"}
-        </a>
+        {igUrl && (
+          <a
+            href={igUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mb-7 md:mb-9 inline-flex items-center gap-2 rounded-full bg-white px-4 py-2.5 text-sm font-bold text-navy shadow-soft transition-colors hover:bg-navy hover:text-white"
+            data-testid="instagram-profile-link"
+          >
+            <Instagram className="w-4 h-4" /> Follow {igHandle || "us"}
+          </a>
+        )}
       </div>
 
       {items.length === 0 ? (

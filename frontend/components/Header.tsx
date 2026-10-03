@@ -5,13 +5,15 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { Search, ShoppingBag, Heart, User, Menu, X, ChevronRight, ChevronDown, Phone, Truck, RotateCcw, MapPin, PackageSearch } from "lucide-react";
+import { Search, ShoppingBag, Heart, User, Menu, X, ChevronRight, ChevronDown, Phone, Truck, RotateCcw, MapPin, PackageSearch, Star, Instagram } from "lucide-react";
 import { usePresence } from "@/lib/use-presence";
 import type { Category, AgeGroup } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import CartDrawer from "./CartDrawer";
 import { cart } from "@/lib/cart";
 import { WhatsAppIcon } from "./WhatsAppIcon";
+import { GoogleRating, SocialIcons } from "./SocialLinks";
+import type { Social } from "@/lib/social";
 
 /**
  * Site header.
@@ -41,6 +43,7 @@ export default function Header({
   phone,
   freeShippingAbove = 999,
   exchangeDays = 7,
+  social = {},
 }: {
   categoriesTree: Category[];
   ageGroups: AgeGroup[];
@@ -53,6 +56,7 @@ export default function Header({
   phone?: string;
   freeShippingAbove?: number;
   exchangeDays?: number;
+  social?: Social;
 }) {
   const pathname = usePathname() || "/";
   const [scrolled, setScrolled] = useState(false);
@@ -70,6 +74,7 @@ export default function Header({
     { icon: Truck, text: `Free delivery above ₹${freeShippingAbove.toLocaleString("en-IN")}` },
     { icon: RotateCcw, text: `Easy ${exchangeDays}-day size exchange` },
     { icon: MapPin, text: "Kolhapur's kids store since 2003" },
+    ...(social.google_rating ? [{ icon: Star, text: `Rated ${social.google_rating.toFixed(1)} on Google${social.google_review_count ? ` · ${social.google_review_count.toLocaleString("en-IN")} reviews` : ""}` }] : []),
   ];
 
   useEffect(() => {
@@ -259,7 +264,7 @@ export default function Header({
           </div>
           {/* desktop: everything */}
           <ul className="hidden lg:flex items-center gap-6 text-white/90">
-            {promises.map((p) => (
+            {promises.slice(0, 3).map((p) => (
               <li key={p.text} className="flex items-center gap-2">
                 <p.icon className="w-3.5 h-3.5 text-gold-light" aria-hidden="true" />
                 {p.text}
@@ -267,6 +272,12 @@ export default function Header({
             ))}
           </ul>
           <div className="hidden lg:flex items-center gap-5 text-white/90">
+            <GoogleRating social={social} tone="light" size="sm" className="hover:text-white" />
+            {social.instagram && (
+              <a href={social.instagram} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 hover:text-white">
+                <Instagram className="w-3.5 h-3.5 text-gold-light" aria-hidden="true" /> Instagram
+              </a>
+            )}
             <Link href="/track" className="flex items-center gap-1.5 hover:text-white">
               <PackageSearch className="w-3.5 h-3.5 text-gold-light" aria-hidden="true" /> Track order
             </Link>
@@ -459,6 +470,12 @@ export default function Header({
                 </ul>
               </div>
 
+              {(social.instagram || social.facebook || social.youtube || social.google_reviews_url) && (
+                <div className="shrink-0 border-t border-line px-4 py-3 flex flex-wrap items-center justify-between gap-3">
+                  <SocialIcons social={social} hideGoogle={Boolean(social.google_rating)} />
+                  <GoogleRating social={social} size="sm" />
+                </div>
+              )}
               {(tel || wa) && (
                 <div className="shrink-0 border-t border-line p-4 grid grid-cols-2 gap-2 bg-cream/60">
                   {tel && (

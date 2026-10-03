@@ -1,8 +1,10 @@
 import { optimised } from "@/lib/img";
 import Link from "next/link";
-import { Instagram, Facebook, Mail, Phone, MapPin, Clock, ChevronDown, Navigation, Truck, RotateCcw, ShieldCheck, Store } from "lucide-react";
+import { Mail, Phone, MapPin, Clock, ChevronDown, Navigation, Truck, RotateCcw, ShieldCheck, Store } from "lucide-react";
 import type { Category } from "@/lib/types";
 import { WhatsAppIcon } from "./WhatsAppIcon";
+import { GoogleRating, SocialIcons } from "./SocialLinks";
+import type { Social } from "@/lib/social";
 
 type Contact = { phone?: string; email?: string; address?: string; hours?: string };
 
@@ -63,7 +65,9 @@ export default function Footer({
   categories = [],
   freeShippingAbove = 999,
   exchangeDays = 7,
+  social = {},
 }: {
+  social?: Social;
   contact: Contact;
   brand: any;
   logoSize?: number;
@@ -84,10 +88,6 @@ export default function Footer({
       ]
   ).concat([{ href: "/shop?sort=newest", label: "New arrivals" }]);
 
-  const socials = [
-    brand?.instagram && { href: brand.instagram, label: "Instagram", icon: Instagram },
-    brand?.facebook && { href: brand.facebook, label: "Facebook", icon: Facebook },
-  ].filter(Boolean) as { href: string; label: string; icon: any }[];
 
   const year = new Date().getFullYear();
 
@@ -169,6 +169,12 @@ export default function Footer({
               </a>
             )}
           </div>
+
+          {/* Follow us + Google rating */}
+          <div className="mt-6 grid gap-3">
+            <SocialIcons social={social} tone="light" hideGoogle={Boolean(social.google_rating)} />
+            <GoogleRating social={social} tone="light" />
+          </div>
         </div>
 
         {/* Link columns */}
@@ -193,22 +199,6 @@ export default function Footer({
               </span>
             ))}
           </div>
-          {socials.length > 0 && (
-            <div className="flex items-center gap-2">
-              {socials.map((s) => (
-                <a
-                  key={s.label}
-                  href={s.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label={s.label}
-                  className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-white hover:text-navy transition-colors"
-                >
-                  <s.icon className="w-4 h-4" />
-                </a>
-              ))}
-            </div>
-          )}
         </div>
       </div>
     </footer>
