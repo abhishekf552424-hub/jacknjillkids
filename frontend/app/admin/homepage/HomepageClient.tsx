@@ -321,6 +321,37 @@ function BrandStoryEditor({ config, onChange }: { config: any; onChange: (c: any
       <div className="space-y-2">
         <label className="text-xs">Or paste Vimeo/YouTube URL<input value={config?.embed_url || ""} onChange={(e) => set({ embed_url: e.target.value })} placeholder="https://vimeo.com/..." className="mt-1 w-full border rounded px-2 py-1.5 text-sm" /></label>
         <label className="text-xs">Body text<textarea rows={4} value={config?.body || ""} onChange={(e) => set({ body: e.target.value })} className="mt-1 w-full border rounded px-2 py-1.5 text-sm" /></label>
+        <Field label="Round stamp text" value={config?.stamp_text || ""} placeholder="Since 2003 · Kolhapur" max={28} onChange={(v) => set({ stamp_text: v })} />
+      </div>
+      <div className="md:col-span-2 grid md:grid-cols-[220px_1fr] gap-3 border-t border-neutral-100 pt-3">
+        <div>
+          <p className="text-xs text-muted mb-1">Small tilted photo (optional)</p>
+          <ImageUploader value={config?.image2 || ""} folder="brand-story" minWidth={500} hint="Square photo, e.g. the shop front or the team. Shows as a polaroid on the big photo." onChange={(url) => set({ image2: url })} showUrlField />
+        </div>
+        <div className="space-y-2">
+          <Field label="Caption under small photo (handwritten style)" value={config?.image2_caption || ""} placeholder="Our Shahupuri store" max={40} onChange={(v) => set({ image2_caption: v })} />
+          <label className="text-xs block">A line from the founder (optional, shows only when filled)<textarea rows={2} maxLength={200} value={config?.quote || ""} onChange={(e) => set({ quote: e.target.value })} className="mt-1 w-full border rounded px-2 py-1.5 text-sm" /></label>
+          <Field label="Who said it" value={config?.quote_by || ""} placeholder="Ajit Mehta, Founder" max={50} onChange={(v) => set({ quote_by: v })} />
+        </div>
+      </div>
+      <div className="md:col-span-2 border-t border-neutral-100 pt-3">
+        <p className="text-xs text-muted mb-2">3 numbers under the story (leave all empty to use the defaults: 2003 · 10,000+ · 0–14)</p>
+        <div className="grid sm:grid-cols-3 gap-2">
+          {[0, 1, 2].map((i) => {
+            const stats: any[] = config?.stats || [];
+            const st = stats[i] || {};
+            const put = (p: any) => {
+              const next = [0, 1, 2].map((j) => (j === i ? { ...st, ...p } : stats[j] || { value: "", label: "" }));
+              set({ stats: next.some((x) => x.value) ? next : [] });
+            };
+            return (
+              <div key={i} className="grid gap-1.5 rounded border border-neutral-200 p-2">
+                <Field label="Number" value={st.value || ""} placeholder={["2003", "10,000+", "0–14"][i]} max={10} onChange={(v) => put({ value: v })} />
+                <Field label="Label" value={st.label || ""} placeholder={["Serving Kolhapur since", "Happy families", "Years — every age"][i]} max={30} onChange={(v) => put({ label: v })} />
+              </div>
+            );
+          })}
+        </div>
       </div>
     </div>
   );
@@ -491,6 +522,10 @@ function GiftEditor({ config, onChange }: { config: any; onChange: (c: any) => v
         <Field label="Small label" value={config?.eyebrow || ""} placeholder="Gift corner" onChange={(v) => set({ eyebrow: v })} />
         <Field label="Button text" value={config?.cta_text || ""} placeholder="See gift hampers" onChange={(v) => set({ cta_text: v })} />
         <Field label="Button link" value={config?.cta_link || ""} placeholder="/category/gift-hampers" onChange={(v) => set({ cta_link: v })} />
+      </div>
+      <div className="grid md:grid-cols-[220px_1fr] gap-3 items-start">
+        <ImageUploader value={config?.image || ""} folder="gifts" minWidth={900} hint="Landscape photo (like 1536 × 1024) of a wrapped gift or hamper, gift in the middle. Until you add one, a drawn gift box shows." onChange={(url) => set({ image: url })} showUrlField />
+        <Field label="Note on the photo (handwritten style)" value={config?.badge ?? ""} placeholder="Free gift wrap + a handwritten note" max={50} onChange={(v) => set({ badge: v })} />
       </div>
       <p className="text-[11px] text-neutral-500">Budget tiles open the shop filtered to that price.</p>
       {budgets.map((b, i) => (

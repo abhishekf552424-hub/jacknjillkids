@@ -189,7 +189,7 @@ export default async function HomePage() {
       case "shop_the_look":
         return <ShopTheLook title={s.title} subtitle={s.subtitle} config={c} products={d.look ?? []} tone={tone} />;
       case "brand_story":
-        return <BrandStory title={s.title} subtitle={s.subtitle} image={c.image} video={c.video} embed_url={c.embed_url} body={c.body} tone={tone} />;
+        return <BrandStory title={s.title} subtitle={s.subtitle} image={c.image} video={c.video} embed_url={c.embed_url} body={c.body} tone={tone} config={c} />;
       case "instagram_reels":
         return <InstagramReels title={s.title} subtitle={s.subtitle} videos={c.videos ?? []} tone={tone} handle={c.handle} profileUrl={c.profile_url} />;
       case "parents_reviews":
