@@ -152,6 +152,27 @@ a { color: inherit; text-decoration: none; }
   @keyframes jj-fade { 50% { opacity: 0.35; } }
 }
 
+/* --- Opening loader: shows on every fresh load / refresh, then lifts away.
+   Pure CSS, so it needs no JavaScript to appear or to disappear. --- */
+.jj-boot {
+  position: fixed; inset: 0; z-index: 9999;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px;
+  background: var(--bg-cream);
+  animation: jj-boot-out 500ms var(--ease) 900ms forwards;
+}
+.jj-boot-name {
+  font-family: var(--font-display), var(--font-body), system-ui, sans-serif;
+  font-weight: 600; font-size: 13px; letter-spacing: 0.32em; text-transform: uppercase; color: var(--brand-navy, #354275);
+  animation: jj-boot-name 700ms var(--ease) 120ms both;
+}
+.jj-boot > .jj-dots { animation: jj-boot-lift 500ms var(--ease) 900ms forwards; }
+@keyframes jj-boot-name { from { opacity: 0; letter-spacing: 0.5em; } }
+@keyframes jj-boot-lift { to { transform: translateY(-14px); opacity: 0; } }
+@keyframes jj-boot-out { to { opacity: 0; visibility: hidden; } }
+@media (prefers-reduced-motion: reduce) {
+  .jj-boot { animation: jj-boot-out 300ms linear 500ms forwards !important; animation-iteration-count: 1 !important; animation-duration: 300ms !important; }
+}
+
 /* --- Marquee scroll (Phase 3) --- */
 .marquee-track {
   animation: marquee-scroll var(--marquee-duration, 30s) linear infinite;
