@@ -23,15 +23,15 @@ export default function MarqueeStrip({
     // Outer section is a normal container — matches header/hero/other homepage
     // sections' max-width and side padding so its edges align with the rest of
     // the page layout, not the full viewport.
-    <section aria-label={title || "Announcements"} className="container py-3 md:py-4" data-testid="marquee-strip">
-      <div className="relative overflow-hidden rounded-lg bg-navy text-white marquee-wrap">
+    <section aria-label={title || "Announcements"} className="container pt-3 pb-1 md:py-4" data-testid="marquee-strip">
+      <div className="relative overflow-hidden rounded-lg bg-navy text-white marquee-wrap [mask-image:linear-gradient(90deg,transparent,#000_6%,#000_94%,transparent)]">
         <div className="relative flex whitespace-nowrap">
           <div
-            className="marquee-track flex whitespace-nowrap py-3"
+            className="marquee-track flex whitespace-nowrap py-2 md:py-3"
             style={{ ["--marquee-duration" as any]: `${duration}s` }}
           >
             {seq.map((it, i) => (
-              <span key={i} className="inline-flex items-center gap-3 px-6 text-sm md:text-base font-bold" data-testid={i < list.length ? `marquee-item-${i}` : undefined}>
+              <span key={i} className="inline-flex items-center gap-2.5 px-4 md:px-6 text-[13px] md:text-base font-bold" data-testid={i < list.length ? `marquee-item-${i}` : undefined}>
                 <Sparkles className="w-3.5 h-3.5 text-gold-light shrink-0" />
                 <span className="opacity-95">{it.text}</span>
               </span>

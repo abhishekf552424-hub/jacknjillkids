@@ -75,12 +75,12 @@ function CodePill({ code, note }: { code: string; note?: string }) {
     <button
       type="button"
       onClick={async () => { try { await navigator.clipboard.writeText(code); setCopied(true); setTimeout(() => setCopied(false), 2000); } catch {} }}
-      className="group inline-flex items-center gap-2 rounded-full border border-dashed border-gold-light/80 bg-[#1F2650]/55 px-3.5 py-1.5 text-white text-[11px] sm:text-xs"
+      className="group inline-flex items-center gap-2 whitespace-nowrap rounded-full border border-dashed border-gold-light/80 bg-[#1F2650]/55 px-3.5 py-1.5 text-white text-[11px] sm:text-xs"
       aria-label={`Copy coupon code ${code}`}
       data-testid="hero-code"
     >
       <span className="font-bold">Use code <span className="font-mono tracking-wider text-brand-yellow">{code}</span></span>
-      {note && <span className="hidden sm:inline text-white/75">· {note}</span>}
+      {note && <span className="hidden xl:inline text-white/75">· {note}</span>}
       {copied ? <Check className="w-3.5 h-3.5 text-brand-yellow" /> : <Copy className="w-3.5 h-3.5 opacity-80 group-hover:opacity-100" />}
     </button>
   );
@@ -88,14 +88,14 @@ function CodePill({ code, note }: { code: string; note?: string }) {
 
 const HEADING_SIZE_CLASSES: Record<string, string> = {
   sm: "text-2xl sm:text-3xl lg:text-4xl",
-  md: "text-[24px] sm:text-4xl lg:text-5xl",
-  lg: "text-[26px] sm:text-4xl lg:text-6xl",
+  md: "text-[24px] sm:text-4xl lg:text-[44px] xl:text-5xl",
+  lg: "text-[26px] sm:text-4xl lg:text-5xl xl:text-6xl",
 };
 
 const CONTENT_POS_CLASSES: Record<string, string> = {
-  left: "md:w-2/3 lg:w-1/2 md:mr-auto text-left",
-  center: "md:w-4/5 lg:w-3/4 mx-auto text-center",
-  right: "md:w-2/3 lg:w-1/2 md:ml-auto text-right",
+  left: "lg:w-[58%] xl:w-1/2 lg:mr-auto text-left",
+  center: "lg:w-3/4 mx-auto text-center",
+  right: "lg:w-[58%] xl:w-1/2 lg:ml-auto text-left lg:text-right",
 };
 
 // Corner style presets — consistent with PromoStrip radii for a unified system.
@@ -107,7 +107,7 @@ const RADIUS_CLASSES: Record<string, string> = {
 };
 
 function CtaButton({ style, text, link }: { style: string; text: string; link: string }) {
-  const base = "inline-flex items-center gap-2 font-bold rounded-full px-6 py-3 md:px-8 md:py-4 hover:-translate-y-0.5 transition-transform";
+  const base = "inline-flex items-center gap-2 font-bold rounded-full px-5 py-2.5 text-sm sm:text-base sm:px-6 sm:py-3 md:px-8 md:py-4 hover:-translate-y-0.5 transition-transform";
   if (style === "outline") {
     return (
       <Link href={safeHref(link)} data-testid="hero-cta" className={`${base} border-2 border-white text-white hover:bg-white hover:text-navy`}>
@@ -220,95 +220,104 @@ export default function HeroCarousel({ slides, title, subtitle }: { slides: Slid
             const dx = e.changedTouches[0].clientX - touchX.current;
             if (list.length > 1 && Math.abs(dx) > 45) setI((v) => (v + (dx < 0 ? 1 : -1) + list.length) % list.length);
           }}
-          className={`group/hero relative w-full aspect-[4/3] sm:aspect-[16/9] lg:aspect-[21/9] max-h-[720px] overflow-hidden bg-navy ${radiusCls}`}>
-          {/* The previous slide stays underneath while the new one fades in on top. */}
-          {prev !== null && prev !== i && list[prev] && <SlideMedia key={`m-${prev}`} s={list[prev]} />}
-          <SlideMedia key={`m-${i}`} s={s} enter={!landing} priority={landing} />
+          className={`group/hero relative w-full overflow-hidden bg-navy ${radiusCls}`}
+        >
+          {/* Picture. On phones it stays clean (words go in the panel below);
+              on tablets/desktops the words sit on the picture. */}
+          <div className="relative w-full aspect-[2/1] sm:aspect-[16/9] lg:aspect-[21/9] max-h-[720px] overflow-hidden">
+            {/* The previous slide stays underneath while the new one fades in on top. */}
+            {prev !== null && prev !== i && list[prev] && <SlideMedia key={`m-${prev}`} s={list[prev]} />}
+            <SlideMedia key={`m-${i}`} s={s} enter={!landing} priority={landing} />
+            {hasWords && (
+              <div aria-hidden="true" className={`hidden lg:block pointer-events-none absolute inset-0 ${s.content_position === "right" ? "bg-gradient-to-l" : s.content_position === "center" ? "bg-[#1F2650]/30" : "bg-gradient-to-r"} from-[#1F2650]/75 via-[#1F2650]/25 to-transparent`} />
+            )}
+            {/* phones: a soft fade into the panel below */}
+            {hasWords && <div aria-hidden="true" className="lg:hidden pointer-events-none absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-navy to-transparent" />}
+            {s.offer && <OfferSticker key={`o-${i}`} offer={s.offer} />}
 
-          {/* Soft shade behind the words so they read on any picture
-              (left side on big screens, bottom on phones). */}
-          {hasWords && (
-            <div aria-hidden="true" className={`pointer-events-none absolute inset-0 bg-gradient-to-t from-[#1F2650]/85 via-[#1F2650]/35 to-transparent ${s.content_position === "right" ? "md:bg-gradient-to-l" : "md:bg-gradient-to-r"} md:from-[#1F2650]/75 md:via-[#1F2650]/25 md:to-transparent`} />
-          )}
-          {s.offer && <OfferSticker key={`o-${i}`} offer={s.offer} />}
-
-          <div className="relative h-full flex items-end md:items-center">
-            <div className={`w-full p-4 pb-9 sm:p-8 md:p-14 ${posCls}`} style={{ color: headingColor }}>
-              {s.subheading && (
-                <p
-                  key={`sub-${i}`}
-                  style={landing ? undefined : { animationDelay: "150ms" }}
-                  className={`${landing ? "" : "animate-hero-text"} hidden sm:block uppercase tracking-[0.3em] text-gold-light text-[10px] sm:text-xs font-bold mb-2 md:mb-3`}
+            {list.length > 1 && (
+              <>
+                <button
+                  onClick={() => setI((v) => (v - 1 + list.length) % list.length)}
+                  className="hidden md:flex absolute z-20 left-6 top-1/2 -translate-y-1/2 w-11 h-11 items-center justify-center rounded-full bg-white/85 hover:bg-white text-navy shadow-soft opacity-0 -translate-x-2 group-hover/hero:opacity-100 group-hover/hero:translate-x-0 focus-visible:opacity-100 transition-all duration-300 ease-premium"
+                  aria-label="Previous slide"
+                  data-testid="hero-prev"
                 >
-                  {s.subheading}
-                </p>
-              )}
-              {s.script_line && (
-                <p
-                  key={`sc-${i}`}
-                  style={landing ? undefined : { animationDelay: "200ms" }}
-                  className={`${landing ? "" : "animate-hero-text"} font-hand text-brand-yellow text-lg sm:text-2xl md:text-[34px] leading-none -rotate-2 origin-left mb-1 md:mb-2 [text-shadow:0_2px_10px_rgba(0,0,0,.35)]`}
+                  <ChevronLeft className="w-5 h-5" />
+                </button>
+                <button
+                  onClick={() => setI((v) => (v + 1) % list.length)}
+                  className="hidden md:flex absolute z-20 right-6 top-1/2 -translate-y-1/2 w-11 h-11 items-center justify-center rounded-full bg-white/85 hover:bg-white text-navy shadow-soft opacity-0 translate-x-2 group-hover/hero:opacity-100 group-hover/hero:translate-x-0 focus-visible:opacity-100 transition-all duration-300 ease-premium"
+                  aria-label="Next slide"
+                  data-testid="hero-next"
                 >
-                  {s.script_line}
-                </p>
-              )}
-              <h1
-                key={`h-${i}`}
-                className={`${landing ? "" : "animate-hero-text [animation-delay:250ms]"} font-display leading-[1.05] tracking-tight [text-shadow:0_2px_18px_rgba(0,0,0,.25)] ${headingSizeCls}`}
-                style={{ color: headingColor }}
-              >
-                <Heading text={s.heading ?? "Tiny Steps, Big Smiles"} highlight={s.highlight} />
-              </h1>
-              {(hasCta || s.offer_code) && (
-                <div key={`c-${i}`} className={`${landing ? "" : "animate-hero-text [animation-delay:400ms]"} mt-3 sm:mt-6 md:mt-8 flex flex-wrap items-center gap-2.5 sm:gap-4 ${s.content_position === "center" ? "justify-center" : s.content_position === "right" ? "md:justify-end" : ""}`}>
-                  {hasCta && <CtaButton style={s.cta_style || "gradient"} text={s.cta_text!} link={s.cta_link!} />}
-                  {s.offer_code && <CodePill code={s.offer_code} note={s.offer_note} />}
+                  <ChevronRight className="w-5 h-5" />
+                </button>
+                <div className="absolute z-20 bottom-3 md:bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
+                  {list.map((_, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => setI(idx)}
+                      aria-label={`Go to slide ${idx + 1}`}
+                      className={`relative h-1.5 overflow-hidden rounded-full transition-all duration-500 ease-premium ${idx === i ? "w-10 bg-white/40" : "w-1.5 bg-white/50 hover:bg-white/80"}`}
+                      data-testid={`hero-dot-${idx}`}
+                    >
+                      {idx === i &&
+                        (calm ? (
+                          <span className="absolute inset-0 rounded-full bg-white" />
+                        ) : (
+                          <span
+                            key={i}
+                            onAnimationEnd={() => setI((v) => (v + 1) % list.length)}
+                            className={`dot-fill absolute inset-0 rounded-full bg-white ${paused ? "[animation-play-state:paused]" : ""}`}
+                          />
+                        ))}
+                    </button>
+                  ))}
                 </div>
-              )}
-            </div>
+              </>
+            )}
           </div>
 
-          {list.length > 1 && (
-            <>
-              <button
-                onClick={() => setI((v) => (v - 1 + list.length) % list.length)}
-                className="hidden md:flex absolute left-6 top-1/2 -translate-y-1/2 w-11 h-11 items-center justify-center rounded-full bg-white/85 hover:bg-white text-navy shadow-soft opacity-0 -translate-x-2 group-hover/hero:opacity-100 group-hover/hero:translate-x-0 focus-visible:opacity-100 transition-all duration-300 ease-premium"
-                aria-label="Previous slide"
-                data-testid="hero-prev"
+          {/* Words: a navy panel under the picture on phones, on the picture from tablets up. */}
+          {(hasWords || hasCta) && (
+            <div className="relative lg:absolute lg:inset-0 lg:flex lg:items-center lg:pointer-events-none" data-testid="hero-words">
+              <div
+                className={`w-full px-5 pt-3 pb-5 min-h-[164px] sm:min-h-0 sm:px-8 sm:pt-5 sm:pb-7 lg:p-14 lg:pointer-events-auto ${posCls}`}
+                style={{ ["--hc" as string]: headingColor }}
               >
-                <ChevronLeft className="w-5 h-5" />
-              </button>
-              <button
-                onClick={() => setI((v) => (v + 1) % list.length)}
-                className="hidden md:flex absolute right-6 top-1/2 -translate-y-1/2 w-11 h-11 items-center justify-center rounded-full bg-white/85 hover:bg-white text-navy shadow-soft opacity-0 translate-x-2 group-hover/hero:opacity-100 group-hover/hero:translate-x-0 focus-visible:opacity-100 transition-all duration-300 ease-premium"
-                aria-label="Next slide"
-                data-testid="hero-next"
-              >
-                <ChevronRight className="w-5 h-5" />
-              </button>
-              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
-                {list.map((_, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => setI(idx)}
-                    aria-label={`Go to slide ${idx + 1}`}
-                    className={`relative h-1.5 overflow-hidden rounded-full transition-all duration-500 ease-premium ${idx === i ? "w-10 bg-white/40" : "w-1.5 bg-white/50 hover:bg-white/80"}`}
-                    data-testid={`hero-dot-${idx}`}
+                {s.subheading && (
+                  <p
+                    key={`sub-${i}`}
+                    style={landing ? undefined : { animationDelay: "150ms" }}
+                    className={`${landing ? "" : "animate-hero-text"} uppercase tracking-[0.28em] text-gold-light text-[10px] sm:text-xs font-bold mb-1.5 lg:mb-3`}
                   >
-                    {idx === i &&
-                      (calm ? (
-                        <span className="absolute inset-0 rounded-full bg-white" />
-                      ) : (
-                        <span
-                          key={i}
-                          onAnimationEnd={() => setI((v) => (v + 1) % list.length)}
-                          className={`dot-fill absolute inset-0 rounded-full bg-white ${paused ? "[animation-play-state:paused]" : ""}`}
-                        />
-                      ))}
-                  </button>
-                ))}
+                    {s.subheading}
+                  </p>
+                )}
+                {s.script_line && (
+                  <p
+                    key={`sc-${i}`}
+                    style={landing ? undefined : { animationDelay: "200ms" }}
+                    className={`${landing ? "" : "animate-hero-text"} font-hand text-brand-yellow text-[19px] sm:text-2xl lg:text-[34px] leading-tight -rotate-1 origin-left mb-1 lg:mb-2 lg:[text-shadow:0_2px_10px_rgba(0,0,0,.35)]`}
+                  >
+                    {s.script_line}
+                  </p>
+                )}
+                <h1
+                  key={`h-${i}`}
+                  className={`${landing ? "" : "animate-hero-text [animation-delay:250ms]"} font-display leading-[1.08] tracking-tight text-white lg:text-[color:var(--hc)] lg:[text-shadow:0_2px_18px_rgba(0,0,0,.25)] ${headingSizeCls}`}
+                >
+                  <Heading text={s.heading ?? "Tiny Steps, Big Smiles"} highlight={s.highlight} />
+                </h1>
+                {(hasCta || s.offer_code) && (
+                  <div key={`c-${i}`} className={`${landing ? "" : "animate-hero-text [animation-delay:400ms]"} mt-4 lg:mt-8 flex flex-wrap items-center gap-2.5 sm:gap-4 ${s.content_position === "center" ? "justify-center" : s.content_position === "right" ? "lg:justify-end" : ""}`}>
+                    {hasCta && <CtaButton style={s.cta_style || "gradient"} text={s.cta_text!} link={s.cta_link!} />}
+                    {s.offer_code && <CodePill code={s.offer_code} note={s.offer_note} />}
+                  </div>
+                )}
               </div>
-            </>
+            </div>
           )}
         </div>
       </div>

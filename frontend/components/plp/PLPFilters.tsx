@@ -154,7 +154,7 @@ export default function PLPFilters({
   return (
     <>
       {/* Desktop */}
-      <aside className="hidden lg:block bg-white/50 rounded-lg p-5 border border-navy/5 h-fit sticky top-24">
+      <aside className="hidden lg:block bg-white/50 rounded-lg p-5 border border-navy/5 h-fit sticky top-[calc(var(--hdr-h,0px)+16px)] transition-[top] duration-300">
         {Content}
       </aside>
 
