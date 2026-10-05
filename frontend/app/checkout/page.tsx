@@ -316,7 +316,7 @@ export default function CheckoutPage() {
           </div>
 
           {/* Order summary */}
-          <aside className="bg-white rounded-lg p-6 shadow-soft h-fit lg:sticky lg:top-24 border border-navy/5">
+          <aside className="bg-white rounded-lg p-6 shadow-soft h-fit lg:sticky lg:top-[calc(var(--hdr-h,0px)+16px)] transition-[top] duration-300 border border-navy/5">
             <h3 className="font-display text-lg text-navy mb-4">Order summary</h3>
             <ul className="divide-y divide-navy/5">
               {lines.map((l) => (

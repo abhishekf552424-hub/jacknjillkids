@@ -68,6 +68,9 @@ export default function Header({
   const [hoverCat, setHoverCat] = useState<string | null>(null);
   const [openCat, setOpenCat] = useState<string | null>(null);
   const [msg, setMsg] = useState(0);
+  // Hides while scrolling down (more room for the page), comes back on any scroll up.
+  const [tucked, setTucked] = useState(false);
+  const headerRef = useRef<HTMLElement | null>(null);
   const hoverTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const promises = [
@@ -78,9 +81,25 @@ export default function Header({
   ];
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 8);
+    let lastY = window.scrollY;
+    let ticking = false;
+    const update = () => {
+      ticking = false;
+      const y = Math.max(0, window.scrollY);
+      const dy = y - lastY;
+      setScrolled(y > 8);
+      // (a sticky element's offsetTop moves with the scroll, so use a fixed zone)
+      const zone = (headerRef.current?.offsetHeight ?? 64) + 140;
+      if (y < zone) setTucked(false); // near the top: always show
+      else if (dy > 6) setTucked(true); // scrolling down
+      else if (dy < -6) setTucked(false); // scrolling up
+      if (Math.abs(dy) > 6 || y < zone) lastY = y;
+    };
+    const onScroll = () => {
+      if (!ticking) { ticking = true; requestAnimationFrame(update); }
+    };
     const onCart = () => setCount(cart.count());
-    onScroll();
+    update();
     onCart();
     window.addEventListener("scroll", onScroll, { passive: true });
     const onOpen = () => setCartOpen(true);
@@ -124,6 +143,15 @@ export default function Header({
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [searchOpen, menuOpen]);
+
+  // Never tuck away while something in the header is open.
+  const hide = tucked && !menuOpen && !searchOpen && !cartOpen && !hoverCat;
+
+  // Let other sticky things (filters, order summary) sit right under the header.
+  useEffect(() => {
+    const h = headerRef.current?.offsetHeight ?? 64;
+    document.documentElement.style.setProperty("--hdr-h", hide ? "0px" : `${h}px`);
+  }, [hide, searchOpen, scrolled]);
 
   const menu = usePresence(menuOpen, 350);
 
@@ -263,18 +291,18 @@ export default function Header({
               </p>
           </div>
           {/* desktop: everything */}
-          <ul className="hidden lg:flex items-center gap-6 text-white/90">
-            {promises.slice(0, 3).map((p) => (
-              <li key={p.text} className="flex items-center gap-2">
+          <ul className="hidden lg:flex items-center gap-5 xl:gap-6 text-white/90 min-w-0">
+            {promises.slice(0, 3).map((p, idx) => (
+              <li key={p.text} className={cn("flex items-center gap-2 whitespace-nowrap", idx === 2 && "hidden xl:flex")}>
                 <p.icon className="w-3.5 h-3.5 text-gold-light" aria-hidden="true" />
                 {p.text}
               </li>
             ))}
           </ul>
-          <div className="hidden lg:flex items-center gap-5 text-white/90">
+          <div className="hidden lg:flex items-center gap-4 xl:gap-5 text-white/90 whitespace-nowrap shrink-0">
             <GoogleRating social={social} tone="light" size="sm" className="hover:text-white" />
             {social.instagram && (
-              <a href={social.instagram} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 hover:text-white">
+              <a href={social.instagram} target="_blank" rel="noopener noreferrer" className="hidden xl:flex items-center gap-1.5 hover:text-white">
                 <Instagram className="w-3.5 h-3.5 text-gold-light" aria-hidden="true" /> Instagram
               </a>
             )}
@@ -282,7 +310,7 @@ export default function Header({
               <PackageSearch className="w-3.5 h-3.5 text-gold-light" aria-hidden="true" /> Track order
             </Link>
             {tel && (
-              <a href={tel} className="flex items-center gap-1.5 hover:text-white">
+              <a href={tel} className="hidden xl:flex items-center gap-1.5 hover:text-white">
                 <Phone className="w-3.5 h-3.5 text-gold-light" aria-hidden="true" /> {phone}
               </a>
             )}
@@ -291,9 +319,15 @@ export default function Header({
       </div>
 
       <header
+        ref={headerRef}
         data-testid="site-header"
+        data-hidden={hide ? "true" : "false"}
         style={styleVars}
-        className={cn("sticky top-0 z-40 bg-white lg:bg-white/95 lg:backdrop-blur-md border-b transition-shadow", scrolled ? "border-line shadow-soft" : "border-line/70")}
+        className={cn(
+          "sticky top-0 z-40 bg-white border-b transition-[transform,box-shadow] duration-300 ease-premium will-change-transform",
+          scrolled ? "border-line shadow-soft" : "border-line/70",
+          hide && "-translate-y-full shadow-none",
+        )}
       >
         {logoAlign === "center" ? (
           <>
