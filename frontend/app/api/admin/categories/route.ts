@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { pickEditable } from "@/lib/pick";
 import { checkAdmin } from "@/lib/admin-auth";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -12,7 +13,7 @@ export async function POST(req: Request) {
   if ("error" in g) return NextResponse.json({ ok: false, error: g.error }, { status: g.status });
   const body = await req.json();
   const admin = createAdminClient();
-  const { id: _drop, ...clean } = body;
+  const clean: Record<string, any> = pickEditable("categories", body);
 
   if (!clean.name || !String(clean.name).trim()) {
     return NextResponse.json({ ok: false, error: "Category name is required." }, { status: 400 });

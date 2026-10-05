@@ -13,7 +13,7 @@ export async function POST(req: Request) {
   const g = await checkAdmin("products");
   if ("error" in g) return NextResponse.json({ error: g.error }, { status: g.status });
 
-  const { filename, folder = "uploads", contentType } = await req.json();
+  const { filename, folder = "uploads" } = await req.json().catch(() => ({}));
   if (!filename) return NextResponse.json({ error: "filename required" }, { status: 400 });
 
   // Whitelist folder to prevent path traversal
@@ -28,7 +28,10 @@ export async function POST(req: Request) {
 
   const admin = createAdminClient();
   const { data, error } = await admin.storage.from("media").createSignedUploadUrl(key);
-  if (error || !data) return NextResponse.json({ error: error?.message || "signed URL failed" }, { status: 500 });
+  if (error || !data) {
+    console.error("[uploads/signed]", error?.message);
+    return NextResponse.json({ error: "Upload could not start. Please try again." }, { status: 500 });
+  }
 
   const { data: pub } = admin.storage.from("media").getPublicUrl(key);
   return NextResponse.json({
@@ -36,9 +39,14 @@ export async function POST(req: Request) {
     token: data.token,
     path: key,
     publicUrl: pub.publicUrl,
-    contentType: contentType || "application/octet-stream",
+    contentType: TYPES[ext] || "application/octet-stream",
   });
 }
+
+const TYPES: Record<string, string> = {
+  jpg: "image/jpeg", jpeg: "image/jpeg", png: "image/png", webp: "image/webp", gif: "image/gif", avif: "image/avif",
+  svg: "image/svg+xml", mp4: "video/mp4", webm: "video/webm", mov: "video/quicktime",
+};
 
 function safeFolderName(folder: unknown) {
   return String(folder ?? "uploads").replace(/[^a-z0-9_-]/gi, "").slice(0, 40) || "uploads";

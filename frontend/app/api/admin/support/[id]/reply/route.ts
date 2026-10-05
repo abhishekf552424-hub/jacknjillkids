@@ -3,6 +3,7 @@ import { checkAdmin } from "@/lib/admin-auth";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { sendEmail } from "@/lib/resend";
+import { esc } from "@/lib/html";
 
 export const runtime = "nodejs";
 
@@ -13,13 +14,16 @@ async function requireAdmin() {
 
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const me = await requireAdmin(); if (!me) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  const { id } = await params; const { body } = await req.json();
+  const { id } = await params;
+  const raw = await req.json().catch(() => ({}));
+  const body = typeof raw.body === "string" ? raw.body.trim().slice(0, 5000) : "";
+  if (!body || !/^[0-9a-f-]{36}$/i.test(id)) return NextResponse.json({ error: "Write a reply first" }, { status: 400 });
   const admin = createAdminClient();
   const { data: msg, error } = await admin.from("support_ticket_messages").insert({ ticket_id: id, author_role: "admin", author_id: me.id, body }).select().single();
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return NextResponse.json({ error: "Could not save the reply" }, { status: 500 });
   const { data: ticket } = await admin.from("support_tickets").select("email, subject").eq("id", id).maybeSingle();
   if (ticket?.email) {
-    await sendEmail({ to: ticket.email, subject: `Re: ${ticket.subject}`, html: `<p>${body.replace(/\n/g, "<br>")}</p><hr><p style="color:#888;font-size:12px">Jack &amp; Jill support team.</p>` });
+    await sendEmail({ to: ticket.email, subject: `Re: ${String(ticket.subject || "Your question").replace(/[\r\n]/g, " ").slice(0, 120)}`, html: `<p>${esc(body).replace(/\n/g, "<br>")}</p><hr><p style="color:#888;font-size:12px">Jack &amp; Jill support team.</p>` });
   }
   return NextResponse.json({ ok: true, message: msg });
 }

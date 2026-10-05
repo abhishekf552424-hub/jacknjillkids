@@ -55,7 +55,10 @@ export async function POST(req: Request) {
       code_hash: hashOtp(code),
       expires_at: expiresAt,
     });
-    if (insErr) return NextResponse.json({ error: insErr.message }, { status: 500 });
+    if (insErr) {
+      console.error("[request-otp]", insErr.message);
+      return NextResponse.json({ error: "Could not create a login code. Please try again." }, { status: 500 });
+    }
 
     // 5) Set the challenge cookie NOW, right after the OTP is generated and stored —
     //    not after the email send succeeds. This is the fix for a real bug: previously,
@@ -84,13 +87,13 @@ export async function POST(req: Request) {
         emailDelivered: false,
         hint:
           "Your code was generated, but the email failed to send — this usually means the sending domain " +
-          "isn't verified in Resend yet. Ask a super admin to check the server logs for a fallback code " +
-          "(logged as [DEV OTP FALLBACK]), or verify jacknjillkids.com in Resend to fix delivery going forward.",
+          "isn't verified in Resend yet. Ask the developer to check the email settings (Resend) and try again.",
       });
     }
 
     return NextResponse.json({ ok: true, emailDelivered: true, hint: `We sent a fresh 6-digit code to ${email}. It's valid for 10 minutes. Any earlier code has been invalidated — use only the newest email.` });
   } catch (e: any) {
-    return NextResponse.json({ error: e?.message || "Server error" }, { status: 500 });
+    console.error("[request-otp]", e?.message);
+    return NextResponse.json({ error: "Something went wrong. Please try again." }, { status: 500 });
   }
 }

@@ -2,6 +2,8 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { isValidOrderAccessToken } from "@/lib/order-access";
 import { notFound } from "next/navigation";
+import { cookies } from "next/headers";
+import StripOrderToken from "@/components/StripOrderToken";
 import Link from "next/link";
 import Image from "next/image";
 import { formatINR, ORDER_STAGES } from "@/lib/utils";
@@ -18,7 +20,10 @@ export default async function OrderPage({
   searchParams: Promise<{ new?: string; t?: string }>;
 }) {
   const { number } = await params;
-  const { new: isNew, t } = await searchParams;
+  const { new: isNew, t: tParam } = await searchParams;
+  // The secret link part comes from the URL the first time, then from a cookie (see StripOrderToken).
+  const jar = await cookies();
+  const t = tParam || (/^[A-Z0-9-]{3,30}$/i.test(number) ? jar.get(`jj_ot_${number}`)?.value : undefined);
   const supabase = await createClient();
   const select = "*, items:order_items(*, variant:product_variants(product_id)), history:order_status_history(*)";
   // Signed-in owners/admins can read via RLS. Guests (no account) need the
@@ -34,6 +39,7 @@ export default async function OrderPage({
 
   return (
     <div className="container py-10 md:py-16 max-w-4xl">
+      <StripOrderToken orderNumber={order.order_number} />
       {isNew && ["paid", "cod"].includes(order.payment_status) && (
         <PurchaseTracker
           orderNumber={order.order_number}
@@ -50,7 +56,7 @@ export default async function OrderPage({
           }))}
         />
       )}
-      {isNew && (
+      {isNew && (order.payment_status === "paid" || order.payment_status === "cod") && (
         <div className="bg-success/10 border border-success/30 rounded-lg p-4 mb-6 flex items-start gap-3">
           <div className="w-10 h-10 rounded-full bg-success text-white flex items-center justify-center shrink-0">
             <CheckCircle2 className="w-5 h-5" />
@@ -62,10 +68,17 @@ export default async function OrderPage({
         </div>
       )}
 
+      {isNew && order.payment_status === "pending" && order.status !== "cancelled" && (
+        <div className="bg-butter border border-warning/30 rounded-lg p-4 mb-6">
+          <p className="font-display text-lg text-navy">Waiting for payment confirmation</p>
+          <p className="text-sm text-muted">If money was taken from your account, it will show here as paid within a few minutes. Please don&apos;t pay again — call or WhatsApp us if it doesn&apos;t update.</p>
+        </div>
+      )}
+
       <p className="text-xs uppercase tracking-widest text-gold-text font-bold">Order</p>
       <div className="flex items-baseline justify-between flex-wrap gap-3 mt-1">
         <h1 className="font-display text-3xl md:text-4xl text-navy tracking-tight">{order.order_number}</h1>
-        <span className="text-sm text-muted">Placed on {new Date(order.created_at).toLocaleDateString("en-IN")}</span>
+        <span className="text-sm text-muted">Placed on {new Date(order.created_at).toLocaleDateString("en-IN", { timeZone: "Asia/Kolkata", day: "numeric", month: "short", year: "numeric" })}</span>
       </div>
 
       {/* Tracker */}
@@ -140,7 +153,7 @@ export default async function OrderPage({
                 <div>
                   <p className="text-sm font-medium text-navy capitalize">{h.status.replace(/_/g, " ")}</p>
                   {h.note && <p className="text-xs text-muted">{h.note}</p>}
-                  <p className="text-xs text-muted">{new Date(h.created_at).toLocaleString("en-IN")}</p>
+                  <p className="text-xs text-muted">{new Date(h.created_at).toLocaleString("en-IN", { timeZone: "Asia/Kolkata", day: "numeric", month: "short", hour: "numeric", minute: "2-digit" })}</p>
                 </div>
               </li>
             ))}

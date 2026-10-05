@@ -364,7 +364,7 @@ export default function Header({
           <>
             <div className={cn("fixed inset-0 z-50 bg-ink/50 lg:hidden transition-opacity duration-300", menu.shown ? "opacity-100" : "opacity-0")} onClick={() => setMenuOpen(false)} />
             <aside
-              className={cn("fixed inset-y-0 left-0 z-50 w-[88%] max-w-sm bg-white lg:hidden flex flex-col transition-transform duration-[350ms] ease-premium", menu.shown ? "translate-x-0" : "-translate-x-full")}
+              className={cn("fixed inset-y-0 left-0 z-50 w-[88%] max-w-sm bg-white lg:hidden flex flex-col transition-transform [transition-duration:350ms] ease-premium", menu.shown ? "translate-x-0" : "-translate-x-full")}
               data-testid="hamburger-panel"
               role="dialog"
               aria-modal="true"

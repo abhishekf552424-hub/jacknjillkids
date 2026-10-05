@@ -7,7 +7,8 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: "*",
         allow: "/",
-        disallow: ["/admin", "/api/", "/account", "/checkout", "/orders/", "/auth", "/search"],
+        // /search and /auth stay crawlable so Google can read their "noindex" tag.
+        disallow: ["/admin", "/api/", "/account", "/checkout", "/orders/"],
       },
     ],
     sitemap: `${SITE_URL}/sitemap.xml`,

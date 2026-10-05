@@ -1,3 +1,4 @@
+import { jsonLd } from "@/lib/html";
 import { createPublicClient } from "@/lib/supabase/public";
 import { abs } from "@/lib/site";
 import type { Faq } from "@/lib/types";
@@ -27,7 +28,7 @@ export default async function FaqPage() {
 
   return (
     <div className="container py-12 md:py-20 max-w-3xl">
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(faqLd) }} />
       <p className="text-xs uppercase tracking-widest text-gold-text font-bold mb-2">FAQ</p>
       <h1 className="font-display text-4xl md:text-5xl text-navy tracking-tight mb-8">Questions, answered</h1>
       <div className="space-y-3">

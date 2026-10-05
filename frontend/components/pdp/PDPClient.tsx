@@ -19,8 +19,10 @@ export default function PDPClient({ product, reviews, whatsapp, freeShippingAbov
   const colors = Array.from(
     new Map(variants.filter((v) => v.color).map((v) => [v.color!, v.color_hex ?? "#ddd"])).entries(),
   );
-  const [size, setSize] = useState<string | undefined>(sizes[0]);
-  const [color, setColor] = useState<string | undefined>(colors[0]?.[0]);
+  // Start on the first size/colour that is actually in stock.
+  const firstInStock = variants.find((v) => v.stock_qty > 0) ?? variants[0];
+  const [size, setSize] = useState<string | undefined>(firstInStock?.size ?? sizes[0]);
+  const [color, setColor] = useState<string | undefined>(firstInStock?.color ?? colors[0]?.[0]);
   const [imgIdx, setImgIdx] = useState(0);
   const [zoom, setZoom] = useState({ on: false, x: 50, y: 50 });
   const touchStartX = useRef<number | null>(null);
@@ -29,12 +31,15 @@ export default function PDPClient({ product, reviews, whatsapp, freeShippingAbov
   const [openDesc, setOpenDesc] = useState(true);
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
 
+  // Exactly the size + colour on screen — never silently a different one.
   const activeVariant = useMemo(() => {
-    return (
-      variants.find((v) => (!size || v.size === size) && (!color || v.color === color)) ||
-      variants[0]
-    );
+    return variants.find((v) => (!size || v.size === size) && (!color || v.color === color));
   }, [variants, size, color]);
+
+  // Keep the quantity within what's in stock for the chosen size.
+  useEffect(() => {
+    setQty((q) => Math.max(1, Math.min(q, activeVariant?.stock_qty || 1)));
+  }, [activeVariant?.id, activeVariant?.stock_qty]);
 
   const price = activeVariant?.price_override ?? product.base_price;
   const mrp = product.mrp;
@@ -236,9 +241,9 @@ export default function PDPClient({ product, reviews, whatsapp, freeShippingAbov
         {/* Qty + Add */}
         <div className="mt-8 flex gap-3">
           <div className="flex items-center border border-navy/10 rounded-full bg-white">
-            <button onClick={() => setQty(Math.max(1, qty - 1))} className="w-10 h-10 text-navy hover:bg-navy/5 rounded-full">−</button>
+            <button onClick={() => setQty(Math.max(1, qty - 1))} aria-label="Decrease quantity" className="w-10 h-10 text-navy hover:bg-navy/5 rounded-full">−</button>
             <span className="w-8 text-center font-bold">{qty}</span>
-            <button onClick={() => setQty(Math.min(qty + 1, activeVariant?.stock_qty ?? 1))} className="w-10 h-10 text-navy hover:bg-navy/5 rounded-full">+</button>
+            <button onClick={() => setQty(Math.min(qty + 1, Math.min(20, activeVariant?.stock_qty ?? 1)))} aria-label="Increase quantity" className="w-10 h-10 text-navy hover:bg-navy/5 rounded-full">+</button>
           </div>
           <button
             data-testid="add-to-cart-btn"
@@ -246,7 +251,7 @@ export default function PDPClient({ product, reviews, whatsapp, freeShippingAbov
             onClick={addToCart}
             className="flex-1 bg-action hover:bg-action-hover text-white rounded-md px-6 py-3 font-bold disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2 transition-opacity"
           >
-            <ShoppingBag className="w-4 h-4" /> {oos ? (variants.length ? "Out of stock" : "Coming soon") : "Add to Bag"}
+            <ShoppingBag className="w-4 h-4" /> {!variants.length ? "Coming soon" : !activeVariant ? "Pick another size or colour" : oos ? "Out of stock" : "Add to Bag"}
           </button>
           <WishlistButton productId={product.id} name={product.name} price={Number(price)} variant="square" />
         </div>

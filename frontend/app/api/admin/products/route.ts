@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { pickEditable } from "@/lib/pick";
 import { SITE_URL } from "@/lib/site";
 import { checkAdmin } from "@/lib/admin-auth";
 import { createClient } from "@/lib/supabase/server";
@@ -15,7 +16,7 @@ async function save(payload: any, productId?: string) {
   const admin = createAdminClient();
   const { product, images, variants, age_group_ids, category_ids, bundles } = payload;
   const record = {
-    ...product,
+    ...pickEditable("products", product),
     slug: product.slug || slugify(product.name),
     base_price: Number(product.base_price),
     mrp: Number(product.mrp),

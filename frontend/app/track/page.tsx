@@ -15,11 +15,16 @@ export default function TrackPage() {
     e.preventDefault();
     if (!orderNumber || !contact) return toast.error("Enter both order number and email/phone");
     setBusy(true);
-    const r = await fetch(`/api/track?order=${encodeURIComponent(orderNumber)}&contact=${encodeURIComponent(contact)}`);
-    setBusy(false);
-    const j = await r.json();
-    if (!r.ok || !j.ok) return toast.error(j.error || "Order not found");
-    router.push(`/orders/${j.order_number}?t=${j.access_token ?? ""}`);
+    try {
+      const r = await fetch(`/api/track?order=${encodeURIComponent(orderNumber.trim())}&contact=${encodeURIComponent(contact.trim())}`);
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok || !j.ok) return toast.error(j.error || "Order not found");
+      router.push(`/orders/${j.order_number}?t=${j.access_token ?? ""}`);
+    } catch {
+      toast.error("No internet connection. Please try again.");
+    } finally {
+      setBusy(false);
+    }
   };
 
   return (
@@ -30,8 +35,9 @@ export default function TrackPage() {
 
       <form onSubmit={submit} className="mt-8 bg-white rounded-lg p-6 shadow-soft space-y-4 border border-navy/5" data-testid="track-form">
         <div>
-          <label className="text-[11px] uppercase tracking-widest font-bold text-navy">Order number</label>
+          <label htmlFor="track-order" className="text-[11px] uppercase tracking-widest font-bold text-navy">Order number</label>
           <input
+            id="track-order"
             data-testid="track-order"
             value={orderNumber}
             onChange={(e) => setOrderNumber(e.target.value.trim().toUpperCase())}
@@ -40,8 +46,9 @@ export default function TrackPage() {
           />
         </div>
         <div>
-          <label className="text-[11px] uppercase tracking-widest font-bold text-navy">Email or phone</label>
+          <label htmlFor="track-contact" className="text-[11px] uppercase tracking-widest font-bold text-navy">Email or phone</label>
           <input
+            id="track-contact"
             data-testid="track-contact"
             value={contact}
             onChange={(e) => setContact(e.target.value)}

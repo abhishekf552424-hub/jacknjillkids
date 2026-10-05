@@ -1,3 +1,4 @@
+import { jsonLd } from "@/lib/html";
 import ProductCard from "@/components/ProductCard";
 import PLPFilters from "@/components/plp/PLPFilters";
 import AppliedFilters from "@/components/plp/AppliedFilters";
@@ -37,7 +38,11 @@ export async function loadShopTaxonomy() {
  * filtered by age after taking a page of 20, so pages came up short and the
  * count was wrong).
  */
-export default async function ShopView({ sp, basePath }: { sp: ShopParams; basePath: string }) {
+export default async function ShopView({ sp: rawSp, basePath }: { sp: ShopParams; basePath: string }) {
+  // "?q=a&q=b" arrives as an array — use the first value so nothing crashes.
+  const sp = Object.fromEntries(
+    Object.entries(rawSp ?? {}).map(([k, v]) => [k, Array.isArray(v) ? String(v[0] ?? "") : v == null ? v : String(v).slice(0, 120)]),
+  ) as ShopParams;
   const supabase = createPublicClient();
   const { categories, ageGroups } = await loadShopTaxonomy();
 
@@ -124,7 +129,7 @@ export default async function ShopView({ sp, basePath }: { sp: ShopParams; baseP
 
   return (
     <div className="container py-8 md:py-12">
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(breadcrumbLd) }} />
       <nav aria-label="Breadcrumb" className="text-xs text-muted mb-4 flex items-center gap-1.5 flex-wrap">
         {crumbs.map((c, i) => (
           <span key={c.href} className="flex items-center gap-1.5">

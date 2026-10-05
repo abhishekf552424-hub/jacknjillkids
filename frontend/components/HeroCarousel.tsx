@@ -5,10 +5,13 @@ import Link from "next/link";
 import { useState, useEffect, useRef } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { getVimeoBackgroundUrl } from "@/lib/embeds";
+import { safeHref } from "@/components/home/Section";
 
 type Slide = {
   image?: string;
   video_url?: string;
+  /** An uploaded mp4/webm (Admin → Homepage → Hero → upload a video) */
+  video?: string;
   heading?: string;
   subheading?: string;
   cta_text?: string;
@@ -47,20 +50,20 @@ function CtaButton({ style, text, link }: { style: string; text: string; link: s
   const base = "inline-flex items-center gap-2 font-bold rounded-full px-6 py-3 md:px-8 md:py-4 hover:-translate-y-0.5 transition-transform";
   if (style === "outline") {
     return (
-      <Link href={link} data-testid="hero-cta" className={`${base} border-2 border-white text-white hover:bg-white hover:text-navy`}>
+      <Link href={safeHref(link)} data-testid="hero-cta" className={`${base} border-2 border-white text-white hover:bg-white hover:text-navy`}>
         {text} <ChevronRight className="w-4 h-4" />
       </Link>
     );
   }
   if (style === "navy") {
     return (
-      <Link href={link} data-testid="hero-cta" className={`${base} bg-navy text-white shadow-premium`}>
+      <Link href={safeHref(link)} data-testid="hero-cta" className={`${base} bg-navy text-white shadow-premium`}>
         {text} <ChevronRight className="w-4 h-4" />
       </Link>
     );
   }
   return (
-    <Link href={link} data-testid="hero-cta" className={`${base} bg-action hover:bg-action-hover text-white shadow-premium`}>
+    <Link href={safeHref(link)} data-testid="hero-cta" className={`${base} bg-action hover:bg-action-hover text-white shadow-premium`}>
       {text} <ChevronRight className="w-4 h-4" />
     </Link>
   );
@@ -83,6 +86,8 @@ function SlideMedia({ s, enter = false, priority = false }: { s: Slide; enter?: 
             className="absolute top-1/2 left-1/2 w-[177.78vh] h-[56.25vw] min-w-full min-h-full -translate-x-1/2 -translate-y-1/2 border-0"
           />
         </div>
+      ) : s.video && /^https:\/\/[a-z0-9-]+\.supabase\.co\//i.test(s.video) ? (
+        <video src={s.video} autoPlay muted loop playsInline preload="metadata" className="absolute inset-0 h-full w-full object-cover" aria-hidden="true" />
       ) : s.image ? (
         <Image src={s.image} alt={s.heading || "Hero"} fill priority={priority} sizes="(min-width: 1400px) 1340px, 100vw" className={`object-cover ${enter ? "kenburns" : ""}`} />
       ) : null}
@@ -107,7 +112,7 @@ export default function HeroCarousel({ slides, title, subtitle }: { slides: Slid
   // (e.g. an admin-added slide that was never finished) would otherwise
   // render as a blank navy box for its entire ~6s turn — not just during
   // transitions. Only ever show slides that actually have visual content.
-  const validSlides = slides.filter((sl) => Boolean(sl.image || sl.video_url));
+  const validSlides = slides.filter((sl) => Boolean(sl.image || sl.video_url || sl.video));
   const list: Slide[] = validSlides.length ? validSlides : [{
     image: "https://images.unsplash.com/photo-1502086223501-7ea6ecd79368?w=1600",
     heading: title ?? "Tiny Steps, Big Smiles",

@@ -18,36 +18,22 @@ export async function markOrderPaid(
   paymentId: string,
   source: "checkout" | "webhook",
 ): Promise<MarkPaidResult> {
-  const { data: o } = await admin
-    .from("orders")
-    .select("id, status, payment_status, stock_released")
-    .eq("id", orderId)
-    .maybeSingle();
-  if (!o) return "not_found";
-  if (o.payment_status === "paid") return "already_paid";
+  // One locked database step (migration 0016 mark_order_paid): checks it isn't
+  // already paid, takes the stock back if the hold had expired, and marks it
+  // paid — so a late payment and the 45-minute expiry can never clash.
+  const { data, error } = await admin.rpc("mark_order_paid", { p_order_id: orderId, p_payment_id: paymentId });
+  if (error) throw new Error(`mark_order_paid: ${error.message}`);
+  const result = data as MarkPaidResult;
+  if (result === "not_found" || result === "already_paid") return result;
 
-  let stockOk = true;
-  if (o.stock_released) {
-    const { data: reclaimed, error } = await admin.rpc("reclaim_order_stock", { p_order_id: o.id });
-    stockOk = !error && reclaimed === true;
-  }
-
-  const nextStatus = stockOk ? "confirmed" : "cancelled";
-  const { data: updated } = await admin
-    .from("orders")
-    .update({ payment_status: "paid", razorpay_payment_id: paymentId, status: nextStatus, updated_at: new Date().toISOString() })
-    .eq("id", o.id)
-    .neq("payment_status", "paid")
-    .select("id");
-  if (!updated || updated.length === 0) return "already_paid";
-
+  const stockOk = result === "paid";
   const via = source === "webhook" ? "Payment captured (webhook)" : "Payment received via Razorpay";
   await admin.from("order_status_history").insert({
-    order_id: o.id,
-    status: nextStatus,
+    order_id: orderId,
+    status: stockOk ? "confirmed" : "cancelled",
     note: stockOk ? via : `${via} after the stock hold expired and the item sold out — REFUND NEEDED`,
   });
 
-  if (stockOk) await sendOrderConfirmation(admin, o.id);
-  return stockOk ? "paid" : "paid_needs_refund";
+  if (stockOk) await sendOrderConfirmation(admin, orderId);
+  return result;
 }

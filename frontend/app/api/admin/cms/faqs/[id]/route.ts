@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { pickEditable } from "@/lib/pick";
 import { checkAdmin } from "@/lib/admin-auth";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -11,7 +12,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
   const g = await requireAdmin();
   if ("error" in g) return NextResponse.json({ ok: false, error: g.error }, { status: g.status });
   const { id } = await params;
-  const { id: _drop, ...body } = await req.json();
+  const body = pickEditable("faqs", await req.json().catch(() => ({})));
   const admin = createAdminClient();
   const { error } = await admin.from("faqs").update(body).eq("id", id);
   if (error) return NextResponse.json({ ok: false, error: error.message }, { status: 400 });

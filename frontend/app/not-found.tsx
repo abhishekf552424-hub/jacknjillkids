@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Home, ShoppingBag, Search } from "lucide-react";
 
 export const metadata = {
-  title: "Page not found — Jack & Jill",
+  title: "Page not found",
   description: "This little page wandered off. Let's get you back to shopping.",
   robots: { index: false, follow: true },
 };

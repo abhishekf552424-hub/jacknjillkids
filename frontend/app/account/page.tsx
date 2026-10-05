@@ -75,7 +75,7 @@ export default async function AccountPage() {
                 <div>
                   <p className="text-xs text-muted">Order</p>
                   <p className="font-medium text-navy">{o.order_number}</p>
-                  <p className="text-xs text-muted mt-1">{new Date(o.created_at).toLocaleDateString("en-IN")}</p>
+                  <p className="text-xs text-muted mt-1">{new Date(o.created_at).toLocaleDateString("en-IN", { timeZone: "Asia/Kolkata", day: "numeric", month: "short", year: "numeric" })}</p>
                 </div>
                 <div className="text-right">
                   <span className="inline-block text-xs px-3 py-1 rounded-full bg-cream text-navy font-medium capitalize">{o.status.replace(/_/g, " ")}</span>

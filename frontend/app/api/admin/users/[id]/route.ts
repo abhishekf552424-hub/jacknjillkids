@@ -3,6 +3,7 @@ import { checkAdmin } from "@/lib/admin-auth";
 import { canAssign, canManage } from "@/lib/admin-team";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { sendEmail } from "@/lib/resend";
+import { esc } from "@/lib/html";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -58,7 +59,7 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
   const sent = await sendEmail({
     to: t.target.email,
     subject: "Reset your Jack & Jill admin password",
-    html: `<p>A password reset was requested for your admin account. <a href="${link?.properties?.action_link}">Set a new password</a>. The link expires soon.</p>`,
+    html: `<p>A password reset was requested for your admin account. <a href="${esc(link?.properties?.action_link || "")}">Set a new password</a>. The link expires soon.</p>`,
   });
   if (!sent.ok) return NextResponse.json({ error: "Email could not be sent. Check the Resend settings." }, { status: 502 });
   return NextResponse.json({ ok: true });
