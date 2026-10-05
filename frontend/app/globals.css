@@ -180,6 +180,20 @@ a { color: inherit; text-decoration: none; }
   .jj-boot { animation: jj-boot-out 300ms linear 500ms forwards !important; animation-iteration-count: 1 !important; animation-duration: 300ms !important; }
 }
 
+/* --- Line-art store map (Visit us) --- */
+.jjm-route { animation: jjm-dash 1.6s linear infinite; }
+@keyframes jjm-dash { to { stroke-dashoffset: -32; } }
+.jjm-rick { offset-rotate: 0deg; offset-distance: 0%; animation: jjm-drive 7s cubic-bezier(0.45, 0, 0.55, 1) infinite; }
+@keyframes jjm-drive { 0% { offset-distance: 0%; opacity: 0; } 8% { opacity: 1; } 82% { offset-distance: 100%; opacity: 1; } 92%, 100% { offset-distance: 100%; opacity: 0; } }
+.jjm-pin { transform-box: fill-box; transform-origin: 50% 100%; animation: jjm-bob 2.4s ease-in-out infinite; }
+@keyframes jjm-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+.jjm-pulse { transform-box: fill-box; transform-origin: center; animation: jjm-pulse 2.4s ease-out infinite; }
+@keyframes jjm-pulse { from { transform: scale(0.6); opacity: 0.9; } to { transform: scale(2.6); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) {
+  .jjm-route, .jjm-pin, .jjm-pulse { animation: none !important; }
+  .jjm-rick { animation: none !important; offset-distance: 100%; }
+}
+
 /* --- Hero festive extras ---
    Gold words with a hand-drawn underline, and a round offer sticker that
    pops in and gently sways. */
