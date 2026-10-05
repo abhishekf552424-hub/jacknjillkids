@@ -1,6 +1,6 @@
 "use client";
 import { usePathname } from "next/navigation";
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 
 // Wraps Header/Footer + optional support widget so they're hidden on admin routes.
 export default function SiteChrome({ header, footer, support, children }: { header: ReactNode; footer: ReactNode; support?: ReactNode; children: ReactNode }) {
@@ -8,7 +8,14 @@ export default function SiteChrome({ header, footer, support, children }: { head
   const hide = pathname.startsWith("/admin");
   // Decided once, on the first render only: the loader is part of the page's
   // HTML, plays on every fresh load / refresh, and never replays on in-site navigation.
-  const [boot] = useState(() => !hide);
+  const [boot, setBoot] = useState(() => !hide);
+  // Take the loader out of the page once it has faded (≈1.4 s), so no
+  // invisible full-screen layer stays on top while people scroll.
+  useEffect(() => {
+    if (!boot) return;
+    const t = window.setTimeout(() => setBoot(false), 1600);
+    return () => window.clearTimeout(t);
+  }, [boot]);
   return (
     <>
       {boot && (

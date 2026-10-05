@@ -293,7 +293,7 @@ export default function Header({
       <header
         data-testid="site-header"
         style={styleVars}
-        className={cn("sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b transition-shadow", scrolled ? "border-line shadow-soft" : "border-line/70")}
+        className={cn("sticky top-0 z-40 bg-white lg:bg-white/95 lg:backdrop-blur-md border-b transition-shadow", scrolled ? "border-line shadow-soft" : "border-line/70")}
       >
         {logoAlign === "center" ? (
           <>

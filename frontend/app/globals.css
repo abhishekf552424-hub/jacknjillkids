@@ -78,8 +78,15 @@ body {
 .reveal .sh > :nth-child(3) { --i: 2; }
 @keyframes reveal-up { from { opacity: 0; transform: translateY(26px); } to { opacity: 1; transform: none; } }
 
-/* 2. Pages fade in on every navigation (no lasting transform, so fixed bars still work). */
+/* 2. Small pieces fade up (success messages, FAQ answers). */
 .page-in { animation: page-in 520ms var(--ease) backwards; }
+/* Whole-page fade on navigation: big screens only. On phones, animating a
+   page-tall layer makes some Android GPUs leave "ghost" copies while
+   scrolling, so phones get an instant page change instead. */
+@media (min-width: 1024px) and (hover: hover) {
+  .page-enter { animation: page-fade 380ms ease-out backwards; }
+}
+@keyframes page-fade { from { opacity: 0; } }
 @keyframes page-in { from { opacity: 0; transform: translateY(10px); } }
 
 /* 3. Load-time stagger for product grids on listing pages. */
@@ -114,7 +121,7 @@ details[open] > .faq-body { animation: page-in 380ms var(--ease); }
 
 @media (prefers-reduced-motion: reduce) {
   .reveal, .reveal .sh > *, .reveal .stagger > * { animation: none !important; opacity: 1 !important; transform: none !important; }
-  .page-in, .stagger-load > *, .pop, .kenburns { animation: none !important; }
+  .page-in, .page-enter, .stagger-load > *, .pop, .kenburns { animation: none !important; }
   *, *::before, *::after { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; scroll-behavior: auto !important; }
 }
 

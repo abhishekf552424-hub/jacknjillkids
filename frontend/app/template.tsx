@@ -11,5 +11,5 @@ export default function Template({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     landed = true;
   }, []);
-  return <div className={animate ? "page-in" : undefined}>{children}</div>;
+  return <div className={animate ? "page-enter" : undefined}>{children}</div>;
 }

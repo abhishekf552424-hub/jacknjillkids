@@ -240,7 +240,8 @@ export default function PDPClient({ product, reviews, whatsapp, freeShippingAbov
 
         {/* Qty + Add */}
         <div className="mt-8 flex gap-3">
-          <div className="flex items-center border border-navy/10 rounded-full bg-white">
+          {/* quantity only matters when the item can be bought */}
+          <div className={`items-center border border-navy/10 rounded-full bg-white ${oos ? "hidden" : "flex"}`}>
             <button onClick={() => setQty(Math.max(1, qty - 1))} aria-label="Decrease quantity" className="w-10 h-10 text-navy hover:bg-navy/5 rounded-full">−</button>
             <span className="w-8 text-center font-bold">{qty}</span>
             <button onClick={() => setQty(Math.min(qty + 1, Math.min(20, activeVariant?.stock_qty ?? 1)))} aria-label="Increase quantity" className="w-10 h-10 text-navy hover:bg-navy/5 rounded-full">+</button>

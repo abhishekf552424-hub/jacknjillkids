@@ -108,7 +108,6 @@ test("sign-in redirect only goes to pages on this site", () => {
 });
 
 // --- Final audit (Oct 2026) ---
-import { safeNext } from "../lib/safe-next";
 import { esc, jsonLd } from "../lib/html";
 import { pickEditable } from "../lib/pick";
 
