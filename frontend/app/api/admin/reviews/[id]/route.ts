@@ -10,7 +10,9 @@ async function requireAdmin() {
 }
 export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const me = await requireAdmin(); if (!me) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  const { id } = await params; const { is_approved } = await req.json();
+  const { id } = await params;
+  const { is_approved } = await req.json().catch(() => ({}));
+  if (typeof is_approved !== "boolean") return NextResponse.json({ error: "Invalid value" }, { status: 400 });
   const admin = createAdminClient();
   await admin.from("reviews").update({ is_approved }).eq("id", id);
   return NextResponse.json({ ok: true });

@@ -52,13 +52,24 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Too many wrong attempts. Request a new code.", code: "locked" }, { status: 429 });
     }
 
+    // Claim one attempt first (only succeeds if nobody else used this attempt
+    // number), so 100 guesses sent at once can't all get past the 5-try limit.
+    const { data: claimed } = await admin
+      .from("admin_otp_codes")
+      .update({ attempts: row.attempts + 1 })
+      .eq("id", row.id)
+      .eq("attempts", row.attempts)
+      .eq("consumed", false)
+      .select("id");
+    if (!claimed?.length) return NextResponse.json({ error: "Please wait a moment and try again.", code: "busy" }, { status: 429 });
+
     if (hashOtp(code) !== row.code_hash) {
-      await admin.from("admin_otp_codes").update({ attempts: row.attempts + 1 }).eq("id", row.id);
       return NextResponse.json({ error: "Incorrect code — double-check the newest email (older codes are invalidated).", code: "mismatch" }, { status: 401 });
     }
 
-    // consume
-    await admin.from("admin_otp_codes").update({ consumed: true }).eq("id", row.id);
+    // consume (once)
+    const { data: used } = await admin.from("admin_otp_codes").update({ consumed: true }).eq("id", row.id).eq("consumed", false).select("id");
+    if (!used?.length) return NextResponse.json({ error: "This code was already used. Request a new one.", code: "expired" }, { status: 400 });
 
     // Issue a Supabase session for the user via generateLink('magiclink') and verify it server-side.
     const { data: link, error: linkErr } = await admin.auth.admin.generateLink({
@@ -66,7 +77,8 @@ export async function POST(req: Request) {
       email: challenge.email,
     });
     if (linkErr || !link?.properties?.hashed_token) {
-      return NextResponse.json({ error: linkErr?.message || "Could not create session" }, { status: 500 });
+      console.error("[verify-otp]", linkErr?.message);
+      return NextResponse.json({ error: "Could not sign you in. Please try again." }, { status: 500 });
     }
 
     // Set challenge cookie invalid and 2fa_ok cookie for 12h; the client will then hit

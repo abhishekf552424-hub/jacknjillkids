@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { normalisePhone } from "@/lib/phone";
+import { allow, clientIp } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
 
@@ -10,21 +11,9 @@ const Body = z.object({
   consent: z.literal(true, { errorMap: () => ({ message: "Please tick the box so we can message you" }) }),
 });
 
-// Best-effort limit per server instance: 5 sign-ups per IP per 10 minutes.
-const hits = new Map<string, number[]>();
-function limited(ip: string) {
-  const now = Date.now();
-  const list = (hits.get(ip) ?? []).filter((t) => now - t < 600_000);
-  list.push(now);
-  hits.set(ip, list);
-  if (hits.size > 5000) hits.clear();
-  return list.length > 5;
-}
-
 /** Homepage "Join the club": saves the WhatsApp number and returns the first-order code set in Admin. */
 export async function POST(req: Request) {
-  const ip = (req.headers.get("x-forwarded-for") || "").split(",")[0].trim() || "local";
-  if (limited(ip)) return NextResponse.json({ error: "Too many tries. Please wait a few minutes." }, { status: 429 });
+  if (!(await allow(`club:${clientIp(req)}`, 5, 600))) return NextResponse.json({ error: "Too many tries. Please wait a few minutes." }, { status: 429 });
 
   const parsed = Body.safeParse(await req.json().catch(() => ({})));
   if (!parsed.success) return NextResponse.json({ error: parsed.error.issues[0]?.message || "Invalid request" }, { status: 400 });

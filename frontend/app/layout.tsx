@@ -1,3 +1,4 @@
+import { jsonLd } from "@/lib/html";
 import type { Metadata } from "next";
 import { Baloo_2, Fredoka, Nunito, Patrick_Hand } from "next/font/google";
 import { Toaster } from "sonner";
@@ -218,15 +219,15 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <Toaster position="top-right" richColors closeButton />
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(orgLd) }}
+          dangerouslySetInnerHTML={{ __html: jsonLd(orgLd) }}
         />
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteLd) }}
+          dangerouslySetInnerHTML={{ __html: jsonLd(websiteLd) }}
         />
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(localBusinessLd) }}
+          dangerouslySetInnerHTML={{ __html: jsonLd(localBusinessLd) }}
         />
       </body>
     </html>

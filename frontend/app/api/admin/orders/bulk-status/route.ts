@@ -29,7 +29,8 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: false, error: "Reopen cancelled orders one at a time, so stock can be checked." }, { status: 400 });
   }
 
-  const { error } = await admin.from("orders").update({ status, updated_at: new Date().toISOString() }).in("id", ids);
+  const now = new Date().toISOString();
+  const { error } = await admin.from("orders").update({ status, updated_at: now, ...(status === "delivered" ? { delivered_at: now } : {}) }).in("id", ids);
   if (error) return NextResponse.json({ ok: false, error: error.message }, { status: 400 });
 
   const historyRows = ids.map((id: string) => ({ order_id: id, status, note: "Bulk update", changed_by: g.user.id }));

@@ -2,6 +2,9 @@ import { SITE_URL } from "@/lib/site";
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 
+// Google accepts only male / female / unisex.
+const GENDER: Record<string, string> = { boys: "male", boy: "male", male: "male", girls: "female", girl: "female", female: "female", unisex: "unisex" };
+
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
@@ -28,11 +31,12 @@ export async function GET() {
       <g:link>${esc(siteUrl + "/product/" + p.slug)}</g:link>
       <g:image_link>${esc(img)}</g:image_link>
       <g:availability>${inStock ? "in_stock" : "out_of_stock"}</g:availability>
-      <g:price>${esc((Number(p.mrp) || Number(p.base_price)).toFixed(2))} INR</g:price>
-      <g:sale_price>${esc(Number(p.base_price).toFixed(2))} INR</g:sale_price>
+      <g:price>${esc((Number(p.mrp) > Number(p.base_price) ? Number(p.mrp) : Number(p.base_price)).toFixed(2))} INR</g:price>${
+        Number(p.mrp) > Number(p.base_price) ? `\n      <g:sale_price>${esc(Number(p.base_price).toFixed(2))} INR</g:sale_price>` : ""
+      }
       <g:brand>${esc(p.brand || "Jack & Jill")}</g:brand>
       <g:condition>new</g:condition>
-      <g:gender>${esc(p.gender || "unisex")}</g:gender>
+      <g:gender>${GENDER[String(p.gender || "").toLowerCase()] || "unisex"}</g:gender>
       <g:age_group>kids</g:age_group>
       <g:product_type>${esc(p.category?.name || "Kids")}</g:product_type>
     </item>`;

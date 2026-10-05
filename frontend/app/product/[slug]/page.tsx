@@ -1,3 +1,4 @@
+import { jsonLd } from "@/lib/html";
 import { notFound } from "next/navigation";
 import { createPublicClient } from "@/lib/supabase/public";
 import { SITE_URL } from "@/lib/site";
@@ -87,7 +88,8 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   const whatsapp = ((contactRow?.value as any)?.phone as string | undefined) || undefined;
   const variants = (product.variants ?? []) as any[];
   const variantPrices = (variants.length ? variants.map((v) => Number(v.price_override ?? product.base_price)) : [Number(product.base_price)]).filter((n) => Number.isFinite(n));
-  const inStock = product.status === "active" && (variants.length === 0 || variants.some((v) => Number(v.stock_qty) > 0));
+  // No sizes added yet = can't be bought ("Coming soon" on the page) = out of stock for Google too.
+  const inStock = product.status === "active" && variants.some((v) => Number(v.stock_qty) > 0);
   const avgRating = (reviews ?? []).length
     ? ((reviews ?? []).reduce((s: number, r: any) => s + (r.rating || 0), 0) / (reviews ?? []).length)
     : 0;
@@ -109,11 +111,12 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
         }
       : {}),
     offers: {
-      "@type": "AggregateOffer",
+      // One price for all sizes → a plain Offer (what Google merchant listings want);
+      // different prices per size → a price range.
+      ...(Math.min(...variantPrices) === Math.max(...variantPrices)
+        ? { "@type": "Offer", price: Math.min(...variantPrices) }
+        : { "@type": "AggregateOffer", lowPrice: Math.min(...variantPrices), highPrice: Math.max(...variantPrices), offerCount: Math.max(1, variants.length) }),
       priceCurrency: "INR",
-      lowPrice: Math.min(...variantPrices),
-      highPrice: Math.max(...variantPrices),
-      offerCount: Math.max(1, variants.length),
       availability: inStock ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
       url: `${site}/product/${product.slug}`,
       seller: { "@type": "Organization", name: "Jack & Jill" },
@@ -146,8 +149,8 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
 
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(productLd) }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(productLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(breadcrumbLd) }} />
       <div className="container py-8 md:py-12">
         <nav aria-label="Breadcrumb" className="text-xs text-muted mb-4 flex items-center gap-1.5">
           <Link href="/" className="hover:text-navy">Home</Link><span>/</span>

@@ -34,6 +34,8 @@ export async function getShippingSettings() {
     free_above: number;
     flat_fee: number;
     gst_percent: number;
+    /** default true: product prices already include GST */
+    prices_include_gst?: boolean;
   };
 }
 

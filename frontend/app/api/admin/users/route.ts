@@ -6,6 +6,7 @@ import { ALL_ADMIN_ROLES, ROLE_LABEL, assignableRoles } from "@/lib/admin-roles"
 import { canAssign, findUserIdByEmail } from "@/lib/admin-team";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { sendEmail } from "@/lib/resend";
+import { esc } from "@/lib/html";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -60,12 +61,12 @@ export async function POST(req: Request) {
   const { error: upErr } = await admin
     .from("profiles")
     .upsert({ id: userId, email, full_name: full_name || email, role, is_active: true });
-  if (upErr) return NextResponse.json({ error: upErr.message }, { status: 500 });
+  if (upErr) { console.error("[admin/users]", upErr.message); return NextResponse.json({ error: "Could not save the team member" }, { status: 500 }); }
 
   await sendEmail({
     to: email,
     subject: `You've been added to the Jack & Jill admin panel (${ROLE_LABEL[role]})`,
-    html: `<p>Hi ${full_name || ""},</p><p>You can now use the Jack &amp; Jill admin panel as <b>${ROLE_LABEL[role]}</b>.</p>
+    html: `<p>Hi ${esc(full_name || "")},</p><p>You can now use the Jack &amp; Jill admin panel as <b>${ROLE_LABEL[role]}</b>.</p>
 <p>Log in at <a href="${SITE_URL}/admin/login">${SITE_URL}/admin/login</a> with this email${usedExisting ? " and your existing password" : " and the password you were given"}. A one-time code is emailed to you on every login.</p>`,
   }).catch(() => null);
 

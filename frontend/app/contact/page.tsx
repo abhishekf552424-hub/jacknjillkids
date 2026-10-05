@@ -18,17 +18,23 @@ export default function ContactPage() {
       return;
     }
     setSending(true);
-    const r = await fetch("/api/contact", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, email, phone, message }),
-    });
-    setSending(false);
-    if (r.ok) {
-      toast.success("Thanks! We'll be in touch soon.");
-      setName(""); setEmail(""); setPhone(""); setMessage("");
-    } else {
-      toast.error("Could not send. Please try again.");
+    try {
+      const r = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, phone, message }),
+      });
+      const j = await r.json().catch(() => ({}));
+      if (r.ok) {
+        toast.success("Thanks! We'll be in touch soon.");
+        setName(""); setEmail(""); setPhone(""); setMessage("");
+      } else {
+        toast.error(j.error || "Could not send. Please try again.");
+      }
+    } catch {
+      toast.error("No internet connection. Please try again.");
+    } finally {
+      setSending(false);
     }
   };
 
@@ -41,22 +47,22 @@ export default function ContactPage() {
       <div className="mt-12 grid md:grid-cols-2 gap-10">
         <form onSubmit={submit} className="bg-white rounded-lg p-6 shadow-soft border border-navy/5 space-y-4" data-testid="contact-form">
           <div>
-            <label className="text-[11px] uppercase tracking-widest font-bold text-navy">Name</label>
-            <input value={name} onChange={(e) => setName(e.target.value)} className="mt-1 w-full bg-cream rounded-md px-3 py-2.5 border border-navy/10 focus:border-gold focus:ring-2 focus:ring-gold/20 focus:bg-white outline-none text-sm transition-all" data-testid="contact-name" />
+            <label htmlFor="contact-name-input" className="text-[11px] uppercase tracking-widest font-bold text-navy">Name</label>
+            <input id="contact-name-input" autoComplete="name" maxLength={80} value={name} onChange={(e) => setName(e.target.value)} className="mt-1 w-full bg-cream rounded-md px-3 py-2.5 border border-navy/10 focus:border-gold focus:ring-2 focus:ring-gold/20 focus:bg-white outline-none text-sm transition-all" data-testid="contact-name" />
           </div>
           <div className="grid sm:grid-cols-2 gap-4">
             <div>
-              <label className="text-[11px] uppercase tracking-widest font-bold text-navy">Email</label>
-              <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="mt-1 w-full bg-cream rounded-md px-3 py-2.5 border border-navy/10 focus:border-gold focus:ring-2 focus:ring-gold/20 focus:bg-white outline-none text-sm transition-all" data-testid="contact-email" />
+              <label htmlFor="contact-email-input" className="text-[11px] uppercase tracking-widest font-bold text-navy">Email</label>
+              <input id="contact-email-input" type="email" autoComplete="email" maxLength={120} value={email} onChange={(e) => setEmail(e.target.value)} className="mt-1 w-full bg-cream rounded-md px-3 py-2.5 border border-navy/10 focus:border-gold focus:ring-2 focus:ring-gold/20 focus:bg-white outline-none text-sm transition-all" data-testid="contact-email" />
             </div>
             <div>
-              <label className="text-[11px] uppercase tracking-widest font-bold text-navy">Phone (optional)</label>
-              <input value={phone} onChange={(e) => setPhone(e.target.value)} className="mt-1 w-full bg-cream rounded-md px-3 py-2.5 border border-navy/10 focus:border-gold focus:ring-2 focus:ring-gold/20 focus:bg-white outline-none text-sm transition-all" data-testid="contact-phone" />
+              <label htmlFor="contact-phone-input" className="text-[11px] uppercase tracking-widest font-bold text-navy">Phone (optional)</label>
+              <input id="contact-phone-input" type="tel" autoComplete="tel" maxLength={20} value={phone} onChange={(e) => setPhone(e.target.value)} className="mt-1 w-full bg-cream rounded-md px-3 py-2.5 border border-navy/10 focus:border-gold focus:ring-2 focus:ring-gold/20 focus:bg-white outline-none text-sm transition-all" data-testid="contact-phone" />
             </div>
           </div>
           <div>
-            <label className="text-[11px] uppercase tracking-widest font-bold text-navy">Message</label>
-            <textarea rows={5} value={message} onChange={(e) => setMessage(e.target.value)} className="mt-1 w-full bg-cream rounded-md px-3 py-2.5 border border-navy/10 focus:border-gold focus:ring-2 focus:ring-gold/20 focus:bg-white outline-none text-sm transition-all resize-y" data-testid="contact-message" />
+            <label htmlFor="contact-message-input" className="text-[11px] uppercase tracking-widest font-bold text-navy">Message</label>
+            <textarea id="contact-message-input" rows={5} maxLength={2000} value={message} onChange={(e) => setMessage(e.target.value)} className="mt-1 w-full bg-cream rounded-md px-3 py-2.5 border border-navy/10 focus:border-gold focus:ring-2 focus:ring-gold/20 focus:bg-white outline-none text-sm transition-all resize-y" data-testid="contact-message" />
           </div>
           <button disabled={sending} className="w-full bg-navy text-white rounded-md py-3 font-bold disabled:opacity-60 hover:opacity-90 transition-opacity flex items-center justify-center gap-2" data-testid="contact-submit">
             <Send className="w-4 h-4" /> {sending ? "Sending..." : "Send message"}

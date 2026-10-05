@@ -32,6 +32,9 @@ export async function GET(req: Request) {
   const key: RangeKey = param && RANGE_KEYS.includes(param) ? param : "today";
   const w = rangeWindow(key);
   const admin = createAdminClient();
+  // Housekeeping while the team has the dashboard open: online orders left
+  // unpaid for 45 minutes are cancelled and their stock goes back on sale.
+  await admin.rpc("expire_unpaid_orders", { p_minutes: 45 }).then(({ error }) => error && console.error("[dashboard] expire", error.message));
 
   try {
     const [current, previous, recent, lowStock, toAction, queries, returns, reviews, newCustomers] = await Promise.all([

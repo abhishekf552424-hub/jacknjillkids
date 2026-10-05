@@ -6,19 +6,20 @@ import { sendEmail, orderConfirmationTemplate } from "@/lib/resend";
 import { evaluateCoupon, computeTotals } from "@/lib/coupons";
 import { makeOrderAccessToken, orderUrl } from "@/lib/order-access";
 import { toPaise } from "@/lib/payments";
+import { allow, clientIp } from "@/lib/rate-limit";
 import { z } from "zod";
 import Razorpay from "razorpay";
 
 const Body = z.object({
   lines: z.array(z.object({ variant_id: z.string().uuid(), quantity: z.number().int().min(1).max(20) })).min(1).max(50),
   address: z.object({
-    full_name: z.string().min(2),
-    phone: z.string().regex(/^\d{10}$/),
-    email: z.string().email(),
-    line1: z.string().min(3),
-    line2: z.string().optional(),
-    city: z.string().min(1),
-    state: z.string().min(1),
+    full_name: z.string().trim().min(2).max(80),
+    phone: z.string().regex(/^[6-9]\d{9}$/, "Please enter a valid 10-digit mobile number"),
+    email: z.string().trim().email().max(120),
+    line1: z.string().trim().min(3).max(200),
+    line2: z.string().trim().max(200).optional(),
+    city: z.string().trim().min(1).max(80),
+    state: z.string().trim().min(1).max(80),
     pincode: z.string().regex(/^[1-9]\d{5}$/, "Please enter a valid 6-digit pincode"),
   }),
   payment_method: z.enum(["razorpay", "cod"]),
@@ -38,6 +39,12 @@ export async function POST(req: Request) {
     const admin = createAdminClient();
     const email = body.address.email.trim().toLowerCase();
 
+    // Stop scripts from placing hundreds of orders to lock up stock.
+    const ip = clientIp(req);
+    if (!(await allow(`order:ip:${ip}`, 8, 600, admin)) || !(await allow(`order:phone:${body.address.phone}`, 6, 3600, admin))) {
+      return fail("Too many orders in a short time. Please wait a few minutes or call the store.", 429);
+    }
+
     // Free stock held by abandoned online payments before checking availability.
     const { error: expErr } = await admin.rpc("expire_unpaid_orders", { p_minutes: RESERVATION_MINUTES });
     if (expErr) console.error("[orders/create] expire_unpaid_orders", expErr.message);
@@ -56,6 +63,24 @@ export async function POST(req: Request) {
       if (user) {
         const { data: prof } = await admin.from("profiles").select("cod_blocked").eq("id", user.id).maybeSingle();
         if (prof?.cod_blocked) return fail("Cash on Delivery isn't available for this account. Please pay online.");
+      }
+      // At most 3 undelivered COD orders per phone number at a time (stops fake orders holding stock).
+      const { count: openCod } = await admin
+        .from("orders")
+        .select("id", { count: "exact", head: true })
+        .eq("payment_method", "cod")
+        .in("status", ["placed", "confirmed", "packed", "shipped", "out_for_delivery"])
+        .eq("shipping_address->>phone", body.address.phone);
+      if ((openCod ?? 0) >= 3) return fail("You already have 3 Cash on Delivery orders on the way. Please pay online for this one, or call the store.");
+    }
+
+    // Online payment chosen but Razorpay isn't set up: only fall back to COD if COD is allowed.
+    if (body.payment_method === "razorpay") {
+      const cfg = await getRazorpayConfig();
+      const live = cfg.enabled && cfg.key_id && cfg.key_secret && !cfg.key_id.startsWith("rzp_test_placeholder");
+      if (!live) {
+        const { data: codSetting } = await admin.from("settings").select("value").eq("key", "cod").maybeSingle();
+        if ((codSetting?.value as any)?.enabled === false) return fail("Online payment is not available right now. Please try again later or call the store.", 503);
       }
     }
 
@@ -102,7 +127,7 @@ export async function POST(req: Request) {
     let couponId: string | null = null;
     let couponCode: string | null = null;
     if (body.coupon_code?.trim()) {
-      const c = await evaluateCoupon(admin, body.coupon_code, subtotal, { userId: user?.id, email });
+      const c = await evaluateCoupon(admin, body.coupon_code, subtotal, { userId: user?.id, email, phone: body.address.phone });
       if (!c.ok) return fail(c.error);
       discount = c.discount;
       couponId = c.coupon.id;
@@ -140,6 +165,11 @@ export async function POST(req: Request) {
       if (m) {
         const v: any = varMap.get(m[1]);
         return fail(`Sorry — ${v?.product?.name ?? "an item in your bag"} just sold out in that size. Please update your bag.`, 409);
+      }
+      const cm = /COUPON_(INVALID|USED_UP|LIMIT)/.exec(oErr?.message || "");
+      if (cm) {
+        const msg = { INVALID: "This coupon is no longer valid.", USED_UP: "This coupon has been fully used.", LIMIT: "You have already used this coupon." }[cm[1] as "INVALID" | "USED_UP" | "LIMIT"];
+        return fail(`${msg} Remove it to place the order.`, 409);
       }
       throw oErr ?? new Error("place_order returned no order");
     }
@@ -209,7 +239,7 @@ export async function POST(req: Request) {
     });
   } catch (e: any) {
     console.error("[orders/create]", e?.message);
-    const msg = e instanceof z.ZodError ? "Please check your address details" : "Order failed. Please try again.";
+    const msg = e instanceof z.ZodError ? e.issues[0]?.message && !e.issues[0].message.startsWith("Invalid") && !e.issues[0].message.startsWith("String") ? e.issues[0].message : "Please check your address details" : "Order failed. Please try again.";
     return fail(msg);
   }
 }

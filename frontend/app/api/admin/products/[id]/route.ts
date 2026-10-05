@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { pickEditable } from "@/lib/pick";
 import { checkAdmin } from "@/lib/admin-auth";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -16,8 +17,9 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
   const { id } = await params;
   const body = await req.json();
   const admin = createAdminClient();
+  if (!body?.product?.name) return NextResponse.json({ ok: false, error: "Product name is required" }, { status: 400 });
   const record = {
-    ...body.product,
+    ...pickEditable("products", body.product),
     slug: body.product.slug || slugify(body.product.name),
     base_price: Number(body.product.base_price),
     mrp: Number(body.product.mrp),

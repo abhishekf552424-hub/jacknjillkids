@@ -6,18 +6,20 @@ export const dynamic = "force-dynamic";
 
 export const metadata = { title: "Search", robots: { index: false, follow: true } };
 
-export default async function SearchPage({ searchParams }: { searchParams: Promise<{ q?: string }> }) {
+export default async function SearchPage({ searchParams }: { searchParams: Promise<{ q?: string | string[] }> }) {
   const { q } = await searchParams;
-  const query = (q ?? "").trim();
+  const query = String(Array.isArray(q) ? q[0] ?? "" : q ?? "").trim().slice(0, 80);
+  // Characters that would break the database filter (commas, brackets, wildcards) are treated as spaces.
+  const safe = query.replace(/[,()%_\\*:."']/g, " ").replace(/\s+/g, " ").trim();
   const supabase = createPublicClient();
 
   let results: Product[] = [];
-  if (query) {
+  if (safe) {
     const { data } = await supabase
       .from("products")
       .select("id, slug, name, brand, base_price, mrp, status, is_new_arrival, alt_text, images:product_images(url,alt_text,sort_order)")
       .eq("status", "active")
-      .or(`name.ilike.%${query}%,description.ilike.%${query}%`)
+      .or(`name.ilike.%${safe}%,description.ilike.%${safe}%`)
       .limit(24);
     results = ((data ?? []) as any[]).map((p) => ({
       ...p,

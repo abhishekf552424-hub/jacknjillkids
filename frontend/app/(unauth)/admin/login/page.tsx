@@ -126,7 +126,7 @@ export default function AdminLoginPage() {
             <p className="text-sm text-neutral-600 text-center">{hint || "Enter the 6-digit code from your email."}</p>
             {!emailDelivered && (
               <div className="rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-900">
-                The code email failed to send (sending domain likely isn't verified in Resend yet). A super admin can find the code in the server logs, tagged <code className="font-mono">[DEV OTP FALLBACK]</code>.
+                The code email failed to send (the sending domain may not be verified in Resend yet). Please ask the developer to check the email settings, then request a new code.
               </div>
             )}
             <input

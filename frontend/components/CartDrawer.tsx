@@ -19,6 +19,14 @@ export default function CartDrawer({ open, onClose, freeShippingAbove = 999 }: {
     return () => window.removeEventListener("cart:update", sync);
   }, []);
 
+  // Escape closes the bag
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open, onClose]);
+
   useEffect(() => {
     document.body.style.overflow = open ? "hidden" : "";
     return () => {
@@ -41,11 +49,14 @@ export default function CartDrawer({ open, onClose, freeShippingAbove = 999 }: {
           />
           <aside
             data-testid="cart-drawer"
-            className={`fixed inset-y-0 right-0 z-50 w-full max-w-md bg-cream flex flex-col shadow-premium transition-transform duration-[400ms] ease-premium ${shown ? "translate-x-0" : "translate-x-full"}`}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Your bag"
+            className={`fixed inset-y-0 right-0 z-50 w-full max-w-md bg-cream flex flex-col shadow-premium transition-transform [transition-duration:400ms] ease-premium ${shown ? "translate-x-0" : "translate-x-full"}`}
           >
             <div className="flex items-center justify-between px-6 py-4 border-b border-navy/10">
               <h2 className="font-display text-xl text-navy">Your Bag</h2>
-              <button data-testid="cart-close" onClick={onClose} className="p-2 rounded-full hover:bg-navy/5">
+              <button data-testid="cart-close" onClick={onClose} aria-label="Close bag" className="p-2 rounded-full hover:bg-navy/5">
                 <X className="w-5 h-5 text-navy" />
               </button>
             </div>

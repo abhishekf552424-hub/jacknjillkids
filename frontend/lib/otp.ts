@@ -1,5 +1,5 @@
 // OTP + hashing helpers used by admin auth and COD checkout.
-import { randomInt, createHash } from "node:crypto";
+import { randomInt, createHmac } from "node:crypto";
 
 export function generateOtp(length = 6): string {
   let s = "";
@@ -7,8 +7,10 @@ export function generateOtp(length = 6): string {
   return s;
 }
 
+/** Keyed hash: even if the codes table leaked, the 6-digit codes can't be worked out from it. */
 export function hashOtp(code: string): string {
-  return createHash("sha256").update(code).digest("hex");
+  const key = process.env.ADMIN_SESSION_SECRET || process.env.SUPABASE_SERVICE_ROLE_KEY || "";
+  return createHmac("sha256", `otp:${key}`).update(code).digest("hex");
 }
 
 export function otpEmailHtml(code: string, purpose: string) {

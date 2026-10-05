@@ -2,7 +2,7 @@ import Link from "next/link";
 import type { AgeGroup } from "@/lib/types";
 import Rail from "@/components/Rail";
 import AgeIcon from "./AgeIcons";
-import { HomeSection, SectionHeader, type Tone } from "./Section";
+import { HomeSection, SectionHeader, safeHref, type Tone } from "./Section";
 
 // Soft circle behind each icon + the one brand colour used inside the drawing.
 const TONES = [
@@ -27,7 +27,7 @@ export default function AgeShelf({
   if (!ages.length) return null;
   return (
     <HomeSection tone={tone} testid="age-shelf">
-      <SectionHeader eyebrow={config?.eyebrow || "Find the right fit"} title={title || "Shop by age"} subtitle={subtitle} href={config?.link || "/legal/shipping"} linkText={config?.link_text || "Size guide"} />
+      <SectionHeader eyebrow={config?.eyebrow || "Find the right fit"} title={title || "Shop by age"} subtitle={subtitle} href={safeHref(config?.link, "/faq")} linkText={config?.link_text || "Size help"} />
       <Rail label={title || "Shop by age"} itemClassName="w-[40%] sm:w-[27%] md:w-[21%] lg:w-[15.6%]">
         {ages.map((a, i) => {
           const t = TONES[i % TONES.length];

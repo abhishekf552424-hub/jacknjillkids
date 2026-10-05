@@ -35,7 +35,7 @@ export async function evaluateCoupon(
   admin: SupabaseClient,
   rawCode: string,
   subtotal: number,
-  who: { userId?: string | null; email?: string | null },
+  who: { userId?: string | null; email?: string | null; phone?: string | null },
 ): Promise<CouponResult> {
   const code = rawCode.trim().toUpperCase();
   if (!code) return { ok: false, error: "Enter a coupon code" };
@@ -53,17 +53,25 @@ export async function evaluateCoupon(
   if (subtotal < min) return { ok: false, error: `Add items worth ₹${Math.ceil(min - subtotal)} more to use ${coupon.code}` };
 
   if (coupon.usage_limit != null) {
-    const { count } = await admin.from("coupon_usages").select("id", { count: "exact", head: true }).eq("coupon_id", coupon.id);
+    // uses by cancelled / expired orders don't count
+    const { count } = await admin
+      .from("coupon_usages")
+      .select("id, o:orders!inner(status)", { count: "exact", head: true })
+      .eq("coupon_id", coupon.id)
+      .neq("o.status", "cancelled");
     if ((count ?? 0) >= coupon.usage_limit) return { ok: false, error: "This coupon has been fully used" };
   }
 
   if (coupon.per_user_limit != null && coupon.per_user_limit > 0) {
-    let q = admin.from("orders").select("id", { count: "exact", head: true }).eq("coupon_code", coupon.code).neq("status", "cancelled");
-    if (who.userId) q = q.eq("user_id", who.userId);
-    else if (who.email) q = q.eq("guest_email", who.email.trim().toLowerCase());
-    else q = q.eq("id", "00000000-0000-0000-0000-000000000000");
-    const { count } = await q;
-    if ((count ?? 0) >= coupon.per_user_limit) return { ok: false, error: "You have already used this coupon" };
+    // Same person = same account, same email or same phone number (a new email alone doesn't reset it).
+    const base = () => admin.from("orders").select("id", { count: "exact", head: true }).eq("coupon_code", coupon.code).neq("status", "cancelled");
+    const checks: PromiseLike<{ count: number | null }>[] = [];
+    if (who.userId) checks.push(base().eq("user_id", who.userId));
+    if (who.email) checks.push(base().ilike("guest_email", who.email.trim().toLowerCase().replace(/[%_\\]/g, "")));
+    const phone = (who.phone || "").replace(/\D/g, "").slice(-10);
+    if (phone.length === 10) checks.push(base().eq("shipping_address->>phone", phone));
+    const counts = await Promise.all(checks);
+    if (counts.some((r) => (r.count ?? 0) >= (coupon.per_user_limit ?? 1))) return { ok: false, error: "You have already used this coupon" };
   }
 
   const discount = computeDiscount(coupon, subtotal);
@@ -71,15 +79,26 @@ export async function evaluateCoupon(
   return { ok: true, coupon, discount };
 }
 
-/** Shared totals so the checkout preview and the placed order always agree. */
+/**
+ * Shared totals so the checkout preview and the placed order always agree.
+ *
+ * Product prices on the site INCLUDE GST (as the Terms say), so by default the
+ * GST is only worked out from the price for the invoice — it is not added on
+ * top. Set `prices_include_gst: false` in Settings → Shipping only if the shop
+ * decides to show prices without GST and add it at checkout.
+ */
 export function computeTotals(
   subtotal: number,
   discount: number,
-  s: { free_above: number; flat_fee: number; gst_percent: number },
+  s: { free_above: number; flat_fee: number; gst_percent: number; prices_include_gst?: boolean },
 ) {
   const shipping = subtotal >= s.free_above ? 0 : s.flat_fee;
   const taxable = Math.max(0, subtotal - discount) + shipping;
-  const tax = Math.round(taxable * (s.gst_percent / 100));
-  const total = taxable + tax;
-  return { subtotal, discount, shipping, tax, total };
+  const rate = Math.max(0, Number(s.gst_percent) || 0);
+  if (s.prices_include_gst === false) {
+    const tax = Math.round(taxable * (rate / 100));
+    return { subtotal, discount, shipping, tax, total: taxable + tax };
+  }
+  const tax = Math.round((taxable * rate) / (100 + rate)); // GST already inside the price
+  return { subtotal, discount, shipping, tax, total: taxable };
 }

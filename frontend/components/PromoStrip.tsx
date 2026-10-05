@@ -1,6 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
-import { SectionHeader } from "./home/Section";
+import { SectionHeader, safeHref } from "./home/Section";
 
 type Card = {
   image?: string;
@@ -71,7 +71,7 @@ export default function PromoStrip({
             </div>
           );
           return c.link ? (
-            <Link key={i} href={c.link} data-testid={`promo-card-${i}`} className={`focus:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 ${radiusCls}`}>
+            <Link key={i} href={safeHref(c.link)} data-testid={`promo-card-${i}`} className={`focus:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 ${radiusCls}`}>
               {inner}
             </Link>
           ) : (

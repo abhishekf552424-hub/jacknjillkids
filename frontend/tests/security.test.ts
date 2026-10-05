@@ -77,8 +77,11 @@ test("coupon discount math", () => {
 
 test("totals: discount reduces taxable amount; free shipping on subtotal", () => {
   const s = { free_above: 999, flat_fee: 79, gst_percent: 5 };
-  assert.deepEqual(computeTotals(1000, 100, s), { subtotal: 1000, discount: 100, shipping: 0, tax: 45, total: 945 });
-  assert.deepEqual(computeTotals(500, 0, s), { subtotal: 500, discount: 0, shipping: 79, tax: 29, total: 608 });
+  // prices include GST: the tax is shown, not added
+  assert.deepEqual(computeTotals(1000, 100, s), { subtotal: 1000, discount: 100, shipping: 0, tax: 43, total: 900 });
+  assert.deepEqual(computeTotals(500, 0, s), { subtotal: 500, discount: 0, shipping: 79, tax: 28, total: 579 });
+  // shop that adds GST on top
+  assert.deepEqual(computeTotals(1000, 100, { ...s, prices_include_gst: false }), { subtotal: 1000, discount: 100, shipping: 0, tax: 45, total: 945 });
 });
 
 import { plpHref } from "../lib/plp-url";
@@ -102,4 +105,24 @@ test("sign-in redirect only goes to pages on this site", () => {
   assert.equal(safeNext("https://evil.com"), "/account");
   assert.equal(safeNext("javascript:alert(1)"), "/account");
   assert.equal(safeNext(null), "/account");
+});
+
+// --- Final audit (Oct 2026) ---
+import { safeNext } from "../lib/safe-next";
+import { esc, jsonLd } from "../lib/html";
+import { pickEditable } from "../lib/pick";
+
+test("login redirect only stays on this site", () => {
+  assert.equal(safeNext("/account/orders"), "/account/orders");
+  for (const bad of ["//evil.com", "/\t/evil.com", "/\\evil.com", "https://evil.com", "/\n/evil.com"]) assert.equal(safeNext(bad), "/account");
+});
+
+test("emails and structured data can't be broken by shop data", () => {
+  assert.equal(esc(`<a href="x">Hi</a>`), "&lt;a href=&quot;x&quot;&gt;Hi&lt;/a&gt;");
+  assert.ok(!jsonLd({ name: "</script><script>alert(1)</script>" }).includes("</script>"));
+});
+
+test("admin saves keep only editable columns", () => {
+  const r = pickEditable("coupons", { code: "A1", id: "x", created_at: "y", value: 10 });
+  assert.deepEqual(r, { code: "A1", value: 10 });
 });

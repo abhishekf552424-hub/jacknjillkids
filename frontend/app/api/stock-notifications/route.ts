@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { allow, clientIp } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
 
@@ -19,6 +20,7 @@ export async function POST(req: Request) {
   if (!parsed.success) return NextResponse.json({ error: parsed.error.issues[0]?.message || "Invalid request" }, { status: 400 });
   const b = parsed.data;
   const admin = createAdminClient();
+  if (!(await allow(`notify:${clientIp(req)}`, 15, 3600, admin))) return NextResponse.json({ error: "Too many requests. Please try again later." }, { status: 429 });
 
   let productId = b.product_id ?? null;
   if (b.product_variant_id) {

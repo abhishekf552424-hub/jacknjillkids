@@ -72,13 +72,13 @@ export default function ImageUploader({
         body: JSON.stringify({ filename: compressed.name, folder, contentType: compressed.type }),
       });
       if (!res.ok) throw new Error((await res.json()).error || "Signed URL failed");
-      const { signedUrl, publicUrl } = await res.json();
+      const { signedUrl, publicUrl, contentType } = await res.json();
 
       // 2) upload via XHR to get progress
       await new Promise<void>((resolve, reject) => {
         const xhr = new XMLHttpRequest();
         xhr.open("PUT", signedUrl, true);
-        xhr.setRequestHeader("Content-Type", compressed.type || "application/octet-stream");
+        xhr.setRequestHeader("Content-Type", contentType || compressed.type || "application/octet-stream");
         xhr.upload.onprogress = (e) => {
           if (e.lengthComputable) setProgress(Math.round((e.loaded / e.total) * 100));
         };
@@ -155,6 +155,9 @@ export default function ImageUploader({
         </label>
       )}
       {hint && <p className="mt-1.5 text-[11px] leading-snug text-neutral-500">{hint}</p>}
+      {showUrlField && value && !/^https:\/\/([a-z0-9-]+\.supabase\.co|images\.unsplash\.com|i\.vimeocdn\.com)\//i.test(value) && !value.startsWith("/") && (
+        <p className="mt-1.5 text-[11px] text-error">This link is from another website and may not show. Please upload the picture instead.</p>
+      )}
       {showUrlField && (
         <input
           type="url"

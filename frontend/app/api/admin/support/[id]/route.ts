@@ -13,7 +13,9 @@ async function requireAdmin() {
 
 export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const me = await requireAdmin(); if (!me) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  const { id } = await params; const { status } = await req.json();
+  const { id } = await params;
+  const { status } = await req.json().catch(() => ({}));
+  if (!["open", "in_progress", "resolved", "closed"].includes(status)) return NextResponse.json({ error: "Invalid status" }, { status: 400 });
   const admin = createAdminClient();
   await admin.from("support_tickets").update({ status, updated_at: new Date().toISOString() }).eq("id", id);
   return NextResponse.json({ ok: true });

@@ -1,3 +1,4 @@
+import { jsonLd } from "@/lib/html";
 import { Plus } from "lucide-react";
 import { HomeSection, SectionHeader, type Tone } from "./Section";
 
@@ -13,7 +14,7 @@ export default function HomeFaq({ title, subtitle, config, faqs, tone }: { title
   };
   return (
     <HomeSection tone={tone} testid="home-faq">
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(ld).replace(/</g, "\\u003c") }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(ld) }} />
       <div className="max-w-3xl mx-auto">
         <SectionHeader eyebrow={config?.eyebrow || "Parents ask"} title={title || "Questions, answered"} subtitle={subtitle} center />
         <div className="stagger grid gap-3">

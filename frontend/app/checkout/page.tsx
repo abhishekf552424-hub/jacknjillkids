@@ -22,6 +22,10 @@ declare global {
 export default function CheckoutPage() {
   const router = useRouter();
   const [lines, setLines] = useState<CartLine[]>([]);
+  const [loaded, setLoaded] = useState(false);
+  // An online order already created whose payment window was closed: reuse it
+  // instead of creating a second order (each order holds stock).
+  const [pending, setPending] = useState<{ j: any; key: string; at: number } | null>(null);
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [placing, setPlacing] = useState(false);
 
@@ -43,6 +47,7 @@ export default function CheckoutPage() {
   useEffect(() => {
     const l = cart.get();
     setLines(l);
+    setLoaded(true);
     if (l.length) {
       track(
         "begin_checkout",
@@ -53,33 +58,47 @@ export default function CheckoutPage() {
 
   useEffect(() => {
     (async () => {
-      const subtotal = lines.reduce((s, l) => s + l.price * l.quantity, 0);
-      if (!subtotal) return;
-      const r = await fetch("/api/checkout/quote", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ subtotal, coupon_code: appliedCoupon || undefined, email: addr.email || undefined }),
-      });
-      const j = await r.json();
-      if (appliedCoupon && j.coupon_error) {
-        // Cart changed and the coupon no longer applies (e.g. below minimum).
-        toast.error(j.coupon_error);
-        setAppliedCoupon(null);
+      if (!lines.length) return;
+      try {
+        const r = await fetch("/api/checkout/quote", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            lines: lines.map((l) => ({ variant_id: l.variant_id, quantity: l.quantity })),
+            coupon_code: appliedCoupon || undefined,
+            email: addr.email || undefined,
+            phone: addr.phone || undefined,
+          }),
+        });
+        const j = await r.json();
+        if (!r.ok) return;
+        if (appliedCoupon && j.coupon_error) {
+          // Cart changed and the coupon no longer applies (e.g. below minimum).
+          toast.error(j.coupon_error);
+          setAppliedCoupon(null);
+        }
+        setTotals({ subtotal: j.subtotal, shipping: j.shipping, tax: j.tax, discount: j.discount ?? 0, total: j.total });
+      } catch {
+        /* totals stay as they were; the server re-checks everything at order time */
       }
-      setTotals({ subtotal, shipping: j.shipping, tax: j.tax, discount: j.discount ?? 0, total: j.total });
     })();
   }, [lines, appliedCoupon]);
 
   const applyCoupon = async () => {
     const code = couponInput.trim().toUpperCase();
     if (!code) return;
-    const subtotal = lines.reduce((s, l) => s + l.price * l.quantity, 0);
     const r = await fetch("/api/checkout/quote", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ subtotal, coupon_code: code, email: addr.email || undefined }),
-    });
-    const j = await r.json();
+      body: JSON.stringify({
+        lines: lines.map((l) => ({ variant_id: l.variant_id, quantity: l.quantity })),
+        coupon_code: code,
+        email: addr.email || undefined,
+        phone: addr.phone || undefined,
+      }),
+    }).catch(() => null);
+    if (!r) return toast.error("No internet connection. Please try again.");
+    const j = await r.json().catch(() => ({}));
     if (j.coupon_error || !j.coupon) {
       toast.error(j.coupon_error || "This coupon is not valid");
       return;
@@ -93,14 +112,70 @@ export default function CheckoutPage() {
       toast.error("Please complete all address fields");
       return false;
     }
-    if (!/^\d{10}$/.test(addr.phone)) return toast.error("Phone must be 10 digits") && false;
+    if (!/^[6-9]\d{9}$/.test(addr.phone)) return toast.error("Please enter a valid 10-digit mobile number") && false;
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(addr.email.trim())) return toast.error("Please enter a valid email address") && false;
     if (!/^[1-9]\d{5}$/.test(addr.pincode)) return toast.error("Please enter your 6-digit pincode") && false;
     return true;
   };
 
+  const cartKey = JSON.stringify([lines.map((l) => [l.variant_id, l.quantity]), addr, appliedCoupon]);
+
+  const openRazorpay = (j: any) => {
+    const options = {
+      key: j.key_id,
+      amount: j.amount,
+      currency: "INR",
+      name: "Jack & Jill",
+      description: `Order ${j.order_number}`,
+      order_id: j.razorpay_order_id,
+      prefill: { name: addr.full_name, email: addr.email, contact: addr.phone },
+      theme: { color: "#354275" },
+      handler: async (resp: any) => {
+        try {
+          const v = await fetch("/api/razorpay/verify", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              order_id: j.order_id,
+              razorpay_order_id: resp.razorpay_order_id,
+              razorpay_payment_id: resp.razorpay_payment_id,
+              razorpay_signature: resp.razorpay_signature,
+            }),
+          });
+          if (!v.ok) throw new Error("verify");
+          cart.clear();
+          setPending(null);
+          toast.success("Payment successful!");
+          router.push(`/orders/${j.order_number}?new=1&t=${j.access_token ?? ""}`);
+        } catch {
+          // The bank may still confirm it (Razorpay also tells our server directly).
+          toast.error("We couldn't confirm your payment yet. Please don't pay again — check your order page in a minute.");
+          router.push(`/orders/${j.order_number}?t=${j.access_token ?? ""}`);
+        }
+      },
+      modal: {
+        ondismiss: () => {
+          toast.info("Payment not completed. Your items are held for a few minutes — tap Place order to try again.");
+          setPlacing(false);
+        },
+      },
+    };
+    const rzp = new window.Razorpay(options);
+    rzp.on?.("payment.failed", () => toast.error("Payment failed. You can try again or choose Cash on Delivery."));
+    rzp.open();
+  };
+
   const placeOrder = async () => {
-    if (!lines.length) return;
+    if (!lines.length || placing) return;
+    if (payment === "razorpay" && typeof window.Razorpay !== "function") {
+      return toast.error("Payment window is still loading. Please wait a second and try again.");
+    }
     setPlacing(true);
+    // Same bag, address and coupon as the order we just made? Reopen its payment window.
+    if (payment === "razorpay" && pending && pending.key === cartKey && Date.now() - pending.at < 35 * 60_000) {
+      openRazorpay(pending.j);
+      return;
+    }
     try {
       const r = await fetch("/api/orders/create", {
         method: "POST",
@@ -112,7 +187,7 @@ export default function CheckoutPage() {
           coupon_code: appliedCoupon || undefined,
         }),
       });
-      const j = await r.json();
+      const j = await r.json().catch(() => ({}));
       if (!r.ok || !j.ok) throw new Error(j.error || "Could not place order");
 
       if (payment === "cod" || !j.razorpay_order_id) {
@@ -122,46 +197,17 @@ export default function CheckoutPage() {
         return;
       }
 
-      // Razorpay
-      const options = {
-        key: j.key_id,
-        amount: j.amount,
-        currency: "INR",
-        name: "Jack & Jill",
-        description: `Order ${j.order_number}`,
-        order_id: j.razorpay_order_id,
-        prefill: { name: addr.full_name, email: addr.email, contact: addr.phone },
-        theme: { color: "#354275" },
-        handler: async (resp: any) => {
-          await fetch("/api/razorpay/verify", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              order_id: j.order_id,
-              razorpay_order_id: resp.razorpay_order_id,
-              razorpay_payment_id: resp.razorpay_payment_id,
-              razorpay_signature: resp.razorpay_signature,
-            }),
-          });
-          cart.clear();
-          toast.success("Payment successful!");
-          router.push(`/orders/${j.order_number}?new=1&t=${j.access_token ?? ""}`);
-        },
-        modal: {
-          ondismiss: () => {
-            toast.info("Payment cancelled");
-            setPlacing(false);
-          },
-        },
-      };
-      const rzp = new window.Razorpay(options);
-      rzp.open();
+      setPending({ j, key: cartKey, at: Date.now() });
+      openRazorpay(j); // the button stays busy until the payment window closes
     } catch (e: any) {
-      toast.error(e.message);
-    } finally {
+      toast.error(e?.message === "Failed to fetch" ? "No internet connection. Please try again." : e?.message || "Could not place order");
       setPlacing(false);
     }
   };
+
+  if (!loaded) {
+    return <div className="container py-24 flex justify-center"><BrandLoader label="Loading your bag" /></div>;
+  }
 
   if (!lines.length) {
     return (
@@ -201,16 +247,16 @@ export default function CheckoutPage() {
               <div className="bg-white rounded-lg p-6 shadow-soft space-y-4" data-testid="checkout-address">
                 <h2 className="font-display text-xl text-navy">Shipping address</h2>
                 <div className="grid sm:grid-cols-2 gap-4">
-                  <Field label="Full name" value={addr.full_name} onChange={(v) => setAddr({ ...addr, full_name: v })} testid="addr-name" />
-                  <Field label="Phone" value={addr.phone} onChange={(v) => setAddr({ ...addr, phone: v.replace(/\D/g, "").slice(0, 10) })} testid="addr-phone" />
+                  <Field label="Full name" value={addr.full_name} onChange={(v) => setAddr({ ...addr, full_name: v })} testid="addr-name" autoComplete="name" maxLength={80} />
+                  <Field label="Phone" value={addr.phone} onChange={(v) => setAddr({ ...addr, phone: v.replace(/\D/g, "").slice(0, 10) })} testid="addr-phone" type="tel" inputMode="numeric" autoComplete="tel-national" />
                 </div>
-                <Field label="Email" value={addr.email} onChange={(v) => setAddr({ ...addr, email: v })} testid="addr-email" />
-                <Field label="Address line 1" value={addr.line1} onChange={(v) => setAddr({ ...addr, line1: v })} testid="addr-line1" />
-                <Field label="Address line 2 (optional)" value={addr.line2} onChange={(v) => setAddr({ ...addr, line2: v })} testid="addr-line2" />
+                <Field label="Email" value={addr.email} onChange={(v) => setAddr({ ...addr, email: v })} testid="addr-email" type="email" inputMode="email" autoComplete="email" maxLength={120} />
+                <Field label="Address line 1" value={addr.line1} onChange={(v) => setAddr({ ...addr, line1: v })} testid="addr-line1" autoComplete="address-line1" />
+                <Field label="Address line 2 (optional)" value={addr.line2} onChange={(v) => setAddr({ ...addr, line2: v })} testid="addr-line2" autoComplete="address-line2" />
                 <div className="grid sm:grid-cols-3 gap-4">
-                  <Field label="Pincode" value={addr.pincode} onChange={(v) => setAddr({ ...addr, pincode: v.replace(/\D/g, "").slice(0, 6) })} testid="addr-pincode" />
-                  <Field label="City" value={addr.city} onChange={(v) => setAddr({ ...addr, city: v })} testid="addr-city" />
-                  <Field label="State" value={addr.state} onChange={(v) => setAddr({ ...addr, state: v })} testid="addr-state" />
+                  <Field label="Pincode" value={addr.pincode} onChange={(v) => setAddr({ ...addr, pincode: v.replace(/\D/g, "").slice(0, 6) })} testid="addr-pincode" inputMode="numeric" autoComplete="postal-code" />
+                  <Field label="City" value={addr.city} onChange={(v) => setAddr({ ...addr, city: v })} testid="addr-city" autoComplete="address-level2" maxLength={80} />
+                  <Field label="State" value={addr.state} onChange={(v) => setAddr({ ...addr, state: v })} testid="addr-state" autoComplete="address-level1" maxLength={80} />
                 </div>
                 <button data-testid="to-payment-btn" onClick={() => validate1() && setStep(2)} className="bg-navy text-white rounded px-6 py-3 font-medium">Continue to Payment</button>
               </div>
@@ -332,11 +378,15 @@ export default function CheckoutPage() {
   );
 }
 
-function Field({ label, value, onChange, onBlur, testid }: { label: string; value: string; onChange: (v: string) => void; onBlur?: () => void; testid?: string }) {
+function Field({ label, value, onChange, onBlur, testid, type = "text", autoComplete, inputMode, maxLength = 200 }: { label: string; value: string; onChange: (v: string) => void; onBlur?: () => void; testid?: string; type?: string; autoComplete?: string; inputMode?: "numeric" | "email" | "tel" | "text"; maxLength?: number }) {
   return (
     <label className="block">
       <span className="text-[11px] uppercase tracking-widest text-navy font-bold">{label}</span>
       <input
+        type={type}
+        autoComplete={autoComplete}
+        inputMode={inputMode}
+        maxLength={maxLength}
         value={value}
         onChange={(e) => onChange(e.target.value)}
         onBlur={onBlur}
