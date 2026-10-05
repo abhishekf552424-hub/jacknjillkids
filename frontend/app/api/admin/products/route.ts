@@ -15,6 +15,9 @@ async function requireAdmin() {
 async function save(payload: any, productId?: string) {
   const admin = createAdminClient();
   const { product, images, variants, age_group_ids, category_ids, bundles } = payload;
+  if (Number(product?.mrp) > 0 && Number(product?.base_price) > Number(product?.mrp)) {
+    return { error: "Selling price can't be more than the MRP. Please check both prices." };
+  }
   const record = {
     ...pickEditable("products", product),
     slug: product.slug || slugify(product.name),

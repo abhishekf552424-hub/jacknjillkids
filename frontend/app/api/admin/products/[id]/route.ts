@@ -18,6 +18,9 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
   const body = await req.json();
   const admin = createAdminClient();
   if (!body?.product?.name) return NextResponse.json({ ok: false, error: "Product name is required" }, { status: 400 });
+  if (Number(body.product.mrp) > 0 && Number(body.product.base_price) > Number(body.product.mrp)) {
+    return NextResponse.json({ ok: false, error: "Selling price can't be more than the MRP. Please check both prices." }, { status: 400 });
+  }
   const record = {
     ...pickEditable("products", body.product),
     slug: body.product.slug || slugify(body.product.name),
