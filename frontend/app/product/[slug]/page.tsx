@@ -1,7 +1,7 @@
 import { jsonLd } from "@/lib/html";
 import { notFound } from "next/navigation";
 import { createPublicClient } from "@/lib/supabase/public";
-import { SITE_URL } from "@/lib/site";
+import { SITE_URL, absUrl } from "@/lib/site";
 import { getShippingSettings, getReturnsSettings } from "@/lib/settings";
 import PDPClient from "@/components/pdp/PDPClient";
 import ProductCard from "@/components/ProductCard";
@@ -97,7 +97,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
     "@context": "https://schema.org",
     "@type": "Product",
     name: product.name,
-    image: product.images?.map((i) => i.url) ?? [],
+    image: product.images?.map((i) => absUrl(i.url)) ?? [],
     description: product.description ?? "",
     brand: { "@type": "Brand", name: product.brand ?? "Jack & Jill" },
     sku: product.variants?.[0]?.sku ?? undefined,

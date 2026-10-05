@@ -108,5 +108,6 @@ export async function getPromoPopup() {
   return (data?.value ?? null) as null | {
     enabled: boolean; image_url: string; link: string; headline: string; subtext: string;
     frequency: "session" | "always"; delay_seconds: number; start_date?: string; end_date?: string;
+    eyebrow?: string; cta_text?: string; coupon_code?: string; theme?: "festive" | "sunny" | "blush";
   };
 }

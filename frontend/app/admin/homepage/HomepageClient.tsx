@@ -128,10 +128,26 @@ export default function HomepageClient({ initial, products, promo, ages = [], co
           <div>
             <p className="text-[10px] uppercase tracking-widest text-navy font-bold mb-1">Image</p>
             <ImageUploader value={popup.image_url} folder="promo" onChange={(url) => setPopup({ ...popup, image_url: url })} showUrlField />
+            <p className="text-[11px] text-muted mt-2 leading-relaxed">
+              Best size: <b>1080 × 1350</b> (portrait), no text on the photo. It sits inside an arch, so keep the main subject in the centre.
+              <br />Already have a finished poster with its own text? Leave Headline, Subtext and Coupon empty and it shows as a full poster.
+            </p>
           </div>
           <div className="space-y-2">
-            <label className="block text-xs">Headline<input value={popup.headline} onChange={(e) => setPopup({ ...popup, headline: e.target.value })} className="mt-1 w-full border rounded px-2 py-1.5" /></label>
-            <label className="block text-xs">Subtext<input value={popup.subtext} onChange={(e) => setPopup({ ...popup, subtext: e.target.value })} className="mt-1 w-full border rounded px-2 py-1.5" /></label>
+            <div className="grid grid-cols-2 gap-2">
+              <label className="block text-xs">Small tag (e.g. Diwali Special)<input maxLength={28} value={popup.eyebrow || ""} onChange={(e) => setPopup({ ...popup, eyebrow: e.target.value })} className="mt-1 w-full border rounded px-2 py-1.5" /></label>
+              <label className="block text-xs">Colour theme<select value={popup.theme || "festive"} onChange={(e) => setPopup({ ...popup, theme: e.target.value })} className="mt-1 w-full border rounded px-2 py-1.5 bg-white"><option value="festive">Festive navy & gold</option><option value="sunny">Sunny butter</option><option value="blush">Soft blush</option></select></label>
+            </div>
+            <label className="block text-xs">Headline<input maxLength={60} value={popup.headline} onChange={(e) => setPopup({ ...popup, headline: e.target.value })} className="mt-1 w-full border rounded px-2 py-1.5" /></label>
+            <label className="block text-xs">Subtext<input maxLength={140} value={popup.subtext} onChange={(e) => setPopup({ ...popup, subtext: e.target.value })} className="mt-1 w-full border rounded px-2 py-1.5" /></label>
+            <div className="grid grid-cols-2 gap-2">
+              <label className="block text-xs">Coupon code (optional)<input list="popup-coupons" value={popup.coupon_code || ""} onChange={(e) => setPopup({ ...popup, coupon_code: e.target.value.toUpperCase().replace(/[^A-Z0-9_-]/g, "") })} className="mt-1 w-full border rounded px-2 py-1.5 font-mono" /></label>
+              <label className="block text-xs">Button text<input maxLength={28} placeholder="Shop the collection" value={popup.cta_text || ""} onChange={(e) => setPopup({ ...popup, cta_text: e.target.value })} className="mt-1 w-full border rounded px-2 py-1.5" /></label>
+            </div>
+            <datalist id="popup-coupons">{coupons.map((c) => <option key={c} value={c} />)}</datalist>
+            {popup.coupon_code && coupons.length > 0 && !coupons.includes(popup.coupon_code) && (
+              <p className="text-[11px] text-error">This code is not in Coupons yet. Create it there first, or customers will get “invalid coupon”.</p>
+            )}
             <label className="block text-xs">Link URL<input value={popup.link} onChange={(e) => setPopup({ ...popup, link: e.target.value })} className="mt-1 w-full border rounded px-2 py-1.5" /></label>
             <div className="grid grid-cols-2 gap-2">
               <label className="block text-xs">Delay (sec)<input type="number" value={popup.delay_seconds} onChange={(e) => setPopup({ ...popup, delay_seconds: Number(e.target.value) })} className="mt-1 w-full border rounded px-2 py-1.5" /></label>
