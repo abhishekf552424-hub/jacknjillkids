@@ -279,7 +279,7 @@ export default function PDPClient({ product, reviews, whatsapp, freeShippingAbov
             <button onClick={() => setOpenDesc(!openDesc)} className="w-full flex items-center justify-between text-navy font-bold">
               Description <ChevronDown className={`w-4 h-4 transition-transform ${openDesc ? "rotate-180" : ""}`} />
             </button>
-            {openDesc && <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-3 text-ink leading-relaxed">{product.description}</motion.p>}
+            {openDesc && <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-3 text-ink leading-relaxed whitespace-pre-line">{product.description}</motion.p>}
           </div>
         )}
 

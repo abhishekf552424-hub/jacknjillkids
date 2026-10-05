@@ -1,4 +1,4 @@
-import { SITE_URL } from "@/lib/site";
+import { SITE_URL, absUrl } from "@/lib/site";
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -29,7 +29,7 @@ export async function GET() {
       <g:title>${esc(p.name)}</g:title>
       <g:description>${esc((p.description || p.name).slice(0, 4000))}</g:description>
       <g:link>${esc(siteUrl + "/product/" + p.slug)}</g:link>
-      <g:image_link>${esc(img)}</g:image_link>
+      <g:image_link>${esc(absUrl(img))}</g:image_link>
       <g:availability>${inStock ? "in_stock" : "out_of_stock"}</g:availability>
       <g:price>${esc((Number(p.mrp) > Number(p.base_price) ? Number(p.mrp) : Number(p.base_price)).toFixed(2))} INR</g:price>${
         Number(p.mrp) > Number(p.base_price) ? `\n      <g:sale_price>${esc(Number(p.base_price).toFixed(2))} INR</g:sale_price>` : ""
