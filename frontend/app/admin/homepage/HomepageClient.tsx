@@ -88,7 +88,7 @@ export default function HomepageClient({ initial, products, promo, ages = [], co
               </label>
             </div>
 
-            {r.section_type === "hero" && <HeroEditor config={r.config} onChange={(c) => update(r.id, { config: c })} />}
+            {r.section_type === "hero" && <HeroEditor config={r.config} coupons={coupons} onChange={(c) => update(r.id, { config: c })} />}
             {r.section_type === "instagram_reels" && <InstagramEditor config={r.config} onChange={(c) => update(r.id, { config: c })} />}
             {r.section_type === "instagram_reels" && (
               <div className="grid sm:grid-cols-2 gap-3 mt-3">
@@ -168,7 +168,7 @@ export default function HomepageClient({ initial, products, promo, ages = [], co
 
 /* ---------------- Section editors ---------------- */
 
-function HeroEditor({ config, onChange }: { config: any; onChange: (c: any) => void }) {
+function HeroEditor({ config, onChange, coupons = [] }: { config: any; onChange: (c: any) => void; coupons?: string[] }) {
   const slides = (config?.slides || []) as any[];
   const setSlides = (s: any[]) => onChange({ ...(config || {}), slides: s });
   const patch = (i: number, p: any) => setSlides(slides.map((x, j) => j === i ? { ...x, ...p } : x));
@@ -190,7 +190,7 @@ function HeroEditor({ config, onChange }: { config: any; onChange: (c: any) => v
                 <button type="button" onClick={() => patch(i, { image: "", video: "" })} className={`px-2 py-1 ${mode === "video" ? "bg-navy text-white" : "bg-white text-navy"}`}>Video</button>
               </div>
               {mode === "image" ? (
-                <ImageUploader value={sl.image || sl.video || ""} folder="hero" accept="image/*,video/*" maxSizeMB={20} minWidth={1600} hint="Best: 2400 × 1100 px (wide). Keep faces and products in the middle — phones crop the sides." onChange={(url) => patch(i, /\.(mp4|webm|mov)$/i.test(url) ? { image: "", video: url, video_url: "" } : { image: url, video: "", video_url: "" })} showUrlField />
+                <ImageUploader value={sl.image || sl.video || ""} folder="hero" accept="image/*,video/*" maxSizeMB={20} minWidth={1600} hint="Best: 2400 × 1100 px (wide). Keep faces and products in the middle 60% — phones show only the centre. No text on the picture: add it below." onChange={(url) => patch(i, /\.(mp4|webm|mov)$/i.test(url) ? { image: "", video: url, video_url: "" } : { image: url, video: "", video_url: "" })} showUrlField />
               ) : (
                 <input value={sl.video_url || ""} onChange={(e) => patch(i, { video_url: e.target.value })} placeholder="https://vimeo.com/123456789" className="w-full border rounded px-2 py-1.5 text-xs" />
               )}
@@ -198,6 +198,21 @@ function HeroEditor({ config, onChange }: { config: any; onChange: (c: any) => v
             <div className="grid grid-cols-1 gap-2">
               <input value={sl.heading || ""} onChange={(e) => patch(i, { heading: e.target.value })} placeholder="Heading" className="border rounded px-2 py-1.5 text-sm" />
               <input value={sl.subheading || ""} onChange={(e) => patch(i, { subheading: e.target.value })} placeholder="Subheading" className="border rounded px-2 py-1.5 text-sm" />
+              <div className="grid grid-cols-2 gap-2">
+                <input maxLength={40} value={sl.script_line || ""} onChange={(e) => patch(i, { script_line: e.target.value })} placeholder="Handwritten line, e.g. Shubh Deepavali!" className="border rounded px-2 py-1.5 text-xs" />
+                <input maxLength={30} value={sl.highlight || ""} onChange={(e) => patch(i, { highlight: e.target.value })} placeholder="Word(s) of the heading to make gold" className="border rounded px-2 py-1.5 text-xs" />
+              </div>
+              <div className="rounded-md bg-butter/60 border border-gold/30 p-2 grid gap-2">
+                <p className="text-[10px] uppercase tracking-widest text-navy font-bold">Offer on this slide (optional)</p>
+                <div className="grid grid-cols-3 gap-2">
+                  <input maxLength={14} value={sl.offer || ""} onChange={(e) => patch(i, { offer: e.target.value })} placeholder="Sticker: 15% OFF" className="border rounded px-2 py-1.5 text-xs bg-white" />
+                  <input value={sl.offer_code || ""} onChange={(e) => patch(i, { offer_code: e.target.value.toUpperCase().replace(/[^A-Z0-9_-]/g, "") })} list={`hero-coupons-${i}`} placeholder="Coupon code" className="border rounded px-2 py-1.5 text-xs bg-white font-mono" />
+                  <input maxLength={40} value={sl.offer_note || ""} onChange={(e) => patch(i, { offer_note: e.target.value })} placeholder="Till 8 Nov · above ₹999" className="border rounded px-2 py-1.5 text-xs bg-white" />
+                </div>
+                {sl.offer_code && coupons.length > 0 && !coupons.includes(sl.offer_code) && <p className="text-[11px] text-error">This code is not in Coupons yet. Create it there first.</p>}
+                <p className="text-[10px] text-neutral-500">The sticker sits on the picture's top-right corner. Customers can tap the code to copy it.</p>
+              </div>
+              <datalist id={`hero-coupons-${i}`}>{coupons.map((c) => <option key={c} value={c} />)}</datalist>
               <div className="grid grid-cols-2 gap-2">
                 <input value={sl.cta_text || ""} onChange={(e) => patch(i, { cta_text: e.target.value })} placeholder="Button text (optional)" className="border rounded px-2 py-1.5 text-xs" />
                 <input value={sl.cta_link || ""} onChange={(e) => patch(i, { cta_link: e.target.value })} placeholder="Button link (optional)" className="border rounded px-2 py-1.5 text-xs" />

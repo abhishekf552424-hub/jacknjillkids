@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState, useEffect, useRef } from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { Check, ChevronLeft, ChevronRight, Copy } from "lucide-react";
 import { getVimeoBackgroundUrl } from "@/lib/embeds";
 import { safeHref } from "@/components/home/Section";
 
@@ -24,12 +24,72 @@ type Slide = {
   cta_style?: "gradient" | "outline" | "navy"; // default "gradient"
   content_position?: "left" | "center" | "right"; // default "left"
   border_radius?: "none" | "soft" | "rounded" | "pill"; // corner style, default "soft"
+  // Festive extras (all optional)
+  script_line?: string; // small handwritten line above the heading
+  highlight?: string; // words of the heading shown in gold with a hand-drawn underline
+  offer?: string; // round sticker on the picture, e.g. "15% OFF"
+  offer_code?: string; // coupon code customers can tap to copy
+  offer_note?: string; // small print, e.g. "On orders above ₹999 · till 20 Oct"
 };
+
+/** Heading with the chosen words picked out in gold. */
+function Heading({ text, highlight }: { text: string; highlight?: string }) {
+  const h = (highlight || "").trim();
+  const at = h ? text.toLowerCase().indexOf(h.toLowerCase()) : -1;
+  if (at < 0) return <>{text}</>;
+  return (
+    <>
+      {text.slice(0, at)}
+      <span className="jj-hl">{text.slice(at, at + h.length)}</span>
+      {text.slice(at + h.length)}
+    </>
+  );
+}
+
+/** Round festive sticker: "15% OFF" → big "15%", small "OFF". */
+function OfferSticker({ offer }: { offer: string }) {
+  const m = offer.trim().match(/^(₹?\s?\d+%?)\s*(.*)$/);
+  const big = m ? m[1] : offer;
+  const small = m ? m[2] : "";
+  const points = Array.from({ length: 28 }, (_, i) => {
+    const a = (i / 28) * Math.PI * 2, r = i % 2 ? 46 : 50;
+    return `${50 + r * Math.cos(a)},${50 + r * Math.sin(a)}`;
+  }).join(" ");
+  return (
+    <div className="jj-sticker pointer-events-none absolute z-10 top-3 right-3 md:top-6 md:right-8 w-[62px] h-[62px] sm:w-[86px] sm:h-[86px] md:w-[120px] md:h-[120px]" aria-hidden="true">
+      <svg viewBox="0 0 100 100" className="absolute inset-0 w-full h-full drop-shadow-lg">
+        <polygon points={points} fill="#FCD325" stroke="#ffffff" strokeWidth="2" />
+        <circle cx="50" cy="50" r="38" fill="none" stroke="#354275" strokeWidth="1" strokeDasharray="2 3" />
+      </svg>
+      <div className="absolute inset-0 flex flex-col items-center justify-center text-navy leading-none -rotate-6">
+        <span className="font-display font-bold text-[17px] sm:text-[24px] md:text-[34px] tracking-tight">{big}</span>
+        {small && <span className="mt-0.5 text-[8px] sm:text-[10px] md:text-[12px] font-extrabold uppercase tracking-[0.18em]">{small}</span>}
+      </div>
+    </div>
+  );
+}
+
+function CodePill({ code, note }: { code: string; note?: string }) {
+  const [copied, setCopied] = useState(false);
+  return (
+    <button
+      type="button"
+      onClick={async () => { try { await navigator.clipboard.writeText(code); setCopied(true); setTimeout(() => setCopied(false), 2000); } catch {} }}
+      className="group inline-flex items-center gap-2 rounded-full border border-dashed border-gold-light/80 bg-[#1F2650]/55 px-3.5 py-1.5 text-white text-[11px] sm:text-xs"
+      aria-label={`Copy coupon code ${code}`}
+      data-testid="hero-code"
+    >
+      <span className="font-bold">Use code <span className="font-mono tracking-wider text-brand-yellow">{code}</span></span>
+      {note && <span className="hidden sm:inline text-white/75">· {note}</span>}
+      {copied ? <Check className="w-3.5 h-3.5 text-brand-yellow" /> : <Copy className="w-3.5 h-3.5 opacity-80 group-hover:opacity-100" />}
+    </button>
+  );
+}
 
 const HEADING_SIZE_CLASSES: Record<string, string> = {
   sm: "text-2xl sm:text-3xl lg:text-4xl",
-  md: "text-3xl sm:text-4xl lg:text-5xl",
-  lg: "text-3xl sm:text-4xl lg:text-6xl",
+  md: "text-[24px] sm:text-4xl lg:text-5xl",
+  lg: "text-[26px] sm:text-4xl lg:text-6xl",
 };
 
 const CONTENT_POS_CLASSES: Record<string, string> = {
@@ -141,6 +201,7 @@ export default function HeroCarousel({ slides, title, subtitle }: { slides: Slid
   }, [i]);
 
   const s = list[i];
+  const hasWords = Boolean((s.heading && s.heading.trim()) || s.script_line || s.offer_code);
   const hasCta = Boolean(s.cta_text && s.cta_link && s.cta_text.trim() && s.cta_link.trim());
   const headingColor = s.heading_color || "#ffffff";
   const headingSizeCls = HEADING_SIZE_CLASSES[s.heading_size || "lg"];
@@ -159,30 +220,49 @@ export default function HeroCarousel({ slides, title, subtitle }: { slides: Slid
             const dx = e.changedTouches[0].clientX - touchX.current;
             if (list.length > 1 && Math.abs(dx) > 45) setI((v) => (v + (dx < 0 ? 1 : -1) + list.length) % list.length);
           }}
-          className={`group/hero relative w-full aspect-[16/10] sm:aspect-[16/9] lg:aspect-[21/9] max-h-[720px] overflow-hidden bg-navy ${radiusCls}`}>
+          className={`group/hero relative w-full aspect-[4/3] sm:aspect-[16/9] lg:aspect-[21/9] max-h-[720px] overflow-hidden bg-navy ${radiusCls}`}>
           {/* The previous slide stays underneath while the new one fades in on top. */}
           {prev !== null && prev !== i && list[prev] && <SlideMedia key={`m-${prev}`} s={list[prev]} />}
           <SlideMedia key={`m-${i}`} s={s} enter={!landing} priority={landing} />
 
+          {/* Soft shade behind the words so they read on any picture
+              (left side on big screens, bottom on phones). */}
+          {hasWords && (
+            <div aria-hidden="true" className={`pointer-events-none absolute inset-0 bg-gradient-to-t from-[#1F2650]/85 via-[#1F2650]/35 to-transparent ${s.content_position === "right" ? "md:bg-gradient-to-l" : "md:bg-gradient-to-r"} md:from-[#1F2650]/75 md:via-[#1F2650]/25 md:to-transparent`} />
+          )}
+          {s.offer && <OfferSticker key={`o-${i}`} offer={s.offer} />}
+
           <div className="relative h-full flex items-end md:items-center">
-            <div className={`w-full p-5 sm:p-8 md:p-14 ${posCls}`} style={{ color: headingColor }}>
-              <p
-                key={`sub-${i}`}
-                style={landing ? undefined : { animationDelay: "150ms" }}
-                className={`${landing ? "" : "animate-hero-text"} uppercase tracking-[0.3em] text-gold-light text-[10px] sm:text-xs font-bold mb-3`}
-              >
-                {s.subheading ?? "Since 2003 • Kolhapur"}
-              </p>
+            <div className={`w-full p-4 pb-9 sm:p-8 md:p-14 ${posCls}`} style={{ color: headingColor }}>
+              {s.subheading && (
+                <p
+                  key={`sub-${i}`}
+                  style={landing ? undefined : { animationDelay: "150ms" }}
+                  className={`${landing ? "" : "animate-hero-text"} hidden sm:block uppercase tracking-[0.3em] text-gold-light text-[10px] sm:text-xs font-bold mb-2 md:mb-3`}
+                >
+                  {s.subheading}
+                </p>
+              )}
+              {s.script_line && (
+                <p
+                  key={`sc-${i}`}
+                  style={landing ? undefined : { animationDelay: "200ms" }}
+                  className={`${landing ? "" : "animate-hero-text"} font-hand text-brand-yellow text-lg sm:text-2xl md:text-[34px] leading-none -rotate-2 origin-left mb-1 md:mb-2 [text-shadow:0_2px_10px_rgba(0,0,0,.35)]`}
+                >
+                  {s.script_line}
+                </p>
+              )}
               <h1
                 key={`h-${i}`}
-                className={`${landing ? "" : "animate-hero-text [animation-delay:250ms]"} font-display leading-[1.05] tracking-tight ${headingSizeCls}`}
+                className={`${landing ? "" : "animate-hero-text [animation-delay:250ms]"} font-display leading-[1.05] tracking-tight [text-shadow:0_2px_18px_rgba(0,0,0,.25)] ${headingSizeCls}`}
                 style={{ color: headingColor }}
               >
-                {s.heading ?? "Tiny Steps, Big Smiles"}
+                <Heading text={s.heading ?? "Tiny Steps, Big Smiles"} highlight={s.highlight} />
               </h1>
-              {hasCta && (
-                <div key={`c-${i}`} className={`${landing ? "" : "animate-hero-text [animation-delay:400ms]"} mt-6 md:mt-8`}>
-                  <CtaButton style={s.cta_style || "gradient"} text={s.cta_text!} link={s.cta_link!} />
+              {(hasCta || s.offer_code) && (
+                <div key={`c-${i}`} className={`${landing ? "" : "animate-hero-text [animation-delay:400ms]"} mt-3 sm:mt-6 md:mt-8 flex flex-wrap items-center gap-2.5 sm:gap-4 ${s.content_position === "center" ? "justify-center" : s.content_position === "right" ? "md:justify-end" : ""}`}>
+                  {hasCta && <CtaButton style={s.cta_style || "gradient"} text={s.cta_text!} link={s.cta_link!} />}
+                  {s.offer_code && <CodePill code={s.offer_code} note={s.offer_note} />}
                 </div>
               )}
             </div>

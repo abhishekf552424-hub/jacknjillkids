@@ -180,6 +180,20 @@ a { color: inherit; text-decoration: none; }
   .jj-boot { animation: jj-boot-out 300ms linear 500ms forwards !important; animation-iteration-count: 1 !important; animation-duration: 300ms !important; }
 }
 
+/* --- Hero festive extras ---
+   Gold words with a hand-drawn underline, and a round offer sticker that
+   pops in and gently sways. */
+.jj-hl {
+  color: #FCD325;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 12' preserveAspectRatio='none'%3E%3Cpath d='M3 8 C 50 2, 120 2, 197 7' fill='none' stroke='%23F38838' stroke-width='3.2' stroke-linecap='round'/%3E%3C/svg%3E") left 100% / 100% 0.28em no-repeat;
+  padding-bottom: 0.1em;
+  -webkit-box-decoration-break: clone; box-decoration-break: clone;
+}
+.jj-sticker { animation: jj-sticker-in 700ms cubic-bezier(0.3, 1.6, 0.5, 1) 450ms both, jj-sway 4.5s ease-in-out 1.2s infinite; transform-origin: 50% 50%; }
+@keyframes jj-sticker-in { from { opacity: 0; transform: scale(0.3) rotate(-40deg); } }
+@keyframes jj-sway { 0%, 100% { transform: rotate(-4deg); } 50% { transform: rotate(5deg) scale(1.04); } }
+@media (prefers-reduced-motion: reduce) { .jj-sticker { animation: none !important; } }
+
 /* --- Promo popup: festive gift-tag card ---
    Backdrop fades, the card springs up (a bottom sheet on phones), the toran
    flags drop in one by one, content follows, two sparkles twinkle. */
