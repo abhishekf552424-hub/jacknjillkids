@@ -60,7 +60,7 @@ export default async function ShopView({ sp: rawSp, basePath }: { sp: ShopParams
     const childIds = categories.filter((c) => c.parent_id === selectedCat.id).map((c) => c.id);
     const ids = [selectedCat.id, ...childIds];
     const [{ data: byPrimary }, { data: byJunction }] = await Promise.all([
-      supabase.from("products").select("id").eq("status", "active").in("category_id", ids),
+      supabase.from("products").select("id").in("status", ["active", "out_of_stock"]).in("category_id", ids),
       supabase.from("product_categories").select("product_id").in("category_id", ids),
     ]);
     intersect([...(byPrimary ?? []).map((r: any) => r.id), ...(byJunction ?? []).map((r: any) => r.product_id)]);
@@ -73,7 +73,7 @@ export default async function ShopView({ sp: rawSp, basePath }: { sp: ShopParams
   let query = supabase
     .from("products")
     .select("id, slug, name, brand, base_price, mrp, status, is_featured, is_new_arrival, alt_text, gender, images:product_images(url,alt_text,sort_order)", { count: "exact" })
-    .eq("status", "active");
+    .in("status", ["active", "out_of_stock"]);
 
   if (idFilter) {
     const ids = [...(idFilter as Set<string>)];

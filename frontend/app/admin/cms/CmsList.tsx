@@ -21,23 +21,38 @@ export default function CmsList({ pages, faqs, badges }: { pages: any[]; faqs: a
     toast.success("Saved");
   };
 
-  const saveFaq = async (f: any) => {
+  const saveFaq = async (f: any, i: number) => {
+    if (!String(f.question || "").trim() || !String(f.answer || "").trim()) return toast.error("Write both the question and the answer");
     const r = await fetch(`/api/admin/cms/faqs${f.id ? `/${f.id}` : ""}`, {
       method: f.id ? "PUT" : "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(f),
     });
-    if (!r.ok) return toast.error("Save failed");
-    toast.success("Saved");
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok) return toast.error(j.error || "Save failed");
+    // Remember the new row's id so the next Save updates it instead of adding a copy.
+    if (!f.id && j.id) setF((prev) => prev.map((x, k) => (k === i ? { ...x, id: j.id } : x)));
+    toast.success("Saved: live on the website now");
   };
 
-  const saveBadge = async (b: any) => {
+  const deleteFaq = async (f: any, i: number) => {
+    if (!f.id) return setF(F.filter((_, j) => j !== i));
+    if (!confirm("Delete this FAQ? This can't be undone.")) return;
+    const r = await fetch(`/api/admin/cms/faqs/${f.id}`, { method: "DELETE" });
+    if (!r.ok) return toast.error("Delete failed");
+    setF(F.filter((_, j) => j !== i));
+    toast.success("FAQ deleted");
+  };
+
+  const saveBadge = async (b: any, i: number) => {
     const r = await fetch(`/api/admin/cms/badges${b.id ? `/${b.id}` : ""}`, {
       method: b.id ? "PUT" : "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(b),
     });
-    if (!r.ok) return toast.error("Save failed");
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok) return toast.error(j.error || "Save failed");
+    if (!b.id && j.id) setB((prev) => prev.map((x, k) => (k === i ? { ...x, id: j.id } : x)));
     toast.success("Saved");
   };
 
@@ -89,7 +104,12 @@ export default function CmsList({ pages, faqs, badges }: { pages: any[]; faqs: a
               <div key={f.id ?? `n-${i}`} className="bg-white rounded-lg p-4 shadow-soft space-y-2">
                 <input placeholder="Question" value={f.question} onChange={(e) => setF(F.map((x, j) => j === i ? { ...x, question: e.target.value } : x))} className="w-full bg-cream rounded px-3 py-2 text-sm border border-navy/10 outline-none focus:border-gold" />
                 <textarea rows={3} placeholder="Answer" value={f.answer} onChange={(e) => setF(F.map((x, j) => j === i ? { ...x, answer: e.target.value } : x))} className="w-full bg-cream rounded px-3 py-2 text-sm border border-navy/10 outline-none focus:border-gold" />
-                <button onClick={() => saveFaq(f)} className="bg-navy text-white rounded px-3 py-1.5 text-xs">Save</button>
+                <div className="flex flex-wrap items-center gap-3">
+                  <button onClick={() => saveFaq(f, i)} className="bg-navy text-white rounded px-3 py-1.5 text-xs">Save</button>
+                  <label className="flex items-center gap-1.5 text-xs text-navy"><input type="checkbox" checked={f.is_active !== false} onChange={(e) => setF(F.map((x, j) => j === i ? { ...x, is_active: e.target.checked } : x))} /> Show on website</label>
+                  <label className="flex items-center gap-1.5 text-xs text-navy">Order <input type="number" value={f.sort_order ?? 0} onChange={(e) => setF(F.map((x, j) => j === i ? { ...x, sort_order: Number(e.target.value) } : x))} className="w-14 bg-cream rounded px-2 py-1 border border-navy/10" /></label>
+                  <button onClick={() => deleteFaq(f, i)} className="text-red-600 hover:bg-red-50 border border-red-200 rounded px-3 py-1.5 text-xs flex items-center gap-1"><Trash2 className="w-3 h-3" /> Delete</button>
+                </div>
               </div>
             ))}
           </div>
@@ -121,7 +141,8 @@ export default function CmsList({ pages, faqs, badges }: { pages: any[]; faqs: a
                 <input placeholder="Label" value={b.label} onChange={(e) => setB(B.map((x, j) => j === i ? { ...x, label: e.target.value } : x))} className="w-full bg-cream rounded px-3 py-2 text-sm border border-navy/10 outline-none focus:border-gold" />
                 <input placeholder="Subtext" value={b.subtext ?? ""} onChange={(e) => setB(B.map((x, j) => j === i ? { ...x, subtext: e.target.value } : x))} className="w-full bg-cream rounded px-3 py-2 text-sm border border-navy/10 outline-none focus:border-gold" />
                 <div className="flex items-center justify-between gap-2 pt-1">
-                  <button onClick={() => saveBadge(b)} className="bg-navy text-white rounded px-3 py-1.5 text-xs flex items-center gap-1"><Save className="w-3 h-3" /> Save</button>
+                  <label className="flex items-center gap-1.5 text-xs text-navy"><input type="checkbox" checked={b.is_active !== false} onChange={(e) => setB(B.map((x, j) => j === i ? { ...x, is_active: e.target.checked } : x))} /> Show</label>
+                  <button onClick={() => saveBadge(b, i)} className="bg-navy text-white rounded px-3 py-1.5 text-xs flex items-center gap-1"><Save className="w-3 h-3" /> Save</button>
                   <button onClick={() => deleteBadge(b, i)} data-testid={`badge-delete-${i}`} className="text-red-600 hover:bg-red-50 border border-red-200 rounded px-3 py-1.5 text-xs flex items-center gap-1"><Trash2 className="w-3 h-3" /> Remove</button>
                 </div>
               </div>

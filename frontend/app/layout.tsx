@@ -110,8 +110,9 @@ async function fetchGlobals() {
   const map = new Map(flat.map((c) => [c.id, { ...c, children: [] as Category[] }]));
   const tree: Category[] = [];
   map.forEach((c) => {
-    if (c.parent_id && map.get(c.parent_id)) map.get(c.parent_id)!.children!.push(c);
-    else tree.push(c);
+    if (!c.parent_id) tree.push(c);
+    else if (map.get(c.parent_id)) map.get(c.parent_id)!.children!.push(c);
+    // parent switched off in admin: its sub-categories are hidden too (not promoted to the top menu)
   });
   return {
     categoriesFlat: flat,

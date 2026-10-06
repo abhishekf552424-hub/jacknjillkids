@@ -54,6 +54,7 @@ export default function ProductForm({ categories, ageGroups, product, images, va
     meta_description: product?.meta_description ?? "",
     product_type: product?.product_type ?? "simple",
     hsn_code: product?.hsn_code ?? "",
+    size_chart_url: product?.size_chart_url ?? "",
     eligible_coupon_codes: (product?.eligible_coupon_codes as string[] | undefined) ?? [],
   });
 
@@ -217,7 +218,8 @@ export default function ProductForm({ categories, ageGroups, product, images, va
               <Textarea label="Long description" value={p.description} onChange={(v) => setP({ ...p, description: v })} rows={6} />
               <div className="grid sm:grid-cols-2 gap-3">
                 <Select label="Gender" value={p.gender} onChange={(v) => setP({ ...p, gender: v })} options={[["boys","Boys"],["girls","Girls"],["unisex","Unisex"]]} />
-                <Select label="Product type" value={p.product_type} onChange={(v) => setP({ ...p, product_type: v })} options={[["simple","Simple product"],["combo","Combo / bundle"]]} />
+                {/* Combo selling isn't wired into the shop/checkout yet, so only existing combos can keep that type. */}
+                <Select label="Product type" value={p.product_type} onChange={(v) => setP({ ...p, product_type: v })} options={p.product_type === "combo" ? [["simple","Simple product"],["combo","Combo / bundle"]] : [["simple","Simple product"]]} />
               </div>
             </>
           )}
@@ -229,6 +231,7 @@ export default function ProductForm({ categories, ageGroups, product, images, va
                 <Field label="MRP (before discount) ₹" type="number" value={String(p.mrp)} onChange={(v) => setP({ ...p, mrp: v })} />
               </div>
               <Field label="HSN code (for GST invoice)" value={p.hsn_code} onChange={(v) => setP({ ...p, hsn_code: v })} placeholder="e.g. 6111" />
+              <Field label="Size chart link (optional)" value={p.size_chart_url} onChange={(v) => setP({ ...p, size_chart_url: v })} placeholder="https://… (image or PDF of the size chart)" />
               {p.mrp && p.base_price && Number(p.mrp) > Number(p.base_price) && (
                 <p className="text-xs text-green-600">Customer saves ₹{Number(p.mrp) - Number(p.base_price)} ({Math.round(((Number(p.mrp) - Number(p.base_price)) / Number(p.mrp)) * 100)}% off)</p>
               )}

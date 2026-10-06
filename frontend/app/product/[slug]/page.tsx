@@ -22,6 +22,10 @@ async function loadProduct(slug: string) {
     .eq("slug", slug)
     .maybeSingle();
   if (!p) return null;
+  // Drafts and archived products are not for customers, even by direct link.
+  if (p.status !== "active" && p.status !== "out_of_stock") return null;
+  // "Out of stock" set in admin: show the page, but nothing can be added to the bag.
+  if (p.status === "out_of_stock") p.variants = (p.variants ?? []).map((v: any) => ({ ...v, stock_qty: 0 }));
   p.images = (p.images ?? []).sort((a: any, b: any) => a.sort_order - b.sort_order);
   return p as Product;
 }
