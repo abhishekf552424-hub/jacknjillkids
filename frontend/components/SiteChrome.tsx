@@ -1,6 +1,7 @@
 "use client";
 import { usePathname } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
+import PreviewBar from "./PreviewBar";
 
 // Wraps Header/Footer + optional support widget so they're hidden on admin routes.
 export default function SiteChrome({ header, footer, support, children }: { header: ReactNode; footer: ReactNode; support?: ReactNode; children: ReactNode }) {
@@ -32,6 +33,7 @@ export default function SiteChrome({ header, footer, support, children }: { head
       <main className="min-h-[70vh]">{children}</main>
       {!hide && footer}
       {!hide && support}
+      {!hide && <PreviewBar />}
     </>
   );
 }
