@@ -4,7 +4,7 @@ import { checkAdmin } from "@/lib/admin-auth";
 import { DEVELOPER_ONLY_SETTINGS } from "@/lib/admin-roles";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { clearRazorpayCache } from "@/lib/settings";
+import { clearRazorpayCache, clearBrandCache } from "@/lib/settings";
 
 async function requireSettingsAccess() {
   return checkAdmin("settings");
@@ -23,6 +23,7 @@ export async function POST(req: Request) {
   const admin = createAdminClient();
   await admin.from("settings").upsert({ key, value, updated_at: new Date().toISOString() });
   if (key === "razorpay") clearRazorpayCache();
+  if (key === "brand") clearBrandCache();
   refreshSite();
   return NextResponse.json({ ok: true });
 }

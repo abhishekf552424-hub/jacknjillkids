@@ -72,7 +72,7 @@ export default function CouponsClient({ initial }: { initial: C[] }) {
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="bg-cream text-navy">
-              <tr><th className="text-left px-3 py-2">Code</th><th className="text-left px-3 py-2">Type</th><th className="text-left px-3 py-2">Value</th><th className="text-left px-3 py-2">Min cart</th><th className="text-left px-3 py-2">Valid to</th><th className="text-left px-3 py-2">Active</th><th className="text-right px-3 py-2"></th></tr>
+              <tr><th className="text-left px-3 py-2">Code</th><th className="text-left px-3 py-2">Type</th><th className="text-left px-3 py-2">Value</th><th className="text-left px-3 py-2">Min cart ₹</th><th className="text-left px-3 py-2" title="Biggest discount one order can get (for % coupons). Empty = no limit">Max off ₹</th><th className="text-left px-3 py-2" title="How many times one customer can use it">Per customer</th><th className="text-left px-3 py-2" title="Total uses for everyone. Empty = no limit">Total uses</th><th className="text-left px-3 py-2">Valid to</th><th className="text-left px-3 py-2">Active</th><th className="text-right px-3 py-2"></th></tr>
             </thead>
             <tbody>
               {filtered.map(({ c, i }) => (
@@ -81,7 +81,10 @@ export default function CouponsClient({ initial }: { initial: C[] }) {
                   <td className="px-3 py-2"><select value={c.type} onChange={(e) => update(i, { type: e.target.value as any })} className="bg-cream rounded px-2 py-1 border border-navy/10"><option value="percent">%</option><option value="flat">₹</option></select></td>
                   <td className="px-3 py-2"><input type="number" value={c.value} onChange={(e) => update(i, { value: Number(e.target.value) })} className="w-20 bg-cream rounded px-2 py-1 border border-navy/10 outline-none" /></td>
                   <td className="px-3 py-2"><input type="number" value={c.min_cart_value} onChange={(e) => update(i, { min_cart_value: Number(e.target.value) })} className="w-24 bg-cream rounded px-2 py-1 border border-navy/10 outline-none" /></td>
-                  <td className="px-3 py-2"><input type="date" value={c.valid_to?.slice(0,10) ?? ""} onChange={(e) => update(i, { valid_to: e.target.value || null })} className="bg-cream rounded px-2 py-1 border border-navy/10 outline-none text-xs" /></td>
+                  <td className="px-3 py-2"><input type="number" min={0} placeholder="No limit" value={c.max_discount ?? ""} onChange={(e) => update(i, { max_discount: e.target.value === "" ? null : Number(e.target.value) })} className="w-24 bg-cream rounded px-2 py-1 border border-navy/10 outline-none" /></td>
+                  <td className="px-3 py-2"><input type="number" min={0} value={c.per_user_limit ?? 1} onChange={(e) => update(i, { per_user_limit: Number(e.target.value) })} className="w-16 bg-cream rounded px-2 py-1 border border-navy/10 outline-none" /></td>
+                  <td className="px-3 py-2"><input type="number" min={0} placeholder="No limit" value={c.usage_limit ?? ""} onChange={(e) => update(i, { usage_limit: e.target.value === "" ? null : Number(e.target.value) })} className="w-24 bg-cream rounded px-2 py-1 border border-navy/10 outline-none" /></td>
+                  <td className="px-3 py-2"><input type="date" value={c.valid_to?.slice(0,10) ?? ""} onChange={(e) => update(i, { valid_to: e.target.value ? `${e.target.value}T23:59:59+05:30` : null })} className="bg-cream rounded px-2 py-1 border border-navy/10 outline-none text-xs" /></td>
                   <td className="px-3 py-2 text-center"><input type="checkbox" checked={c.is_active} onChange={(e) => update(i, { is_active: e.target.checked })} /></td>
                   <td className="px-3 py-2 text-right">
                     <button onClick={() => save(c, i)} className="text-xs text-gold-text px-2"><Save className="w-4 h-4 inline" /></button>
@@ -90,7 +93,7 @@ export default function CouponsClient({ initial }: { initial: C[] }) {
                 </tr>
               ))}
               {filtered.length === 0 && (
-                <tr><td colSpan={7} className="px-4 py-8 text-center text-neutral-400">No coupons match.</td></tr>
+                <tr><td colSpan={10} className="px-4 py-8 text-center text-neutral-400">No coupons match.</td></tr>
               )}
             </tbody>
           </table>

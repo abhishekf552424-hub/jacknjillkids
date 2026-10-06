@@ -17,13 +17,16 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
   const admin = createAdminClient();
   const clean: Record<string, any> = pickEditable("categories", body);
 
-  if (!clean.name || !String(clean.name).trim()) {
+  // A full edit must keep a name; a quick switch (e.g. bulk Activate) only sends is_active.
+  if ("name" in clean && !String(clean.name ?? "").trim()) {
     return NextResponse.json({ ok: false, error: "Category name is required." }, { status: 400 });
   }
   if (clean.slug && !String(clean.slug).trim()) {
     return NextResponse.json({ ok: false, error: "Slug cannot be empty." }, { status: 400 });
   }
 
+  if (Object.keys(clean).length === 0) return NextResponse.json({ ok: false, error: "Nothing to save." }, { status: 400 });
+  if (typeof clean.name === "string") clean.name = clean.name.trim();
   const { error } = await admin.from("categories").update(clean).eq("id", id);
   if (error) {
     const friendly = error.code === "23505"

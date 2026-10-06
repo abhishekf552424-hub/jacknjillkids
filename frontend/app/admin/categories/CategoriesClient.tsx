@@ -89,24 +89,29 @@ export default function CategoriesClient({ initial }: { initial: C[] }) {
   const toggleAll = () => setSelected((prev) => (prev.size === selectableIds.length ? new Set() : new Set(selectableIds)));
 
   const bulkAction = async (action: "activate" | "deactivate" | "delete") => {
-    const ids = Array.from(selected);
+    let ids = Array.from(selected);
     if (action === "delete" && !confirm(`Delete ${ids.length} categor${ids.length === 1 ? "y" : "ies"}?`)) return;
     setBulkBusy(true);
     // Categories are typically a small list (tens, not thousands), so
     // sequential calls to the existing per-row endpoints keep this simple
     // and safe rather than adding a separate bulk API route.
+    const done: string[] = [];
+    let firstError = "";
     for (const id of ids) {
-      if (action === "delete") {
-        await fetch(`/api/admin/categories/${id}`, { method: "DELETE" });
-      } else {
-        await fetch(`/api/admin/categories/${id}`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ is_active: action === "activate" }),
-        });
-      }
+      const r = action === "delete"
+        ? await fetch(`/api/admin/categories/${id}`, { method: "DELETE" })
+        : await fetch(`/api/admin/categories/${id}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ is_active: action === "activate" }),
+          });
+      if (r.ok) done.push(id);
+      else if (!firstError) firstError = (await r.json().catch(() => ({})))?.error || "Could not update";
     }
     setBulkBusy(false);
+    if (firstError) toast.error(`${ids.length - done.length} not updated: ${firstError}`);
+    ids = done;
+    if (!ids.length) return;
     if (action === "delete") {
       setCats((prev) => prev.filter((c) => !c.id || !ids.includes(c.id)));
     } else {

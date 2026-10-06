@@ -52,6 +52,8 @@ export default function SettingsClient({ initial, isDeveloper }: { initial: Reco
     flat_fee: initial.shipping?.flat_fee ?? 79,
     gst_percent: initial.shipping?.gst_percent ?? 5,
     gift_wrap_fee: initial.shipping?.gift_wrap_fee ?? 0,
+    // Not shown in the form, but kept so saving delivery charges never resets how GST is worked out.
+    prices_include_gst: initial.shipping?.prices_include_gst ?? true,
   });
   const [cod, setCod] = useState({ enabled: initial.cod?.enabled ?? true });
   const [returns, setReturns] = useState({ exchange_window_days: initial.returns?.exchange_window_days ?? 7 });
@@ -249,7 +251,7 @@ export default function SettingsClient({ initial, isDeveloper }: { initial: Reco
             <F label="Free shipping above (₹)" value={String(shipping.free_above)} onChange={(v) => setShipping({ ...shipping, free_above: Number(v) })} type="number" />
             <F label="Flat shipping fee (₹)" value={String(shipping.flat_fee)} onChange={(v) => setShipping({ ...shipping, flat_fee: Number(v) })} type="number" />
             <F label="GST %" value={String(shipping.gst_percent)} onChange={(v) => setShipping({ ...shipping, gst_percent: Number(v) })} type="number" />
-            <F label="Gift wrap fee (₹)" value={String(shipping.gift_wrap_fee)} onChange={(v) => setShipping({ ...shipping, gift_wrap_fee: Number(v) })} type="number" />
+            <F label="Gift wrap fee (₹), not charged at checkout yet" value={String(shipping.gift_wrap_fee)} onChange={(v) => setShipping({ ...shipping, gift_wrap_fee: Number(v) })} type="number" />
             <F label="Size-exchange window (days)" value={String(returns.exchange_window_days)} onChange={(v) => setReturns({ exchange_window_days: Number(v) })} type="number" />
           </div>
           <label className="mt-3 flex items-center gap-2 text-sm text-navy"><input type="checkbox" checked={cod.enabled} onChange={(e) => setCod({ enabled: e.target.checked })} /> Enable Cash on Delivery</label>

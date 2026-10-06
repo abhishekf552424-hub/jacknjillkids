@@ -172,7 +172,13 @@ export default function HeroCarousel({ slides, title, subtitle }: { slides: Slid
   // (e.g. an admin-added slide that was never finished) would otherwise
   // render as a blank navy box for its entire ~6s turn — not just during
   // transitions. Only ever show slides that actually have visual content.
-  const validSlides = slides.filter((sl) => Boolean(sl.image || sl.video_url || sl.video));
+  // Admin can schedule a slide (Show from / Show till, India time). Checked on the
+  // server render and again in the browser, so a cached page never shows an expired slide for long.
+  const now = Date.now();
+  const inWindow = (sl: Slide & { start_date?: string; end_date?: string }) =>
+    (!sl.start_date || Date.parse(`${sl.start_date}T00:00:00+05:30`) <= now) &&
+    (!sl.end_date || Date.parse(`${sl.end_date}T23:59:59+05:30`) >= now);
+  const validSlides = slides.filter((sl) => Boolean(sl.image || sl.video_url || sl.video) && inWindow(sl as any));
   const list: Slide[] = validSlides.length ? validSlides : [{
     image: "https://images.unsplash.com/photo-1502086223501-7ea6ecd79368?w=1600",
     heading: title ?? "Tiny Steps, Big Smiles",

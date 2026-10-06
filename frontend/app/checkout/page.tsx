@@ -40,6 +40,18 @@ export default function CheckoutPage() {
     pincode: "",
   });
   const [payment, setPayment] = useState<"razorpay" | "cod">("razorpay");
+  // Payment choices switched on in Admin → Settings.
+  const [payOpts, setPayOpts] = useState<{ cod: boolean; online: boolean }>({ cod: true, online: true });
+  useEffect(() => {
+    fetch("/api/checkout/options", { cache: "no-store" })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((o) => {
+        if (!o) return;
+        setPayOpts(o);
+        if (!o.online && o.cod) setPayment("cod");
+      })
+      .catch(() => {});
+  }, []);
   const [totals, setTotals] = useState({ subtotal: 0, shipping: 0, tax: 0, discount: 0, total: 0 });
   const [couponInput, setCouponInput] = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState<string | null>(null);
@@ -266,6 +278,10 @@ export default function CheckoutPage() {
               <div className="bg-white rounded-lg p-6 shadow-soft" data-testid="checkout-payment">
                 <h2 className="font-display text-xl text-navy mb-4">Payment method</h2>
                 <div className="space-y-3">
+                  {!payOpts.online && !payOpts.cod && (
+                    <p className="rounded-lg bg-blush p-4 text-sm text-navy">Online orders are paused for a short while. Please call or WhatsApp the store to order.</p>
+                  )}
+                  {payOpts.online && (
                   <label className={`flex items-center gap-3 p-4 border rounded-lg cursor-pointer ${payment === "razorpay" ? "border-gold bg-cream" : "border-navy/10"}`}>
                     <input type="radio" name="pay" checked={payment === "razorpay"} onChange={() => setPayment("razorpay")} className="accent-navy" data-testid="pay-razorpay" />
                     <CreditCard className="w-5 h-5 text-navy" />
@@ -274,6 +290,8 @@ export default function CheckoutPage() {
                       <p className="text-xs text-muted">Secure payment via Razorpay</p>
                     </div>
                   </label>
+                  )}
+                  {payOpts.cod && (
                   <label className={`flex items-center gap-3 p-4 border rounded-lg cursor-pointer ${payment === "cod" ? "border-gold bg-cream" : "border-navy/10"}`}>
                     <input type="radio" name="pay" checked={payment === "cod"} onChange={() => setPayment("cod")} className="accent-navy" data-testid="pay-cod" />
                     <Wallet className="w-5 h-5 text-navy" />
@@ -282,10 +300,11 @@ export default function CheckoutPage() {
                       <p className="text-xs text-muted">Pay when your order arrives</p>
                     </div>
                   </label>
+                  )}
                 </div>
                 <div className="mt-6 flex gap-3">
                   <button onClick={() => setStep(1)} className="border border-navy/10 rounded px-6 py-3 text-sm">Back</button>
-                  <button data-testid="to-review-btn" onClick={() => setStep(3)} className="flex-1 bg-navy text-white rounded px-6 py-3 font-medium">Review order</button>
+                  <button data-testid="to-review-btn" disabled={!payOpts.online && !payOpts.cod} onClick={() => setStep(3)} className="flex-1 bg-navy text-white rounded px-6 py-3 font-medium">Review order</button>
                 </div>
               </div>
             )}
