@@ -63,7 +63,7 @@ export default function PromoPopup({ popup }: { popup: Popup | null }) {
   const pathname = usePathname() || "/";
 
   useEffect(() => {
-    if (!popup?.enabled || open || QUIET.some((r) => r.test(pathname))) return;
+    if (!popup?.enabled || open || QUIET.some((r) => r.test(pathname)) || document.querySelector(".jj-soon")) return;
     const now = new Date();
     if (popup.start_date && new Date(popup.start_date + "T00:00:00+05:30") > now) return;
     if (popup.end_date && new Date(popup.end_date + "T23:59:59+05:30") < now) return;

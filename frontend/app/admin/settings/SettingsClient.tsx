@@ -5,6 +5,7 @@ import Link from "next/link";
 import { toast } from "sonner";
 import { CreditCard, Truck, Info, Save, Users, ArrowRight, Palette, Percent, RotateCcw, Share2 } from "lucide-react";
 import ImageUploader from "@/components/admin/ImageUploader";
+import SiteModeCard from "./SiteModeCard";
 
 export default function SettingsClient({ initial, isDeveloper }: { initial: Record<string, any>; isDeveloper: boolean }) {
   const [rzp, setRzp] = useState({
@@ -83,6 +84,8 @@ export default function SettingsClient({ initial, isDeveloper }: { initial: Reco
       <p className="text-xs uppercase tracking-widest text-gold-text font-bold">Shop setup</p>
       <h1 className="font-display text-3xl text-navy tracking-tight">Settings</h1>
       <p className="text-sm text-muted mt-1">Store details, delivery charges, COD and contact info. Each box has its own Save button.</p>
+
+      <SiteModeCard initial={initial.site_mode} />
 
       <Link href="/admin/team" className="mt-6 mb-2 flex items-center justify-between bg-white rounded-lg p-4 shadow-soft border-l-4 border-gold hover:shadow-md transition-shadow">
         <div className="flex items-center gap-3">
