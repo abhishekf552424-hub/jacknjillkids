@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { refreshSite } from "@/lib/refresh";
 import { checkAdmin } from "@/lib/admin-auth";
 import { DEVELOPER_ONLY_SETTINGS } from "@/lib/admin-roles";
 import { createClient } from "@/lib/supabase/server";
@@ -22,5 +23,6 @@ export async function POST(req: Request) {
   const admin = createAdminClient();
   await admin.from("settings").upsert({ key, value, updated_at: new Date().toISOString() });
   if (key === "razorpay") clearRazorpayCache();
+  refreshSite();
   return NextResponse.json({ ok: true });
 }

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { refreshSite } from "@/lib/refresh";
 import { checkAdmin } from "@/lib/admin-auth";
 import { orderUrl } from "@/lib/order-access";
 import { createClient } from "@/lib/supabase/server";
@@ -54,5 +55,6 @@ export async function POST(req: Request) {
     }).catch(() => {});
   }
 
+  refreshSite();
   return NextResponse.json({ ok: true, updated: ids.length });
 }

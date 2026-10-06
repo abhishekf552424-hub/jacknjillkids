@@ -116,7 +116,7 @@ export default async function HomePage() {
   const supabase = createPublicClient();
   const [{ data: sections }, { data: cats }, { data: badges }, { data: ages }, { data: faqs }, { data: contactRow }, { data: socialRow }, { data: brandRow }] = await Promise.all([
     supabase.from("homepage_sections").select("*").eq("is_active", true).order("sort_order"),
-    supabase.from("categories").select("*").eq("is_active", true).eq("is_featured_in_menu", true).is("parent_id", null).order("sort_order"),
+    supabase.from("categories").select("*").eq("is_active", true).eq("is_featured_in_menu", true).order("sort_order"),
     supabase.from("trust_badges").select("*").eq("is_active", true).order("sort_order"),
     supabase.from("age_groups").select("*").order("sort_order"),
     supabase.from("faqs").select("id, question, answer").eq("is_active", true).order("sort_order").limit(12),

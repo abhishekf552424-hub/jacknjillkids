@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { refreshSite } from "@/lib/refresh";
 import { pickEditable } from "@/lib/pick";
 import { checkAdmin } from "@/lib/admin-auth";
 import { createClient } from "@/lib/supabase/server";
@@ -30,6 +31,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
       : error.message;
     return NextResponse.json({ ok: false, error: friendly }, { status: 400 });
   }
+  refreshSite();
   return NextResponse.json({ ok: true });
 }
 
@@ -39,5 +41,6 @@ export async function DELETE(_req: Request, { params }: { params: Promise<{ id: 
   const { id } = await params;
   const admin = createAdminClient();
   await admin.from("categories").delete().eq("id", id);
+  refreshSite();
   return NextResponse.json({ ok: true });
 }

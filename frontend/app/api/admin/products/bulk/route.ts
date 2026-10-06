@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { refreshSite } from "@/lib/refresh";
 import { checkAdmin } from "@/lib/admin-auth";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -24,6 +25,7 @@ export async function POST(req: Request) {
       .update({ status: action === "activate" ? "active" : "draft", updated_at: new Date().toISOString() })
       .in("id", ids);
     if (error) return NextResponse.json({ ok: false, error: error.message }, { status: 400 });
+    refreshSite();
     return NextResponse.json({ ok: true, updated: ids.length });
   }
 
@@ -33,6 +35,7 @@ export async function POST(req: Request) {
     await admin.from("product_variants").delete().in("product_id", ids);
     const { error } = await admin.from("products").delete().in("id", ids);
     if (error) return NextResponse.json({ ok: false, error: error.message }, { status: 400 });
+    refreshSite();
     return NextResponse.json({ ok: true, deleted: ids.length });
   }
 

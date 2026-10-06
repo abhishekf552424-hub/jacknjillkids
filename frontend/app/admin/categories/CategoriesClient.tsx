@@ -144,10 +144,10 @@ export default function CategoriesClient({ initial }: { initial: C[] }) {
                 <th className="text-left px-3 py-2">Name</th>
                 <th className="text-left px-3 py-2">Slug</th>
                 <th className="text-left px-3 py-2">Parent</th>
-                <th className="text-left px-3 py-2">Image URL</th>
+                <th className="text-left px-3 py-2">Image</th>
                 <th className="text-left px-3 py-2">Shape</th>
-                <th className="text-left px-3 py-2">Menu</th>
-                <th className="text-left px-3 py-2">Order</th>
+                <th className="text-left px-3 py-2" title="Tick to show this category in the homepage “Shop by category” row">On homepage</th>
+                <th className="text-left px-3 py-2" title="Lower number shows first">Order</th>
                 <th className="text-left px-3 py-2">Active</th>
                 <th className="text-right px-3 py-2">Actions</th>
               </tr>
