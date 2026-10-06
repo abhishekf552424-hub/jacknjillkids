@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { refreshSite } from "@/lib/refresh";
 import { z } from "zod";
 import { checkAdmin } from "@/lib/admin-auth";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -44,5 +45,6 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
     });
   }
 
+  refreshSite();
   return NextResponse.json({ ok: true });
 }

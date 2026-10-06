@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { refreshSite } from "@/lib/refresh";
 import { z } from "zod";
 import { checkAdmin } from "@/lib/admin-auth";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -68,6 +69,7 @@ export async function PATCH(req: Request) {
   const admin = createAdminClient();
   if (delta === 0) {
     const { data } = await admin.from("product_variants").select("stock_qty").eq("id", variant_id).maybeSingle();
+    refreshSite();
     return NextResponse.json({ ok: true, stock: data?.stock_qty ?? stock_qty });
   }
   const { data, error } = await admin.rpc("adjust_stock", { p_variant_id: variant_id, p_delta: delta });
@@ -77,5 +79,6 @@ export async function PATCH(req: Request) {
     const { data: v } = await admin.from("product_variants").select("product_id").eq("id", variant_id).maybeSingle();
     if (v?.product_id) void notifyBackInStock(admin, v.product_id);
   }
+  refreshSite();
   return NextResponse.json({ ok: true, stock: data });
 }

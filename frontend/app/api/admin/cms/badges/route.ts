@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { refreshSite } from "@/lib/refresh";
 import { pickEditable } from "@/lib/pick";
 import { checkAdmin } from "@/lib/admin-auth";
 import { createClient } from "@/lib/supabase/server";
@@ -15,5 +16,6 @@ export async function POST(req: Request) {
   const admin = createAdminClient();
   const { data, error } = await admin.from("trust_badges").insert(body).select("id").single();
   if (error) return NextResponse.json({ ok: false, error: error.message }, { status: 400 });
+  refreshSite();
   return NextResponse.json({ ok: true, id: data.id });
 }

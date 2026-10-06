@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { refreshSite } from "@/lib/refresh";
 import { pickEditable } from "@/lib/pick";
 import { SITE_URL } from "@/lib/site";
 import { checkAdmin } from "@/lib/admin-auth";
@@ -74,6 +75,7 @@ export async function POST(req: Request) {
   const body = await req.json();
   const res = await save(body);
   if ("error" in res) return NextResponse.json({ ok: false, error: res.error }, { status: 400 });
+  refreshSite();
   return NextResponse.json({ ok: true, id: res.id });
 }
 

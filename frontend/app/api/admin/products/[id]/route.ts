@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { refreshSite } from "@/lib/refresh";
 import { pickEditable } from "@/lib/pick";
 import { checkAdmin } from "@/lib/admin-auth";
 import { createClient } from "@/lib/supabase/server";
@@ -46,6 +47,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
     await admin.from("product_categories").insert(body.category_ids.map((c: string) => ({ product_id: id, category_id: c })));
   }
   void notifyBackInStock(admin, id);
+  refreshSite();
   return NextResponse.json({ ok: true });
 }
 
@@ -55,5 +57,6 @@ export async function DELETE(_req: Request, { params }: { params: Promise<{ id: 
   const { id } = await params;
   const admin = createAdminClient();
   await admin.from("products").delete().eq("id", id);
+  refreshSite();
   return NextResponse.json({ ok: true });
 }
