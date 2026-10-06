@@ -3,11 +3,21 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Eye } from "lucide-react";
 
-/** Shown only to admins while the site is still "Coming soon" (cookie set by middleware). */
+/** Shown only to signed-in admins while the site is still "Coming soon" (checked with the server). */
 export default function PreviewBar() {
   const [on, setOn] = useState(false);
   useEffect(() => {
-    setOn(/(?:^|;\s*)jj_preview=1/.test(document.cookie));
+    // The cookie is only a hint; the server confirms this really is a signed-in admin
+    // and that the site is still "Coming soon" before the bar is shown.
+    if (!/(?:^|;\s*)jj_preview=1/.test(document.cookie)) return;
+    let alive = true;
+    fetch("/api/site-mode", { cache: "no-store" })
+      .then((r) => (r.ok ? r.json() : { preview: false }))
+      .then((d: { preview?: boolean }) => alive && setOn(d.preview === true))
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
   }, []);
   if (!on) return null;
   return (

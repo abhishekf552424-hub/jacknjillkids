@@ -9,5 +9,6 @@ export async function POST() {
   const jar = await cookies();
   jar.delete(TWO_FA_COOKIE);
   jar.delete(CHALLENGE_COOKIE);
+  jar.delete("jj_preview");
   return NextResponse.json({ ok: true });
 }

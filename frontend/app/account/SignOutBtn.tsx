@@ -12,6 +12,8 @@ export default function SignOutBtn() {
       data-testid="signout-btn"
       onClick={async () => {
         await supabase.auth.signOut();
+        // also end any admin access on this browser (httpOnly cookie: only the server can clear it)
+        await fetch("/api/admin/auth/logout", { method: "POST" }).catch(() => {});
         router.push("/");
         router.refresh();
       }}
