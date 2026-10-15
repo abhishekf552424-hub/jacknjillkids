@@ -16,13 +16,16 @@ export const revalidate = 60;
 
 async function loadProduct(slug: string) {
   const supabase = createPublicClient();
-  const { data: p } = await supabase
+  const { data: p, error } = await supabase
     .from("products")
     .select(
-      "*, images:product_images(*), variants:product_variants(*), category:categories(*)",
+      "*, images:product_images(*), variants:product_variants(*), category:categories!products_category_id_fkey(*)",
     )
     .eq("slug", slug)
     .maybeSingle();
+  // A database/query error is NOT "product doesn't exist": throw, so the last good
+  // page keeps showing (and the error is logged) instead of a false 404.
+  if (error) throw new Error(`Product "${slug}" could not load: ${error.message}`);
   if (!p) return null;
   // Drafts and archived products are not for customers, even by direct link.
   if (p.status !== "active" && p.status !== "out_of_stock") return null;

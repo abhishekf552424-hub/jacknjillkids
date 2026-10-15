@@ -15,7 +15,7 @@ export async function GET() {
   const admin = createAdminClient();
   const { data: products } = await admin
     .from("products")
-    .select("id, name, slug, description, base_price, mrp, price_min, mrp_min, brand, gender, product_type, hsn_code, category:categories(name), images:product_images(url,sort_order), variants:product_variants(stock_qty)")
+    .select("id, name, slug, description, base_price, mrp, price_min, mrp_min, brand, gender, product_type, hsn_code, category:categories!products_category_id_fkey(name), images:product_images(url,sort_order), variants:product_variants(stock_qty)")
     .eq("status", "active")
     .limit(1000);
 
