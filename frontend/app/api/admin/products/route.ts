@@ -6,7 +6,7 @@ import { checkAdmin } from "@/lib/admin-auth";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { slugify } from "@/lib/utils";
-import { syncProductVariants } from "@/lib/product-variants";
+import { syncProductVariants, variantPriceProblem } from "@/lib/product-variants";
 import { notifyBackInStock } from "@/lib/back-in-stock";
 
 async function requireAdmin() {
@@ -19,6 +19,8 @@ async function save(payload: any, productId?: string) {
   if (Number(product?.mrp) > 0 && Number(product?.base_price) > Number(product?.mrp)) {
     return { error: "Selling price can't be more than the MRP. Please check both prices." };
   }
+  const vp = variantPriceProblem(product, variants);
+  if (vp) return { error: vp };
   const record = {
     ...pickEditable("products", product),
     slug: product.slug || slugify(product.name),
@@ -50,7 +52,7 @@ async function save(payload: any, productId?: string) {
   }
   await admin.from("product_categories").delete().eq("product_id", id!);
   if (category_ids?.length) {
-    await admin.from("product_categories").insert(category_ids.map((c: string) => ({ product_id: id, category_id: c })));
+    await admin.from("product_categories").insert(Array.from(new Set(category_ids as string[])).map((c: string) => ({ product_id: id, category_id: c })));
   }
   await admin.from("product_bundles").delete().eq("bundle_product_id", id!);
   if (record.product_type === "combo" && Array.isArray(bundles) && bundles.length) {

@@ -10,7 +10,7 @@ export default async function NewOrEditProduct({ params }: { params: Promise<{ i
   const isNew = id === "new";
   const admin = createAdminClient();
   const [{ data: cats }, { data: ages }, { data: coupons }, { data: others }] = await Promise.all([
-    admin.from("categories").select("id, name, parent_id").order("sort_order"),
+    admin.from("categories").select("id, name, parent_id, sort_order, is_active").order("sort_order"),
     admin.from("age_groups").select("id, label").order("sort_order"),
     admin.from("coupons").select("id, code, type, value").eq("is_active", true),
     admin.from("products").select("id, name, slug, base_price").eq("status", "active").order("name").limit(200),

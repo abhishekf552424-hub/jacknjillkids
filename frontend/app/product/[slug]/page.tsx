@@ -9,6 +9,8 @@ import Reveal from "@/components/Reveal";
 import type { Product } from "@/lib/types";
 import type { Metadata } from "next";
 import Link from "next/link";
+import { loadShopTaxonomy } from "@/components/plp/ShopView";
+import { pathTo } from "@/lib/category-tree";
 
 export const revalidate = 60;
 
@@ -65,7 +67,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   const supabase = createPublicClient();
   const { data: related } = await supabase
     .from("products")
-    .select("id, slug, name, brand, base_price, mrp, status, is_new_arrival, alt_text, images:product_images(url,alt_text,sort_order)")
+    .select("id, slug, name, brand, base_price, mrp, price_min, price_max, mrp_min, status, is_new_arrival, alt_text, images:product_images(url,alt_text,sort_order)")
     .eq("status", "active")
     .neq("id", product.id)
     .eq("category_id", product.category_id ?? "")
@@ -138,16 +140,17 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
     },
   };
 
+  // Full category path, e.g. Clothing / Girls / Frocks (only categories shoppers can open).
+  const { categories: shopCats } = await loadShopTaxonomy();
+  const trail = pathTo(shopCats, product.category_id);
   const breadcrumbLd = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
     itemListElement: [
       { "@type": "ListItem", position: 1, name: "Home", item: `${site}/` },
       { "@type": "ListItem", position: 2, name: "Shop", item: `${site}/shop` },
-      ...(product.category
-        ? [{ "@type": "ListItem", position: 3, name: product.category.name, item: `${site}/category/${product.category.slug}` }]
-        : []),
-      { "@type": "ListItem", position: product.category ? 4 : 3, name: product.name, item: `${site}/product/${product.slug}` },
+      ...trail.map((c, i) => ({ "@type": "ListItem", position: 3 + i, name: c.name, item: `${site}/category/${c.slug}` })),
+      { "@type": "ListItem", position: 3 + trail.length, name: product.name, item: `${site}/product/${product.slug}` },
     ],
   };
 
@@ -156,10 +159,10 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(productLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(breadcrumbLd) }} />
       <div className="container py-8 md:py-12">
-        <nav aria-label="Breadcrumb" className="text-xs text-muted mb-4 flex items-center gap-1.5">
+        <nav aria-label="Breadcrumb" className="text-xs text-muted mb-4 flex items-center gap-1.5 flex-wrap">
           <Link href="/" className="hover:text-navy">Home</Link><span>/</span>
           <Link href="/shop" className="hover:text-navy">Shop</Link>
-          {product.category && (<><span>/</span><Link href={`/category/${product.category.slug}`} className="hover:text-navy">{product.category.name}</Link></>)}
+          {trail.map((c) => (<span key={c.id} className="contents"><span>/</span><Link href={`/category/${c.slug}`} className="hover:text-navy">{c.name}</Link></span>))}
           <span>/</span><span className="text-navy line-clamp-1">{product.name}</span>
         </nav>
 

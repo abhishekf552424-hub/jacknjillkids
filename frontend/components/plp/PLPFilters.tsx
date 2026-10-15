@@ -4,7 +4,8 @@ import Link from "next/link";
 import { plpHref } from "@/lib/plp-url";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
-import { Filter, X } from "lucide-react";
+import { ChevronDown, Filter, X } from "lucide-react";
+import { buildTree, pathTo } from "@/lib/category-tree";
 import { motion, AnimatePresence } from "framer-motion";
 import type { Category, AgeGroup } from "@/lib/types";
 
@@ -35,7 +36,41 @@ export default function PLPFilters({
   const [min, setMin] = useState(current.min ?? "");
   const [max, setMax] = useState(current.max ?? "");
 
-  const topCats = categories.filter((c) => !c.parent_id);
+  const tree = buildTree(categories) as Category[];
+  const currentCat = categories.find((c) => c.slug === current.category);
+  // Open the branch that leads to the chosen category; others stay folded.
+  const [openIds, setOpenIds] = useState<Set<string>>(() => new Set(currentCat ? pathTo(categories, currentCat.id).map((c) => c.id) : []));
+  const toggleOpen = (id: string) => setOpenIds((prev) => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; });
+
+  const renderCat = (c: Category, depth: number): React.ReactNode => {
+    const kids = c.children ?? [];
+    const on = current.category === c.slug;
+    const open = openIds.has(c.id);
+    return (
+      <li key={c.id}>
+        <div className="flex items-center" style={{ paddingLeft: depth * 12 }}>
+          <button
+            data-testid={`filter-cat-${c.slug}`}
+            onClick={() => setParam("category", c.slug)}
+            aria-current={on ? "true" : undefined}
+            className={`flex-1 min-w-0 text-left text-sm py-1.5 px-2 rounded-md transition-colors truncate ${on ? "bg-gold/10 text-navy font-bold" : depth ? "text-ink/80 hover:bg-navy/5" : "text-navy/80 hover:bg-navy/5"}`}
+          >
+            {c.name}
+          </button>
+          {kids.length > 0 && (
+            <button onClick={() => toggleOpen(c.id)} aria-expanded={open} aria-label={`${open ? "Hide" : "Show"} ${c.name} types`} className="w-8 h-8 shrink-0 grid place-items-center text-muted hover:text-navy">
+              <ChevronDown className={`w-4 h-4 transition-transform ${open ? "rotate-180" : ""}`} />
+            </button>
+          )}
+        </div>
+        {open && kids.length > 0 && (
+          <ul className="border-l border-navy/10 ml-3">
+            {kids.map((k) => renderCat(k, depth + 1))}
+          </ul>
+        )}
+      </li>
+    );
+  };
 
   const setParam = (key: string, val: string | null) => {
     start(() => router.push(plpHref(current, { [key]: val })));
@@ -64,16 +99,9 @@ export default function PLPFilters({
           >
             All
           </button>
-          {topCats.map((c) => (
-            <button
-              key={c.id}
-              data-testid={`filter-cat-${c.slug}`}
-              onClick={() => setParam("category", c.slug)}
-              className={`block w-full text-left text-sm py-1.5 px-2 rounded-md transition-colors ${current.category === c.slug ? "bg-gold/10 text-navy font-bold" : "text-navy/80 hover:bg-navy/5"}`}
-            >
-              {c.name}
-            </button>
-          ))}
+          <ul className="space-y-0.5">
+            {tree.map((c) => renderCat(c, 0))}
+          </ul>
         </div>
       </div>
 

@@ -5,6 +5,8 @@ import Link from "next/link";
 import { toast } from "sonner";
 import { Plus, Edit, Search, Trash2, CheckCircle2, XCircle } from "lucide-react";
 import { formatINR } from "@/lib/utils";
+import CategorySelect from "@/components/admin/CategorySelect";
+import { descendantIds, pathLabel } from "@/lib/category-tree";
 import { AdminPageHeader, AdminCard, AdminTable, AdminThead, AdminTh, AdminTr, StatusPill, BulkActionBar } from "@/components/admin/ui";
 
 type Product = {
@@ -13,6 +15,8 @@ type Product = {
   slug: string;
   base_price: number;
   mrp: number;
+  price_min?: number | null;
+  price_max?: number | null;
   status: string;
   is_featured: boolean;
   is_new_arrival: boolean;
@@ -28,7 +32,7 @@ function buyProblem(p: Product): string | null {
   if (!v.some((x) => Number(x.stock_qty) > 0)) return "All sizes sold out";
   return null;
 }
-type Category = { id: string; name: string };
+type Category = { id: string; name: string; parent_id: string | null; sort_order?: number | null; is_active?: boolean };
 type SortKey = "name" | "base_price" | "created_at";
 
 const STATUS_TONE: Record<string, "success" | "neutral" | "danger" | "warn"> = {
@@ -48,7 +52,9 @@ export default function ProductsListClient({ initialProducts, categories }: { in
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [busy, setBusy] = useState(false);
 
-  const categoryName = (id: string | null) => categories.find((c) => c.id === id)?.name ?? "—";
+  const categoryName = (id: string | null) => (id && pathLabel(categories, id)) || "—";
+  // Filtering by "Clothing" also lists products in Girls › Frocks etc.
+  const filterIds = useMemo(() => (categoryFilter ? new Set([categoryFilter, ...descendantIds(categories, categoryFilter)]) : null), [categoryFilter, categories]);
 
   const filtered = useMemo(() => {
     let list = products.filter((p) => {
@@ -56,7 +62,7 @@ export default function ProductsListClient({ initialProducts, categories }: { in
       if (statusFilter === "not_buyable") {
         if (!buyProblem(p)) return false;
       } else if (statusFilter && p.status !== statusFilter) return false;
-      if (categoryFilter && p.category_id !== categoryFilter) return false;
+      if (filterIds && !(p.category_id && filterIds.has(p.category_id))) return false;
       return true;
     });
     list = [...list].sort((a, b) => {
@@ -67,7 +73,7 @@ export default function ProductsListClient({ initialProducts, categories }: { in
       return sortDir === "asc" ? cmp : -cmp;
     });
     return list;
-  }, [products, search, statusFilter, categoryFilter, sortKey, sortDir]);
+  }, [products, search, statusFilter, filterIds, sortKey, sortDir]);
 
   const toggleSort = (key: SortKey) => {
     if (sortKey === key) setSortDir((d) => (d === "asc" ? "desc" : "asc"));
@@ -144,12 +150,7 @@ export default function ProductsListClient({ initialProducts, categories }: { in
           <option value="archived">Archived</option>
           <option value="not_buyable">Can't be bought</option>
         </select>
-        <select value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)} className="px-3 py-2 rounded-lg border border-navy/10 text-sm bg-white">
-          <option value="">All categories</option>
-          {categories.map((c) => (
-            <option key={c.id} value={c.id}>{c.name}</option>
-          ))}
-        </select>
+        <CategorySelect categories={categories} value={categoryFilter || null} onChange={(id) => setCategoryFilter(id ?? "")} topLabel="All categories" ariaLabel="Filter by category" className="px-3 py-2 rounded-lg border border-navy/10 text-sm bg-white max-w-[240px]" />
       </div>
 
       <BulkActionBar count={selected.size} onClear={() => setSelected(new Set())}>
@@ -189,9 +190,9 @@ export default function ProductsListClient({ initialProducts, categories }: { in
                   <p className="font-medium text-navy">{p.name}</p>
                   <p className="text-xs text-muted">/{p.slug}</p>
                 </td>
-                <td className="px-4 py-3 text-navy/80">{categoryName(p.category_id)}</td>
+                <td className="px-4 py-3 text-navy/80 text-xs max-w-[220px]">{categoryName(p.category_id)}</td>
                 <td className="px-4 py-3">
-                  <p className="text-navy font-medium">{formatINR(p.base_price)}</p>
+                  <p className="text-navy font-medium">{p.price_max != null && p.price_min != null && Number(p.price_max) > Number(p.price_min) ? `${formatINR(Number(p.price_min))}–${formatINR(Number(p.price_max))}` : formatINR(p.base_price)}</p>
                   {p.mrp > p.base_price && <p className="text-xs text-muted line-through">{formatINR(p.mrp)}</p>}
                 </td>
                 <td className="px-4 py-3">

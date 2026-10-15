@@ -66,7 +66,9 @@ export default function Header({
   const [q, setQ] = useState("");
   const [searchOpen, setSearchOpen] = useState(false);
   const [hoverCat, setHoverCat] = useState<string | null>(null);
-  const [openCat, setOpenCat] = useState<string | null>(null);
+  const [openCats, setOpenCats] = useState<Set<string>>(new Set());
+  const toggleOpenCat = (id: string) =>
+    setOpenCats((prev) => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; });
   const [msg, setMsg] = useState(0);
   // Hides while scrolling down (more room for the page), comes back on any scroll up.
   const [tucked, setTucked] = useState(false);
@@ -215,7 +217,7 @@ export default function Header({
 
   const DesktopNav = (
     <nav className="hidden lg:flex items-center" aria-label="Shop categories">
-      {categoriesTree.slice(0, 7).map((c) => {
+      {categoriesTree.slice(0, 7).map((c, idx) => {
         const kids = c.children ?? [];
         const open = hoverCat === c.id && kids.length > 0;
         return (
@@ -241,26 +243,7 @@ export default function Header({
                 )}
               />
             </Link>
-            {open && (
-                <div className="absolute left-0 top-full pt-3 z-50 animate-drop-in">
-                  <div className="w-[300px] bg-white rounded-2xl shadow-premium border border-line p-2">
-                    <ul className={cn("grid gap-0.5", kids.length > 6 && "grid-cols-2 w-[420px]")}>
-                      {kids.map((s) => (
-                        <li key={s.id}>
-                          <Link href={`/category/${s.slug}`} className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm text-ink hover:bg-cream hover:text-navy">
-                            <CatThumb c={s} size={28} />
-                            <span className="truncate">{s.name}</span>
-                          </Link>
-                        </li>
-                      ))}
-                    </ul>
-                    <Link href={`/category/${c.slug}`} className="mt-1 flex items-center justify-between rounded-xl bg-cream px-3 py-2.5 text-sm font-semibold text-navy hover:bg-butter">
-                      View all {c.name}
-                      <ChevronRight className="w-4 h-4" />
-                    </Link>
-                  </div>
-                </div>
-              )}
+            {open && <NavPanel c={c} kids={kids} alignRight={idx >= 4} />}
           </div>
         );
       })}
@@ -425,46 +408,9 @@ export default function Header({
 
                 <p className="px-4 pt-3 pb-1 text-[11px] font-bold uppercase tracking-wider text-muted">Shop by category</p>
                 <ul className="px-2">
-                  {categoriesTree.map((c) => {
-                    const kids = c.children ?? [];
-                    const expanded = openCat === c.id;
-                    return (
-                      <li key={c.id} className="border-b border-line/70 last:border-0">
-                        <div className="flex items-center">
-                          <Link href={`/category/${c.slug}`} onClick={() => setMenuOpen(false)} data-testid={`ham-cat-${c.slug}`} className="flex-1 flex items-center gap-3 px-2 py-3 text-[15px] font-semibold text-navy">
-                            <CatThumb c={c} size={36} />
-                            {c.name}
-                          </Link>
-                          {kids.length > 0 && (
-                            <button
-                              onClick={() => setOpenCat(expanded ? null : c.id)}
-                              aria-expanded={expanded}
-                              aria-label={`${expanded ? "Hide" : "Show"} ${c.name} sections`}
-                              className="w-11 h-11 flex items-center justify-center text-muted"
-                            >
-                              <ChevronDown className={cn("w-5 h-5 transition-transform", expanded && "rotate-180")} />
-                            </button>
-                          )}
-                        </div>
-                          {expanded && (
-                            <ul className="overflow-hidden pl-[58px] pr-2 animate-drop-in">
-                              {kids.map((s) => (
-                                <li key={s.id}>
-                                  <Link href={`/category/${s.slug}`} onClick={() => setMenuOpen(false)} className="block py-2.5 text-sm text-ink hover:text-navy">
-                                    {s.name}
-                                  </Link>
-                                </li>
-                              ))}
-                              <li>
-                                <Link href={`/category/${c.slug}`} onClick={() => setMenuOpen(false)} className="block py-2.5 pb-3.5 text-sm font-semibold text-doodle">
-                                  View all {c.name}
-                                </Link>
-                              </li>
-                            </ul>
-                          )}
-                      </li>
-                    );
-                  })}
+                  {categoriesTree.map((c) => (
+                    <DrawerCat key={c.id} c={c} depth={0} open={openCats} toggle={toggleOpenCat} close={() => setMenuOpen(false)} />
+                  ))}
                 </ul>
 
                 {ageGroups.length > 0 && (
@@ -530,6 +476,106 @@ export default function Header({
 
       <CartDrawer open={cartOpen} onClose={() => setCartOpen(false)} freeShippingAbove={freeShippingAbove} />
     </>
+  );
+}
+
+/**
+ * Desktop dropdown under a main category.
+ * Flat list when its sub-categories have no children; otherwise a mega menu:
+ * each sub-category is a heading with its own sub-categories listed below.
+ */
+function NavPanel({ c, kids, alignRight }: { c: Category; kids: Category[]; alignRight: boolean }) {
+  const deep = kids.some((k) => (k.children ?? []).length > 0);
+  const MAX = 6;
+  return (
+    <div className={cn("absolute top-full pt-3 z-50 animate-drop-in", alignRight ? "right-0" : "left-0")}>
+      <div className={cn("bg-white rounded-2xl shadow-premium border border-line p-2", deep ? (kids.length > 2 ? "w-[680px]" : "w-[460px]") : "w-[300px]", !deep && kids.length > 6 && "w-[420px]")}>
+        {deep ? (
+          <div className={cn("p-2 gap-x-6", kids.length > 2 ? "columns-3" : "columns-2")}>
+            {kids.map((s) => {
+              const sub = s.children ?? [];
+              return (
+                <div key={s.id} className="break-inside-avoid mb-3">
+                  <Link href={`/category/${s.slug}`} className="flex items-center gap-2 px-2 py-1.5 rounded-xl text-sm font-bold text-navy hover:bg-cream">
+                    <CatThumb c={s} size={26} />
+                    <span className="truncate">{s.name}</span>
+                  </Link>
+                  {sub.length > 0 && (
+                    <ul className="mt-0.5 pl-[42px] space-y-0.5">
+                      {sub.slice(0, MAX).map((g) => (
+                        <li key={g.id}><Link href={`/category/${g.slug}`} className="block py-1 text-[13px] text-ink/80 hover:text-navy hover:underline underline-offset-4 truncate">{g.name}</Link></li>
+                      ))}
+                      {sub.length > MAX && (
+                        <li><Link href={`/category/${s.slug}`} className="block py-1 text-[13px] font-semibold text-doodle">+ {sub.length - MAX} more</Link></li>
+                      )}
+                    </ul>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <ul className={cn("grid gap-0.5", kids.length > 6 && "grid-cols-2")}>
+            {kids.map((s) => (
+              <li key={s.id}>
+                <Link href={`/category/${s.slug}`} className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm text-ink hover:bg-cream hover:text-navy">
+                  <CatThumb c={s} size={28} />
+                  <span className="truncate">{s.name}</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
+        <Link href={`/category/${c.slug}`} className="mt-1 flex items-center justify-between rounded-xl bg-cream px-3 py-2.5 text-sm font-semibold text-navy hover:bg-butter">
+          View all {c.name}
+          <ChevronRight className="w-4 h-4" />
+        </Link>
+      </div>
+    </div>
+  );
+}
+
+/** Phone/tablet menu: a category row that opens to show its sub-categories, at any depth. */
+function DrawerCat({ c, depth, open, toggle, close }: { c: Category; depth: number; open: Set<string>; toggle: (id: string) => void; close: () => void }) {
+  const kids = c.children ?? [];
+  const expanded = open.has(c.id);
+  const top = depth === 0;
+  return (
+    <li className={cn(top && "border-b border-line/70 last:border-0")}>
+      <div className="flex items-center">
+        <Link
+          href={`/category/${c.slug}`}
+          onClick={close}
+          data-testid={top ? `ham-cat-${c.slug}` : undefined}
+          className={cn("flex-1 flex items-center gap-3", top ? "px-2 py-3 text-[15px] font-semibold text-navy" : "py-2.5 text-sm text-ink hover:text-navy")}
+        >
+          {top && <CatThumb c={c} size={36} />}
+          {c.name}
+        </Link>
+        {kids.length > 0 && (
+          <button
+            onClick={() => toggle(c.id)}
+            aria-expanded={expanded}
+            aria-label={`${expanded ? "Hide" : "Show"} ${c.name} sections`}
+            className={cn("flex items-center justify-center text-muted", top ? "w-11 h-11" : "w-10 h-10")}
+          >
+            <ChevronDown className={cn(top ? "w-5 h-5" : "w-4 h-4", "transition-transform", expanded && "rotate-180")} />
+          </button>
+        )}
+      </div>
+      {expanded && kids.length > 0 && (
+        <ul className={cn("overflow-hidden pr-2 animate-drop-in", top ? "pl-[58px]" : "pl-4 border-l border-line ml-1")}>
+          {kids.map((k) => (
+            <DrawerCat key={k.id} c={k} depth={depth + 1} open={open} toggle={toggle} close={close} />
+          ))}
+          <li>
+            <Link href={`/category/${c.slug}`} onClick={close} className="block py-2.5 pb-3.5 text-sm font-semibold text-doodle">
+              View all {c.name}
+            </Link>
+          </li>
+        </ul>
+      )}
+    </li>
   );
 }
 

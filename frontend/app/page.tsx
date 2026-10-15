@@ -1,5 +1,6 @@
 import { createPublicClient } from "@/lib/supabase/public";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { visibleCategories } from "@/lib/category-tree";
 import type { Metadata } from "next";
 import { abs } from "@/lib/site";
 import HeroCarousel from "@/components/HeroCarousel";
@@ -33,7 +34,7 @@ export const metadata: Metadata = {
 
 export const revalidate = 60;
 
-const CARD_COLUMNS = "id, slug, name, brand, base_price, mrp, status, is_featured, is_new_arrival, alt_text, images:product_images(url,alt_text,sort_order)";
+const CARD_COLUMNS = "id, slug, name, brand, base_price, mrp, price_min, price_max, mrp_min, status, is_featured, is_new_arrival, alt_text, images:product_images(url,alt_text,sort_order)";
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 const sortImages = (p: any) => ({ ...p, images: (p.images ?? []).sort((a: any, b: any) => a.sort_order - b.sort_order) });
@@ -89,7 +90,7 @@ async function loadLook(ids: unknown): Promise<LookProduct[]> {
   if (list.length < 2) return [];
   const { data } = await createPublicClient()
     .from("products")
-    .select("id, slug, name, base_price, mrp, images:product_images(url, sort_order), variants:product_variants(id, size, color, stock_qty, price_override)")
+    .select("id, slug, name, base_price, mrp, images:product_images(url, sort_order), variants:product_variants(id, size, color, stock_qty, price_override, mrp_override)")
     .in("id", list)
     .eq("status", "active");
   const order = new Map(list.map((id, i) => [id, i]));
@@ -116,7 +117,7 @@ export default async function HomePage() {
   const supabase = createPublicClient();
   const [{ data: sections }, { data: cats }, { data: badges }, { data: ages }, { data: faqs }, { data: contactRow }, { data: socialRow }, { data: brandRow }] = await Promise.all([
     supabase.from("homepage_sections").select("*").eq("is_active", true).order("sort_order"),
-    supabase.from("categories").select("*").eq("is_active", true).eq("is_featured_in_menu", true).order("sort_order"),
+    supabase.from("categories").select("*").eq("is_active", true).order("sort_order"),
     supabase.from("trust_badges").select("*").eq("is_active", true).order("sort_order"),
     supabase.from("age_groups").select("*").order("sort_order"),
     supabase.from("faqs").select("id, question, answer").eq("is_active", true).order("sort_order").limit(12),
@@ -127,7 +128,8 @@ export default async function HomePage() {
   const social = normaliseSocial(socialRow?.value, brandRow?.value);
 
   const list = (sections ?? []) as HomepageSection[];
-  const categories = (cats ?? []) as Category[];
+  // Ticked "On homepage", at any depth — but not inside a switched-off category.
+  const categories = visibleCategories((cats ?? []) as Category[]).filter((c) => c.is_featured_in_menu);
   const trust = (badges ?? []) as TrustBadge[];
   const contact = ((contactRow?.value as any) ?? {}) as { address?: string; hours?: string; phone?: string };
 

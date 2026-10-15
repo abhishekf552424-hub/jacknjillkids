@@ -41,15 +41,23 @@ export default function PDPClient({ product, reviews, whatsapp, freeShippingAbov
     setQty((q) => Math.max(1, Math.min(q, activeVariant?.stock_qty || 1)));
   }, [activeVariant?.id, activeVariant?.stock_qty]);
 
-  const price = activeVariant?.price_override ?? product.base_price;
-  const mrp = product.mrp;
+  // Each size can have its own price and MRP; empty = the product's.
+  const priceOf = (v?: ProductVariant) => Number(v?.price_override ?? product.base_price);
+  const mrpOf = (v?: ProductVariant) => Math.max(Number(v?.mrp_override ?? product.mrp), priceOf(v));
+  const price = activeVariant ? priceOf(activeVariant) : Number(product.price_min ?? product.base_price);
+  const mrp = activeVariant ? mrpOf(activeVariant) : Number(product.mrp_min ?? product.mrp);
+  const pricesDiffer = new Set(variants.map((v) => priceOf(v))).size > 1;
+  const sizePrice = (s: string) => {
+    const v = variants.find((x) => x.size === s && (!color || x.color === color)) ?? variants.find((x) => x.size === s);
+    return v ? priceOf(v) : null;
+  };
   const discount = calcDiscountPct(mrp, price);
   const oos = !activeVariant || activeVariant.stock_qty <= 0;
   const noneInStock = !variants.some((v) => v.stock_qty > 0);
 
   useEffect(() => {
-    track("view_item", [{ id: product.id, name: product.name, price: Number(product.base_price) }]);
-  }, [product.id, product.name, product.base_price]);
+    track("view_item", [{ id: product.id, name: product.name, price: Number(product.price_min ?? product.base_price) }]);
+  }, [product.id, product.name, product.base_price, product.price_min]);
 
   const avgRating = reviews.length ? reviews.reduce((s, r) => s + r.rating, 0) / reviews.length : 0;
   const coupons = (product as any).eligible_coupon_codes as string[] | undefined;
@@ -162,7 +170,7 @@ export default function PDPClient({ product, reviews, whatsapp, freeShippingAbov
         )}
 
         <div className="mt-5 flex items-baseline gap-3">
-          <span className="font-display text-3xl font-bold text-navy">{formatINR(price)}</span>
+          <span className="font-display text-3xl font-bold text-navy" data-testid="pdp-price">{!activeVariant && pricesDiffer && <span className="font-sans text-base font-semibold text-muted mr-1.5">From</span>}{formatINR(price)}</span>
           {mrp > price && <span className="text-muted line-through">{formatINR(mrp)}</span>}
           {discount > 0 && <span className="text-success text-sm font-bold">You save {formatINR(mrp - price)}</span>}
         </div>
@@ -211,6 +219,9 @@ export default function PDPClient({ product, reviews, whatsapp, freeShippingAbov
                     aria-label={stocked ? s : `${s} — out of stock`}
                   >
                     {s}
+                    {pricesDiffer && sizePrice(s) != null && (
+                      <span className={`block text-[11px] font-semibold leading-tight ${size === s ? "text-white/80" : "text-muted"}`}>{formatINR(sizePrice(s)!)}</span>
+                    )}
                   </button>
                 );
               })}

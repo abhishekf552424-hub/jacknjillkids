@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 import { createPublicClient } from "@/lib/supabase/public";
 import { SITE_URL } from "@/lib/site";
+import { visibleCategories } from "@/lib/category-tree";
 
 export const revalidate = 3600;
 
@@ -9,7 +10,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const [{ data: products }, { data: cats }, { data: pages }] = await Promise.all([
     supabase.from("products").select("slug, updated_at").in("status", ["active", "out_of_stock"]),
-    supabase.from("categories").select("slug").eq("is_active", true),
+    supabase.from("categories").select("id, parent_id, name, slug, is_active").eq("is_active", true),
     supabase.from("cms_pages").select("slug, updated_at"),
   ]);
 
@@ -21,7 +22,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${SITE_URL}/contact`, changeFrequency: "monthly", priority: 0.6 },
     { url: `${SITE_URL}/faq`, changeFrequency: "monthly", priority: 0.6 },
   ];
-  const catUrls: MetadataRoute.Sitemap = (cats ?? []).map((c: any) => ({
+  const catUrls: MetadataRoute.Sitemap = visibleCategories((cats ?? []) as any[]).map((c: any) => ({
     url: `${SITE_URL}/category/${c.slug}`,
     changeFrequency: "daily",
     priority: 0.8,

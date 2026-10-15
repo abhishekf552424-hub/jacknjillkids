@@ -7,8 +7,10 @@ import WishlistButton from "./WishlistButton";
 export default function ProductCard({ product }: { product: Product }) {
   const img = product.images?.[0]?.url || "https://images.unsplash.com/photo-1529776292731-c2246c65df5a?w=800";
   const img2 = product.images?.[1]?.url || null;
-  const price = product.base_price;
-  const mrp = product.mrp;
+  // Sizes can have their own price: show the lowest, as "From ₹…" when they differ.
+  const price = Number(product.price_min ?? product.base_price);
+  const mrp = Number(product.mrp_min ?? product.mrp);
+  const from = product.price_max != null && Number(product.price_max) > price;
   const discount = calcDiscountPct(mrp, price);
   const outOfStock = product.status === "out_of_stock";
 
@@ -56,7 +58,7 @@ export default function ProductCard({ product }: { product: Product }) {
         <p className="text-xs text-muted uppercase tracking-wider">{product.brand ?? "Jack & Jill"}</p>
         <h3 className="mt-0.5 text-sm font-medium text-navy line-clamp-2 min-h-[2.5rem]">{product.name}</h3>
         <div className="mt-2 flex items-baseline gap-2">
-          <span className="font-display text-lg font-bold text-navy">{formatINR(price)}</span>
+          <span className="font-display text-lg font-bold text-navy">{from && <span className="font-sans text-xs font-semibold text-muted mr-1">From</span>}{formatINR(price)}</span>
           {mrp > price && <span className="text-xs text-muted line-through">{formatINR(mrp)}</span>}
         </div>
       </div>

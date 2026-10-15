@@ -8,6 +8,8 @@ import Link from "next/link";
 import { SlidersHorizontal } from "lucide-react";
 import { createPublicClient } from "@/lib/supabase/public";
 import { abs } from "@/lib/site";
+import { childrenMap, descendantIds, pathTo, visibleCategories } from "@/lib/category-tree";
+import { optimised } from "@/lib/img";
 
 export type ShopParams = {
   category?: string;
@@ -29,7 +31,8 @@ export async function loadShopTaxonomy() {
     supabase.from("categories").select("*").eq("is_active", true).order("sort_order"),
     supabase.from("age_groups").select("*").order("sort_order"),
   ]);
-  return { categories: (cats ?? []) as Category[], ageGroups: (ages ?? []) as AgeGroup[] };
+  // Only what shoppers may see: a switched-off category hides everything under it.
+  return { categories: visibleCategories((cats ?? []) as Category[]), ageGroups: (ages ?? []) as AgeGroup[] };
 }
 
 /**
@@ -57,8 +60,8 @@ export default async function ShopView({ sp: rawSp, basePath }: { sp: ShopParams
     idFilter = idFilter ? new Set([...idFilter].filter((x) => next.has(x))) : next;
   };
   if (selectedCat) {
-    const childIds = categories.filter((c) => c.parent_id === selectedCat.id).map((c) => c.id);
-    const ids = [selectedCat.id, ...childIds];
+    // The category itself plus every level below it (Clothing → Girls → Frocks → …).
+    const ids = [selectedCat.id, ...descendantIds(categories, selectedCat.id)];
     const [{ data: byPrimary }, { data: byJunction }] = await Promise.all([
       supabase.from("products").select("id").in("status", ["active", "out_of_stock"]).in("category_id", ids),
       supabase.from("product_categories").select("product_id").in("category_id", ids),
@@ -72,7 +75,7 @@ export default async function ShopView({ sp: rawSp, basePath }: { sp: ShopParams
 
   let query = supabase
     .from("products")
-    .select("id, slug, name, brand, base_price, mrp, status, is_featured, is_new_arrival, alt_text, gender, images:product_images(url,alt_text,sort_order)", { count: "exact" })
+    .select("id, slug, name, brand, base_price, mrp, price_min, price_max, mrp_min, status, is_featured, is_new_arrival, alt_text, gender, images:product_images(url,alt_text,sort_order)", { count: "exact" })
     .in("status", ["active", "out_of_stock"]);
 
   if (idFilter) {
@@ -80,17 +83,18 @@ export default async function ShopView({ sp: rawSp, basePath }: { sp: ShopParams
     query = query.in("id", ids.length ? ids : [NONE]);
   }
   if (sp.gender && ["boys", "girls", "unisex"].includes(sp.gender)) query = query.eq("gender", sp.gender);
-  if (sp.min && !Number.isNaN(Number(sp.min))) query = query.gte("base_price", Number(sp.min));
-  if (sp.max && !Number.isNaN(Number(sp.max))) query = query.lte("base_price", Number(sp.max));
+  // Price filters/sort use the lowest size price (same as the "From ₹…" on the card).
+  if (sp.min && !Number.isNaN(Number(sp.min))) query = query.gte("price_min", Number(sp.min));
+  if (sp.max && !Number.isNaN(Number(sp.max))) query = query.lte("price_min", Number(sp.max));
   if (sp.featured === "1") query = query.eq("is_featured", true);
   if (sp.q) query = query.ilike("name", `%${sp.q.replace(/[%_\\]/g, "")}%`);
 
   switch (sp.sort) {
     case "price_asc":
-      query = query.order("base_price", { ascending: true });
+      query = query.order("price_min", { ascending: true });
       break;
     case "price_desc":
-      query = query.order("base_price", { ascending: false });
+      query = query.order("price_min", { ascending: false });
       break;
     case "newest":
       query = query.order("created_at", { ascending: false });
@@ -110,13 +114,19 @@ export default async function ShopView({ sp: rawSp, basePath }: { sp: ShopParams
   })) as Product[];
   const total = count ?? products.length;
 
-  const parent = selectedCat?.parent_id ? categories.find((c) => c.id === selectedCat.parent_id) : undefined;
+  // Full path: Home / Shop / Clothing / Girls / Frocks
+  const trail = selectedCat ? pathTo(categories, selectedCat.id) : [];
   const crumbs = [
     { name: "Home", href: "/" },
     { name: "Shop", href: "/shop" },
-    ...(parent ? [{ name: parent.name, href: `/category/${parent.slug}` }] : []),
-    ...(selectedCat ? [{ name: selectedCat.name, href: `/category/${selectedCat.slug}` }] : []),
+    ...trail.map((c) => ({ name: c.name, href: `/category/${c.slug}` })),
   ];
+  // Sub-category chips: this category's children; on a last-level category, its sisters.
+  const kids = childrenMap(categories);
+  const subChips = selectedCat
+    ? (kids.get(selectedCat.id)?.length ? kids.get(selectedCat.id)! : selectedCat.parent_id ? kids.get(selectedCat.parent_id) ?? [] : [])
+    : [];
+  const chipsAreSiblings = !!selectedCat && !kids.get(selectedCat.id)?.length;
   const breadcrumbLd = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
@@ -152,6 +162,41 @@ export default async function ShopView({ sp: rawSp, basePath }: { sp: ShopParams
           <p className="mt-2 text-muted text-sm">{total} product{total === 1 ? "" : "s"} found</p>
         </div>
       </div>
+
+      {subChips.length > (chipsAreSiblings ? 1 : 0) && (
+        <nav aria-label={chipsAreSiblings ? "Related categories" : `Shop ${selectedCat!.name} by type`} className="-mx-4 px-4 mb-6 overflow-x-auto no-scrollbar" data-testid="subcat-chips">
+          <ul className="flex gap-2.5 w-max">
+            {chipsAreSiblings && trail.length > 1 && (
+              <li>
+                <Link href={`/category/${trail[trail.length - 2].slug}`} className="flex items-center gap-2 rounded-full border border-navy/15 bg-white pl-1.5 pr-4 py-1.5 text-sm font-semibold text-navy hover:border-navy/40 transition-colors">
+                  <span className="grid place-items-center w-8 h-8 rounded-full bg-cream text-xs">All</span>
+                  All {trail[trail.length - 2].name}
+                </Link>
+              </li>
+            )}
+            {subChips.map((c) => {
+              const on = c.id === selectedCat!.id;
+              return (
+                <li key={c.id}>
+                  <Link
+                    href={`/category/${c.slug}`}
+                    aria-current={on ? "page" : undefined}
+                    className={`flex items-center gap-2 rounded-full border pl-1.5 pr-4 py-1.5 text-sm font-semibold whitespace-nowrap transition-colors ${on ? "bg-navy text-white border-navy" : "bg-white text-navy border-navy/15 hover:border-navy/40"}`}
+                  >
+                    {c.image_url ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={optimised(c.image_url, 96)} alt="" className="w-8 h-8 rounded-full object-cover bg-cream" loading="lazy" />
+                    ) : (
+                      <span aria-hidden="true" className={`grid place-items-center w-8 h-8 rounded-full text-xs font-bold ${on ? "bg-white/15" : "bg-cream"}`}>{c.name.trim().charAt(0).toUpperCase()}</span>
+                    )}
+                    {c.name}
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        </nav>
+      )}
 
       <div className="grid lg:grid-cols-[260px_1fr] gap-8">
         <PLPFilters categories={categories} ageGroups={ageGroups} current={sp} />

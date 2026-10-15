@@ -2,8 +2,8 @@ import { NextResponse } from "next/server";
 import { refreshSite } from "@/lib/refresh";
 import { pickEditable } from "@/lib/pick";
 import { checkAdmin } from "@/lib/admin-auth";
-import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { parentProblem } from "@/lib/category-tree";
 
 async function requireAdmin() {
   return checkAdmin("categories");
@@ -19,6 +19,12 @@ export async function POST(req: Request) {
   if (!clean.name || !String(clean.name).trim()) {
     return NextResponse.json({ ok: false, error: "Category name is required." }, { status: 400 });
   }
+
+  clean.name = String(clean.name).trim();
+  if (!clean.parent_id) clean.parent_id = null;
+  const { data: all } = await admin.from("categories").select("id, parent_id, name");
+  const bad = parentProblem(all ?? [], null, clean.parent_id);
+  if (bad) return NextResponse.json({ ok: false, error: bad }, { status: 400 });
 
   const baseSlug = String(clean.slug || "").trim();
   if (!baseSlug) {

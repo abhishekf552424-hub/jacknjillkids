@@ -15,11 +15,14 @@ export async function GET() {
   const admin = createAdminClient();
   const { data: products } = await admin
     .from("products")
-    .select("id, name, slug, description, base_price, mrp, brand, gender, product_type, hsn_code, category:categories(name), images:product_images(url,sort_order), variants:product_variants(stock_qty)")
+    .select("id, name, slug, description, base_price, mrp, price_min, mrp_min, brand, gender, product_type, hsn_code, category:categories(name), images:product_images(url,sort_order), variants:product_variants(stock_qty)")
     .eq("status", "active")
     .limit(1000);
 
   const siteUrl = SITE_URL;
+  // Lowest size price (sizes can be priced separately), with that size's MRP.
+  const priceOf = (p: any) => Number(p.price_min ?? p.base_price);
+  const mrpOf = (p: any) => Number(p.mrp_min ?? p.mrp);
   const items = (products || []).map((p: any) => {
     const img = (p.images || []).sort((a: any, b: any) => a.sort_order - b.sort_order)[0]?.url || "";
     const inStock = (p.variants || []).some((v: any) => (v.stock_qty || 0) > 0);
@@ -31,8 +34,8 @@ export async function GET() {
       <g:link>${esc(siteUrl + "/product/" + p.slug)}</g:link>
       <g:image_link>${esc(absUrl(img))}</g:image_link>
       <g:availability>${inStock ? "in_stock" : "out_of_stock"}</g:availability>
-      <g:price>${esc((Number(p.mrp) > Number(p.base_price) ? Number(p.mrp) : Number(p.base_price)).toFixed(2))} INR</g:price>${
-        Number(p.mrp) > Number(p.base_price) ? `\n      <g:sale_price>${esc(Number(p.base_price).toFixed(2))} INR</g:sale_price>` : ""
+      <g:price>${esc((mrpOf(p) > priceOf(p) ? mrpOf(p) : priceOf(p)).toFixed(2))} INR</g:price>${
+        mrpOf(p) > priceOf(p) ? `\n      <g:sale_price>${esc(priceOf(p).toFixed(2))} INR</g:sale_price>` : ""
       }
       <g:brand>${esc(p.brand || "Jack & Jill")}</g:brand>
       <g:condition>new</g:condition>

@@ -5,7 +5,7 @@ import { checkAdmin } from "@/lib/admin-auth";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { slugify } from "@/lib/utils";
-import { syncProductVariants } from "@/lib/product-variants";
+import { syncProductVariants, variantPriceProblem } from "@/lib/product-variants";
 import { notifyBackInStock } from "@/lib/back-in-stock";
 
 async function requireAdmin() {
@@ -22,6 +22,8 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
   if (Number(body.product.mrp) > 0 && Number(body.product.base_price) > Number(body.product.mrp)) {
     return NextResponse.json({ ok: false, error: "Selling price can't be more than the MRP. Please check both prices." }, { status: 400 });
   }
+  const vp = variantPriceProblem(body.product, body.variants);
+  if (vp) return NextResponse.json({ ok: false, error: vp }, { status: 400 });
   const record = {
     ...pickEditable("products", body.product),
     slug: body.product.slug || slugify(body.product.name),
@@ -44,7 +46,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
   }
   await admin.from("product_categories").delete().eq("product_id", id);
   if (body.category_ids?.length) {
-    await admin.from("product_categories").insert(body.category_ids.map((c: string) => ({ product_id: id, category_id: c })));
+    await admin.from("product_categories").insert(Array.from(new Set(body.category_ids as string[])).map((c: string) => ({ product_id: id, category_id: c })));
   }
   void notifyBackInStock(admin, id);
   refreshSite();

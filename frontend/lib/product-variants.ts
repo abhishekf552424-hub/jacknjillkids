@@ -8,7 +8,35 @@ type VariantInput = {
   sku?: string | null;
   stock_qty?: number | string | null;
   price_override?: number | string | null;
+  mrp_override?: number | string | null;
 };
+
+const num = (v: unknown) => (v === "" || v == null ? null : Number(v));
+
+/**
+ * Checks every size's own price/MRP before saving. Returns a plain-words
+ * problem, or null when all is fine. A size with no price of its own uses
+ * the product's selling price and MRP.
+ */
+export function variantPriceProblem(product: { base_price?: unknown; mrp?: unknown }, input: VariantInput[] | undefined): string | null {
+  const base = Number(product.base_price);
+  const mrp = Number(product.mrp);
+  for (const v of (input ?? []).filter((x) => x.sku || x.size || x.color)) {
+    const label = [v.size, v.color].filter(Boolean).join(" / ") || "One size";
+    const po = num(v.price_override);
+    const mo = num(v.mrp_override);
+    if (po != null && !(po > 0)) return `${label}: the price must be more than ₹0 (leave it empty to use the product price).`;
+    if (mo != null && !(mo > 0)) return `${label}: the MRP must be more than ₹0 (leave it empty to use the product MRP).`;
+    const price = po ?? base;
+    const m = mo ?? mrp;
+    if (m > 0 && price > m) {
+      return mo == null
+        ? `${label}: price ₹${price} is more than the MRP ₹${m}. Add an MRP for this size too.`
+        : `${label}: price ₹${price} is more than its MRP ₹${m}. Please check both.`;
+    }
+  }
+  return null;
+}
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -32,7 +60,8 @@ export async function syncProductVariants(admin: SupabaseClient, productId: stri
     color_hex: v.color_hex || null,
     sku: v.sku || null,
     stock_qty: Math.max(0, Math.floor(Number(v.stock_qty) || 0)),
-    price_override: v.price_override === "" || v.price_override == null ? null : Number(v.price_override),
+    price_override: num(v.price_override),
+    mrp_override: num(v.mrp_override),
   });
 
   const { data: existing, error: exErr } = await admin.from("product_variants").select("id").eq("product_id", productId);
