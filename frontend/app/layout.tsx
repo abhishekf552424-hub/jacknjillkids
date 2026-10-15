@@ -13,6 +13,7 @@ import { createPublicClient } from "@/lib/supabase/public";
 import { SITE_URL } from "@/lib/site";
 import { getTrackingSettings, getPromoPopup, getBrandSettings } from "@/lib/settings";
 import type { Category, AgeGroup, TrustBadge } from "@/lib/types";
+import { buildTree, visibleCategories } from "@/lib/category-tree";
 
 // Brand type system (approved Oct 2026, option A):
 // Fredoka = headings and hero lines (soft, rounded, kid-friendly) · Nunito = body
@@ -106,17 +107,12 @@ async function fetchGlobals() {
     supabase.from("settings").select("value").eq("key", "returns").maybeSingle(),
     supabase.from("settings").select("value").eq("key", "social").maybeSingle(),
   ]);
-  const flat = (cats ?? []) as Category[];
-  const map = new Map(flat.map((c) => [c.id, { ...c, children: [] as Category[] }]));
-  const tree: Category[] = [];
-  map.forEach((c) => {
-    if (!c.parent_id) tree.push(c);
-    else if (map.get(c.parent_id)) map.get(c.parent_id)!.children!.push(c);
-    // parent switched off in admin: its sub-categories are hidden too (not promoted to the top menu)
-  });
+  // Any depth. A switched-off category hides its whole branch (never promoted to the top menu).
+  const flat = visibleCategories((cats ?? []) as Category[]);
+  const tree = buildTree(flat) as Category[];
   return {
     categoriesFlat: flat,
-    categoriesTree: tree.sort((a, b) => a.sort_order - b.sort_order),
+    categoriesTree: tree,
     ageGroups: (ages ?? []) as AgeGroup[],
     trustBadges: (badges ?? []) as TrustBadge[],
     brand: setBrand?.value ?? { name: "Jack & Jill" },

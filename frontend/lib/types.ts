@@ -40,6 +40,7 @@ export type ProductVariant = {
   sku: string | null;
   stock_qty: number;
   price_override: number | null;
+  mrp_override?: number | null;
 };
 
 export type Product = {
@@ -53,6 +54,10 @@ export type Product = {
   brand: string | null;
   base_price: number;
   mrp: number;
+  /** Lowest / highest selling price across sizes, and the MRP shown with the lowest (kept by the database). */
+  price_min?: number | null;
+  price_max?: number | null;
+  mrp_min?: number | null;
   status: "draft" | "active" | "out_of_stock" | "archived";
   is_featured: boolean;
   is_new_arrival: boolean;

@@ -17,7 +17,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
   if (safe) {
     const { data } = await supabase
       .from("products")
-      .select("id, slug, name, brand, base_price, mrp, status, is_new_arrival, alt_text, images:product_images(url,alt_text,sort_order)")
+      .select("id, slug, name, brand, base_price, mrp, price_min, price_max, mrp_min, status, is_new_arrival, alt_text, images:product_images(url,alt_text,sort_order)")
       .in("status", ["active", "out_of_stock"])
       .or(`name.ilike.%${safe}%,description.ilike.%${safe}%`)
       .limit(24);

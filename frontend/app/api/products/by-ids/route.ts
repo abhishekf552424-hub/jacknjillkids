@@ -11,7 +11,7 @@ export async function GET(req: Request) {
   if (!ids.length) return NextResponse.json({ products: [] });
   const { data, error } = await createPublicClient()
     .from("products")
-    .select("id, slug, name, brand, base_price, mrp, status, is_featured, is_new_arrival, alt_text, images:product_images(url, alt_text, sort_order)")
+    .select("id, slug, name, brand, base_price, mrp, price_min, price_max, mrp_min, status, is_featured, is_new_arrival, alt_text, images:product_images(url, alt_text, sort_order)")
     .in("id", ids)
     .in("status", ["active", "out_of_stock"]);
   if (error) return NextResponse.json({ products: [] }, { status: 500 });

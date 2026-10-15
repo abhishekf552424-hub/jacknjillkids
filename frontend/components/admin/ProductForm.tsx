@@ -7,13 +7,18 @@ import { Trash2, Plus, Search, GripVertical, Star, Loader2 } from "lucide-react"
 import { slugify } from "@/lib/utils";
 import ImageUploader from "@/components/admin/ImageUploader";
 import { compressImage } from "@/lib/image-compress";
+import CategoryPicker from "@/components/admin/CategoryPicker";
+import { variantPriceProblem } from "@/lib/product-variants";
+import { formatINR } from "@/lib/utils";
 
-type C = { id: string; name: string; parent_id: string | null };
+type C = { id: string; name: string; parent_id: string | null; sort_order?: number | null; is_active?: boolean };
 type A = { id: string; label: string };
 type Coupon = { id: string; code: string; type: string; value: number };
 type PickProduct = { id: string; name: string; slug: string; base_price: number };
 
-type Variant = { id?: string; size: string; color: string; color_hex: string; sku: string; stock_qty: number; price_override: string };
+type Variant = { id?: string; size: string; color: string; color_hex: string; sku: string; stock_qty: number; price_override: string; mrp_override: string };
+const newVar = (v: Partial<Variant>): Variant => ({ size: "", color: "", color_hex: "", sku: "", stock_qty: 10, price_override: "", mrp_override: "", ...v });
+const str = (v: unknown) => (v == null ? "" : String(v));
 type Bundle = { child_product_id: string; child_variant_id: string; quantity: number };
 
 type ProductProps = {
@@ -116,7 +121,7 @@ export default function ProductForm({ categories, ageGroups, product, images, va
   const makeCover = (i: number) => reorderImgs(i, 0);
   const [vars, setVars] = useState<Variant[]>(
     variants.length
-      ? variants.map((v) => ({ id: v.id, size: v.size ?? "", color: v.color ?? "", color_hex: v.color_hex ?? "", sku: v.sku ?? "", stock_qty: v.stock_qty ?? 0, price_override: v.price_override ?? "" }))
+      ? variants.map((v) => ({ id: v.id, size: v.size ?? "", color: v.color ?? "", color_hex: v.color_hex ?? "", sku: v.sku ?? "", stock_qty: v.stock_qty ?? 0, price_override: str(v.price_override), mrp_override: str(v.mrp_override) }))
       : [],
   );
   const [ages, setAges] = useState<string[]>(productAges);
@@ -140,21 +145,49 @@ export default function ProductForm({ categories, ageGroups, product, images, va
     const s = newSize.trim();
     if (sizes.includes(s)) return setNewSize("");
     // if no colors yet, add plain size row; else create rows for each color
-    if (colors.length === 0) setVars([...vars, { size: s, color: "", color_hex: "", sku: "", stock_qty: 10, price_override: "" }]);
-    else setVars([...vars, ...colors.map((c) => ({ size: s, color: c.color, color_hex: c.color_hex, sku: "", stock_qty: 10, price_override: "" }))]);
+    if (colors.length === 0) setVars([...vars, newVar({ size: s })]);
+    else setVars([...vars, ...colors.map((c) => newVar({ size: s, color: c.color, color_hex: c.color_hex }))]);
     setNewSize("");
   };
   const addColor = () => {
     if (!newColor.trim()) return;
     const c = newColor.trim();
     if (colors.some((x) => x.color === c)) return setNewColor("");
-    if (sizes.length === 0) setVars([...vars, { size: "", color: c, color_hex: "", sku: "", stock_qty: 10, price_override: "" }]);
-    else setVars([...vars, ...sizes.map((s) => ({ size: s, color: c, color_hex: "", sku: "", stock_qty: 10, price_override: "" }))]);
+    // Copy each size's own price to the new colour, so "different price per size" stays filled in.
+    const priceOf = (s: string) => vars.find((v) => v.size === s) ?? newVar({});
+    if (sizes.length === 0) setVars([...vars, newVar({ color: c })]);
+    else setVars([...vars, ...sizes.map((s) => newVar({ size: s, color: c, price_override: priceOf(s).price_override, mrp_override: priceOf(s).mrp_override }))]);
     setNewColor("");
   };
   const removeSize = (s: string) => setVars(vars.filter((v) => v.size !== s));
   const removeColor = (c: string) => setVars(vars.filter((v) => v.color !== c));
   const bulkStock = (n: number) => setVars(vars.map((v) => ({ ...v, stock_qty: n })));
+
+  // ---- price per size ----
+  const [perSizePrice, setPerSizePrice] = useState(() => vars.some((v) => v.price_override !== "" || v.mrp_override !== ""));
+  // Price groups: by size when there are sizes, else by colour.
+  const groupOf = (v: Variant) => (sizes.length ? v.size : v.color) || "One size";
+  const groups = useMemo(() => Array.from(new Set(vars.map(groupOf))), [vars, sizes.length]); // eslint-disable-line react-hooks/exhaustive-deps
+  const groupValue = (g: string, k: "price_override" | "mrp_override") => {
+    const vals = Array.from(new Set(vars.filter((v) => groupOf(v) === g).map((v) => v[k])));
+    return vals.length === 1 ? vals[0] : "";
+  };
+  const setGroup = (g: string, k: "price_override" | "mrp_override", val: string) =>
+    setVars(vars.map((v) => (groupOf(v) === g ? { ...v, [k]: val } : v)));
+  const setVar = (i: number, patch: Partial<Variant>) => setVars(vars.map((y, j) => (j === i ? { ...y, ...patch } : y)));
+  const usePerSize = (on: boolean) => {
+    if (!on && vars.some((v) => v.price_override !== "" || v.mrp_override !== "")) {
+      if (!confirm("Use the same price for every size? The separate size prices will be cleared.")) return;
+      setVars(vars.map((v) => ({ ...v, price_override: "", mrp_override: "" })));
+    }
+    setPerSizePrice(on);
+  };
+  const effPrice = (v: Variant) => Number(v.price_override !== "" ? v.price_override : p.base_price) || 0;
+  const effMrp = (v: Variant) => Math.max(Number(v.mrp_override !== "" ? v.mrp_override : p.mrp) || 0, effPrice(v));
+  const priceRange = useMemo(() => {
+    const ps = vars.map(effPrice).filter((n) => n > 0);
+    return ps.length ? { min: Math.min(...ps), max: Math.max(...ps) } : null;
+  }, [vars, p.base_price]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const save = async () => {
     if (!p.name || !p.base_price || !p.mrp) return toast.error("Name, price and MRP are required");
@@ -162,6 +195,8 @@ export default function ProductForm({ categories, ageGroups, product, images, va
     if (p.product_type === "simple" && vars.length === 0) {
       return toast.error("Please set stock for this product in the Variants tab before saving — a product with no stock can't be ordered.");
     }
+    const vp = p.product_type === "simple" ? variantPriceProblem(p, vars) : null;
+    if (vp) { setTab("Variants"); return toast.error(vp); }
     setSaving(true);
     const slug = p.slug || slugify(p.name);
     const r = await fetch(`/api/admin/products${product ? `/${product.id}` : ""}`, {
@@ -230,6 +265,10 @@ export default function ProductForm({ categories, ageGroups, product, images, va
                 <Field label="Selling price ₹" type="number" value={String(p.base_price)} onChange={(v) => setP({ ...p, base_price: v })} />
                 <Field label="MRP (before discount) ₹" type="number" value={String(p.mrp)} onChange={(v) => setP({ ...p, mrp: v })} />
               </div>
+              <p className="text-xs text-neutral-500 -mt-1">This is the default price for every size. If some sizes cost more or less, set their own price in the <button type="button" onClick={() => setTab("Variants")} className="underline text-navy font-medium">Variants</button> tab.</p>
+              {priceRange && priceRange.max > priceRange.min && (
+                <p className="text-xs text-navy bg-cream rounded px-3 py-2">Sizes are priced from <b>{formatINR(priceRange.min)}</b> to <b>{formatINR(priceRange.max)}</b> — the shop shows “From {formatINR(priceRange.min)}”.</p>
+              )}
               <Field label="HSN code (for GST invoice)" value={p.hsn_code} onChange={(v) => setP({ ...p, hsn_code: v })} placeholder="e.g. 6111" />
               <Field label="Size chart link (optional)" value={p.size_chart_url} onChange={(v) => setP({ ...p, size_chart_url: v })} placeholder="https://… (image or PDF of the size chart)" />
               {p.mrp && p.base_price && Number(p.mrp) > Number(p.base_price) && (
@@ -257,12 +296,12 @@ export default function ProductForm({ categories, ageGroups, product, images, va
                           onKeyDown={(e) => {
                             if (e.key === "Enter") {
                               const n = Number((e.target as HTMLInputElement).value);
-                              if (!isNaN(n)) setVars([{ size: "One Size", color: "", color_hex: "", sku: "", stock_qty: n, price_override: "" }]);
+                              if (!isNaN(n)) setVars([newVar({ size: "One Size", stock_qty: n })]);
                             }
                           }}
                           onBlur={(e) => {
                             const n = Number(e.target.value);
-                            if (!isNaN(n) && e.target.value !== "") setVars([{ size: "One Size", color: "", color_hex: "", sku: "", stock_qty: n, price_override: "" }]);
+                            if (!isNaN(n) && e.target.value !== "") setVars([newVar({ size: "One Size", stock_qty: n })]);
                           }}
                           className="w-28 border rounded px-2 py-1.5 text-sm"
                         />
@@ -294,12 +333,62 @@ export default function ProductForm({ categories, ageGroups, product, images, va
                   </div>
 
                   {vars.length > 0 && (
+                    <div className="rounded-lg border border-gold/40 bg-cream/40 p-3 sm:p-4" data-testid="variant-pricing">
+                      <div className="text-xs uppercase tracking-widest text-navy font-bold mb-2">Price for each size</div>
+                      <div className="grid sm:grid-cols-2 gap-2" role="radiogroup" aria-label="Price for each size">
+                        <button type="button" role="radio" aria-checked={!perSizePrice} onClick={() => usePerSize(false)} className={`text-left rounded-lg border px-3 py-2.5 text-sm transition-colors ${!perSizePrice ? "border-navy bg-white ring-2 ring-navy/10" : "border-neutral-200 bg-white/60 hover:border-navy/40"}`}>
+                          <span className="block font-semibold text-navy">Same price for all sizes</span>
+                          <span className="block text-xs text-neutral-500 mt-0.5">{p.base_price ? `${formatINR(Number(p.base_price))}${Number(p.mrp) > Number(p.base_price) ? ` · MRP ${formatINR(Number(p.mrp))}` : ""} (from the Pricing tab)` : "Set it in the Pricing tab"}</span>
+                        </button>
+                        <button type="button" role="radio" aria-checked={perSizePrice} data-testid="per-size-price" onClick={() => usePerSize(true)} className={`text-left rounded-lg border px-3 py-2.5 text-sm transition-colors ${perSizePrice ? "border-navy bg-white ring-2 ring-navy/10" : "border-neutral-200 bg-white/60 hover:border-navy/40"}`}>
+                          <span className="block font-semibold text-navy">Different price per {sizes.length ? "size" : "colour"}</span>
+                          <span className="block text-xs text-neutral-500 mt-0.5">e.g. 0-6M ₹499, 2-3Y ₹699</span>
+                        </button>
+                      </div>
+
+                      {perSizePrice && (
+                        <div className="mt-3">
+                          <p className="text-xs text-neutral-500 mb-2">Leave a box empty to use the product price / MRP. {colors.length > 0 && sizes.length > 0 ? "A size's price applies to all its colours (change single rows in the table below)." : ""}</p>
+                          <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                            {groups.map((g) => {
+                              const pr = groupValue(g, "price_override");
+                              const mr = groupValue(g, "mrp_override");
+                              const sample = vars.find((v) => groupOf(v) === g)!;
+                              const off = effMrp(sample) > effPrice(sample) ? Math.round(((effMrp(sample) - effPrice(sample)) / effMrp(sample)) * 100) : 0;
+                              const bad = (Number(mr || p.mrp) > 0) && effPrice(sample) > Number(mr || p.mrp);
+                              return (
+                                <div key={g} className={`rounded-lg bg-white border px-3 py-2 ${bad ? "border-error" : "border-neutral-200"}`} data-testid={`size-price-${g}`}>
+                                  <div className="flex items-center justify-between mb-1.5">
+                                    <span className="text-sm font-bold text-navy">{g}</span>
+                                    {off > 0 && <span className="text-[10px] font-bold text-success">{off}% off</span>}
+                                  </div>
+                                  <div className="grid grid-cols-2 gap-2">
+                                    <label className="block">
+                                      <span className="text-[10px] uppercase tracking-wider text-neutral-500 font-bold">Price ₹</span>
+                                      <input type="number" min={0} inputMode="decimal" value={pr} onChange={(e) => setGroup(g, "price_override", e.target.value)} placeholder={String(p.base_price || "")} className="mt-0.5 w-full border rounded px-2 py-1.5 text-sm" />
+                                    </label>
+                                    <label className="block">
+                                      <span className="text-[10px] uppercase tracking-wider text-neutral-500 font-bold">MRP ₹</span>
+                                      <input type="number" min={0} inputMode="decimal" value={mr} onChange={(e) => setGroup(g, "mrp_override", e.target.value)} placeholder={String(p.mrp || "")} className="mt-0.5 w-full border rounded px-2 py-1.5 text-sm" />
+                                    </label>
+                                  </div>
+                                  {bad && <p className="mt-1 text-[11px] text-error">Price is above the MRP — add a higher MRP for this {sizes.length ? "size" : "colour"}.</p>}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {vars.length > 0 && (
                     <div>
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="text-xs uppercase tracking-widest text-navy font-bold">Matrix ({vars.length} combinations)</div>
+                      <div className="flex items-center justify-between mb-2 gap-2 flex-wrap">
+                        <div className="text-xs uppercase tracking-widest text-navy font-bold">All combinations ({vars.length})</div>
                         <div className="flex items-center gap-2">
-                          <input type="number" placeholder="Bulk stock" onKeyDown={(e) => { if (e.key === "Enter") { const v = Number((e.target as HTMLInputElement).value); if (!isNaN(v)) bulkStock(v); } }} className="text-xs border rounded px-2 py-1 w-24" />
-                          <span className="text-[10px] text-neutral-400">Enter \u2192 apply to all</span>
+                          <input type="number" placeholder="Stock for all" onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); const v = Number((e.target as HTMLInputElement).value); if (!isNaN(v)) bulkStock(v); } }} className="text-xs border rounded px-2 py-1 w-28" />
+                          <span className="text-[10px] text-neutral-400">Enter → apply to all</span>
                         </div>
                       </div>
                       <div className="overflow-x-auto">
@@ -307,24 +396,31 @@ export default function ProductForm({ categories, ageGroups, product, images, va
                           <thead className="bg-neutral-50 text-neutral-500 uppercase tracking-widest text-[10px]">
                             <tr>
                               <th className="text-left px-2 py-2">Size</th>
-                              <th className="text-left px-2 py-2">Color</th>
-                              <th className="text-left px-2 py-2">Hex</th>
+                              <th className="text-left px-2 py-2">Colour</th>
+                              <th className="text-left px-2 py-2">Swatch</th>
                               <th className="text-left px-2 py-2">SKU</th>
                               <th className="text-left px-2 py-2">Stock</th>
-                              <th className="text-left px-2 py-2">Price override</th>
+                              {perSizePrice && <th className="text-left px-2 py-2">Price ₹</th>}
+                              {perSizePrice && <th className="text-left px-2 py-2">MRP ₹</th>}
                               <th />
                             </tr>
                           </thead>
                           <tbody>
                             {vars.map((v, i) => (
-                              <tr key={i} className="border-t border-neutral-100">
-                                <td className="px-2 py-1"><input value={v.size} onChange={(e) => setVars(vars.map((y, j) => j === i ? { ...y, size: e.target.value } : y))} className="w-16 border rounded px-2 py-1" /></td>
-                                <td className="px-2 py-1"><input value={v.color} onChange={(e) => setVars(vars.map((y, j) => j === i ? { ...y, color: e.target.value } : y))} className="w-20 border rounded px-2 py-1" /></td>
-                                <td className="px-2 py-1"><input value={v.color_hex} onChange={(e) => setVars(vars.map((y, j) => j === i ? { ...y, color_hex: e.target.value } : y))} placeholder="#..." className="w-20 border rounded px-2 py-1" /></td>
-                                <td className="px-2 py-1"><input value={v.sku} onChange={(e) => setVars(vars.map((y, j) => j === i ? { ...y, sku: e.target.value } : y))} className="w-28 border rounded px-2 py-1" /></td>
-                                <td className="px-2 py-1"><input type="number" value={v.stock_qty} onChange={(e) => setVars(vars.map((y, j) => j === i ? { ...y, stock_qty: Number(e.target.value) } : y))} className="w-16 border rounded px-2 py-1" /></td>
-                                <td className="px-2 py-1"><input type="number" value={v.price_override} onChange={(e) => setVars(vars.map((y, j) => j === i ? { ...y, price_override: e.target.value } : y))} placeholder="\u2014" className="w-24 border rounded px-2 py-1" /></td>
-                                <td className="px-2 py-1"><button onClick={() => setVars(vars.filter((_, j) => j !== i))} className="text-error p-1"><Trash2 className="w-3.5 h-3.5" /></button></td>
+                              <tr key={v.id ?? i} className="border-t border-neutral-100">
+                                <td className="px-2 py-1"><input value={v.size} onChange={(e) => setVar(i, { size: e.target.value })} className="w-20 border rounded px-2 py-1" aria-label="Size" /></td>
+                                <td className="px-2 py-1"><input value={v.color} onChange={(e) => setVar(i, { color: e.target.value })} className="w-20 border rounded px-2 py-1" aria-label="Colour" /></td>
+                                <td className="px-2 py-1">
+                                  <span className="flex items-center gap-1">
+                                    <input type="color" value={/^#[0-9a-f]{6}$/i.test(v.color_hex) ? v.color_hex : "#ffffff"} onChange={(e) => setVar(i, { color_hex: e.target.value })} className="w-7 h-7 rounded border p-0" aria-label="Pick colour" />
+                                    <input value={v.color_hex} onChange={(e) => setVar(i, { color_hex: e.target.value })} placeholder="#…" className="w-20 border rounded px-2 py-1" aria-label="Colour code" />
+                                  </span>
+                                </td>
+                                <td className="px-2 py-1"><input value={v.sku} onChange={(e) => setVar(i, { sku: e.target.value })} placeholder="optional" className="w-28 border rounded px-2 py-1" aria-label="SKU" /></td>
+                                <td className="px-2 py-1"><input type="number" min={0} value={v.stock_qty} onChange={(e) => setVar(i, { stock_qty: Number(e.target.value) })} className="w-16 border rounded px-2 py-1" aria-label="Stock" /></td>
+                                {perSizePrice && <td className="px-2 py-1"><input type="number" min={0} value={v.price_override} onChange={(e) => setVar(i, { price_override: e.target.value })} placeholder={String(p.base_price || "")} className={`w-20 border rounded px-2 py-1 ${effPrice(v) > (Number(v.mrp_override || p.mrp) || Infinity) ? "border-error" : ""}`} aria-label="Price" /></td>}
+                                {perSizePrice && <td className="px-2 py-1"><input type="number" min={0} value={v.mrp_override} onChange={(e) => setVar(i, { mrp_override: e.target.value })} placeholder={String(p.mrp || "")} className="w-20 border rounded px-2 py-1" aria-label="MRP" /></td>}
+                                <td className="px-2 py-1"><button onClick={() => setVars(vars.filter((_, j) => j !== i))} className="text-error p-1" aria-label="Remove this combination"><Trash2 className="w-3.5 h-3.5" /></button></td>
                               </tr>
                             ))}
                           </tbody>
@@ -448,18 +544,8 @@ export default function ProductForm({ categories, ageGroups, product, images, va
 
           <div className="bg-white rounded-lg p-4 shadow-soft">
             <p className="text-xs uppercase tracking-widest text-gold-text font-bold mb-1">Categories</p>
-            <p className="text-xs text-neutral-500 mb-3">Select all categories this product should appear in — the first one selected is used as the primary category.</p>
-            <div className="flex flex-wrap gap-1.5">
-              {categories.map((c) => (
-                <button
-                  key={c.id}
-                  onClick={() => setCatIds(catIds.includes(c.id) ? catIds.filter((x) => x !== c.id) : [...catIds, c.id])}
-                  className={`text-xs px-2.5 py-1 rounded-full border ${catIds.includes(c.id) ? "bg-navy text-white border-navy" : "bg-white text-navy border-navy/10"}`}
-                >
-                  {c.name}
-                </button>
-              ))}
-            </div>
+            <p className="text-xs text-neutral-500 mb-3">Tick every category this product belongs to. The starred one is the main category.</p>
+            <CategoryPicker categories={categories} value={catIds} onChange={setCatIds} />
           </div>
 
           <div className="bg-white rounded-lg p-4 shadow-soft">

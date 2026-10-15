@@ -16,7 +16,7 @@ export type LookProduct = {
   base_price: number;
   mrp: number;
   image: string | null;
-  variants: { id: string; size: string | null; color: string | null; stock_qty: number; price_override: number | null }[];
+  variants: { id: string; size: string | null; color: string | null; stock_qty: number; price_override: number | null; mrp_override?: number | null }[];
 };
 
 const label = (v: LookProduct["variants"][number]) => [v.size, v.color].filter(Boolean).join(" / ") || "One size";
@@ -32,7 +32,7 @@ export default function ShopTheLook({ title, subtitle, config, products, tone }:
     () =>
       items.map((p) => {
         const v = p.variants.find((x) => x.id === picked[p.id]) ?? p.variants.find((x) => x.stock_qty > 0)!;
-        return { p, v, price: Number(v.price_override ?? p.base_price), mrp: Number(p.mrp) };
+        return { p, v, price: Number(v.price_override ?? p.base_price), mrp: Math.max(Number(v.mrp_override ?? p.mrp), Number(v.price_override ?? p.base_price)) };
       }),
     [items, picked],
   );
